@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="assets/grid.css">
 <style>
+  /* 스크롤바는 숨기되 스크롤은 그대로 된다 (크롬 · 사파리 · 파이어폭스) */
+  html{scrollbar-width:none;-ms-overflow-style:none}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   :root{--ink:#0b0b10;--font-ui:"Inter",-apple-system,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif}
   html,body{margin:0;min-height:100%;background:#06060a;-webkit-user-select:none;user-select:none}
   canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;}
@@ -82,6 +85,19 @@
   #introSym,#introText{position:absolute;overflow:visible}
   /* ── 커서 : 솔리드 원 하나 (difference). 누를 수 있는 곳에서는 커졌다가, 누르면 작아진다 ── */
   @media (hover:hover) and (pointer:fine){ html.cur, html.cur *{cursor:none!important} }
+  /* ── 모바일 (≤640px) : 터치 영역 · 가독성 · 구도 ── */
+  @media (max-width:640px){
+    .sym{position:relative}
+    .sym::after{content:"";position:absolute;inset:-14px -18px}                    /* 심볼 터치 영역 확대 (44px 이상) */
+    .lang>button{padding:16px 0 16px 14px;margin-right:-2px}
+    #gnb{height:calc(var(--margin) + 28px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px)}   /* 노치 · 다이내믹 아일랜드 */
+    #hero{top:clamp(0px,8dvh,72px)}
+    .langpop{mix-blend-mode:normal;background:rgba(10,12,20,.74);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:16px;padding:6px 20px;top:calc(var(--margin) + 36px + env(safe-area-inset-top,0px));right:var(--margin);box-shadow:0 12px 40px rgba(0,0,0,.28)}
+    .langpop ul{gap:0;padding:0}
+    .langpop li button{padding:14px 0;font-size:14px;opacity:.55}
+    .langpop li button:hover,.langpop li button:focus-visible,.langpop li button[aria-checked="true"]{opacity:1}
+    #heyText{font-size:clamp(26px,7.2vw,34px)}
+  }
   #cur{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:500;mix-blend-mode:difference;color:#fff;opacity:0;transition:opacity .4s ease}
   #cur.on{opacity:1}
   #cur i{position:absolute;left:0;top:0;display:block;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:currentColor;will-change:transform;transition:width .5s cubic-bezier(.16,1,.3,1),height .5s cubic-bezier(.16,1,.3,1),margin .5s cubic-bezier(.16,1,.3,1)}
@@ -1203,7 +1219,7 @@ requestAnimationFrame(t => { last = t; t0 = t; requestAnimationFrame(frame); });
 
   const place = () => {
     const vw = innerWidth, vh = innerHeight, cx = vw / 2, cy = vh / 2;
-    const k = (vw < 640 ? 46 : 60) / 246, u = 246 * k / 6, gap = vw < 640 ? 12 : 16, ts = .8, tw = 243 * k * ts, capH = tw * 27.6 / 76.7;     // 작고 단정하게 : 레일 폭 60px (모바일 46px) · 새 로고 규격 비율
+    const k = (vw < 640 ? 58 : 60) / 246, u = 246 * k / 6, gap = vw < 640 ? 14 : 16, ts = .8, tw = 243 * k * ts, capH = tw * 27.6 / 76.7;     // 작고 단정하게 : 레일 폭 60px (모바일 46px) · 새 로고 규격 비율
     const s = m.progress, ex = m.extents();
     const symCy = cy;   // LIEU 가 내려와도 심볼은 제자리 (위로 밀리지 않는다)
     symEl.style.cssText = `left:${cx - 133.5 * k}px;top:${symCy - 90 * k}px;width:${266 * k}px;height:${220 * k}px`;
