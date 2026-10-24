@@ -155,11 +155,11 @@
           if (p >= 1) st.run = { t0: null };
           return;
         }
-        const el = (now - st.run.t0) / 1000, total = timelineTotal(tl);
+        const el = (now - st.run.t0) / 1000, total = timelineTotal(tl), s0 = tl.ph.slice(0, 5).reduce((q, x) => q + x.d, 0), end = Math.max(total, s0 + tl.spin);   // s0 : 가로선이 짧아져 세로로 길어지기 직전(τ=5.9) — 도넛 회전이 이때 시작한다
         st.u = tauAt(Math.min(el, total)) / TT; st.v = 0; st.sq = 0; st.target = st.u; st.w = null;
-        st.sp = el > total ? clamp((el - total) / tl.spin) : null;               // 마지막 : 완성된 도넛이 한 바퀴 도는 듯
+        st.sp = el > s0 ? clamp((el - s0) / tl.spin) : null;               // 마지막 : 완성된 도넛이 한 바퀴 도는 듯
         draw();
-        if (el >= total + tl.spin) { st.u = st.target = 1; st.run = null; st.sp = null; draw(); cancelAnimationFrame(st.raf); st.raf = 0; }
+        if (el >= end) { st.u = st.target = 1; st.run = null; st.sp = null; draw(); cancelAnimationFrame(st.raf); st.raf = 0; }
         return;
       }
       const dt = Math.min(.05, Math.max(.001, (now - st.last) / 1000 || .016)); st.last = now;

@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LIEU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="assets/grid.css">
 <style>
   /* 스크롤바는 숨기되 스크롤은 그대로 된다 (크롬 · 사파리 · 파이어폭스) */
   html{scrollbar-width:none;-ms-overflow-style:none}
   html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
-  :root{--ink:#0b0b10;--font-ui:"Inter",-apple-system,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif}
+  :root{--ink:#0b0b10;--font-ui:"IBM Plex Sans",-apple-system,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif}
   html,body{margin:0;min-height:100%;background:#06060a;-webkit-user-select:none;user-select:none}
   canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;}
 
@@ -19,22 +19,33 @@
   /* 사진 위쪽 검정 그라데이션 (GNB 가독성 + 사진이 화면 위에서 자연스럽게 잠기도록) */
   #topShade{position:fixed;left:0;right:0;top:0;height:30vh;z-index:3;pointer-events:none;opacity:0;transition:opacity 1.8s ease .4s;
     background:linear-gradient(to bottom,rgba(6,6,10,.72) 0%,rgba(6,6,10,.5) 24%,rgba(6,6,10,.26) 52%,rgba(6,6,10,.09) 78%,rgba(6,6,10,0) 100%)}
-  /* 배경에 깔린 거대한 LIEU : 제품 뒤에서 아주 옅게 비치는 윤곽 글자 (제품 이미지가 앞을 가린다) */
-  #bgWord{position:absolute;left:-9vw;width:118vw;top:calc(min(92dvh,76vw) * .1);z-index:1;pointer-events:none;opacity:0;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%);mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%)}
+  /* 배경에 깔린 거대한 LIEU : 제품 뒤에서 아주 옅게 비치는 솔리드 글자 (제품 이미지가 앞을 가린다) */
+  #carCv{position:fixed;left:0;top:0;width:100%;height:100%;z-index:5;pointer-events:none;visibility:hidden}
+  #bgWord{position:absolute;left:11vw;width:78vw;top:calc(min(92dvh,76vw) * .16);z-index:1;pointer-events:none;opacity:0;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%);mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%)}
   #bgWord svg{display:block;width:100%;height:auto;overflow:visible}
-  #bgWord path{fill:rgba(154,190,255,.085);stroke:rgba(186,210,255,.5);stroke-width:1.4px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-  @media (max-width:640px){ #bgWord{left:-20vw;width:140vw;top:calc(min(60dvh,100vw) * .1 + 8dvh)} }
+  #bgWord path{fill:rgba(160,190,250,.11);stroke:none}   /* 윤곽선 없이 솔리드 색 면으로만 */
+  @media (max-width:640px){ #bgWord{left:5vw;width:90vw;top:calc(min(60dvh,100vw) * .12 + 24dvh)} }
   #hero{position:absolute;left:50%;top:0;height:min(92vh,76vw);height:min(92dvh,76vw);width:auto;max-width:98vw;object-fit:contain;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform-origin:50% 0}
 
   body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink)}
-  #scrollspace{height:560vh}
+  #scrollspace{height:1360vh}
   /* ── 흰 화면 장면 : 도트가 중앙에서 쫙 퍼지고 'Hey,' → 왼쪽으로 → 'I'm LIEU' ── */
   #hey{position:fixed;inset:0;z-index:4;pointer-events:none;visibility:hidden}
   #heyDots{position:absolute;inset:0}
-  #heyText{position:absolute;left:50%;top:50%;font:600 clamp(22px,2.4vw,34px)/1 var(--font-ui,-apple-system,"SF Pro Display","Pretendard",Arial,sans-serif);letter-spacing:-.03em;color:#171A18;white-space:nowrap}
+  #heyText{position:absolute;left:50%;top:50%;font:500 clamp(22px,2.4vw,34px)/1 var(--font-ui,-apple-system,"SF Pro Display","Pretendard",Arial,sans-serif);letter-spacing:-.03em;color:#171A18;white-space:nowrap}
   #heyText span{position:absolute;left:0;top:0;display:block;will-change:transform,opacity,filter}
   #heyText .im{opacity:0}
-  #heyText b{font-weight:700;color:#9ABEFF}
+  /* 스토리보드 장면 : 차가 들어올 때 뜨는 문구 · 마지막 글씨 */
+  .sbText{position:absolute;text-align:center;opacity:0;will-change:opacity,filter;font-family:var(--font-ui,-apple-system,"SF Pro Display","Pretendard",Arial,sans-serif);letter-spacing:-.03em;color:#171A18}
+  #darkWipe{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .09s linear}
+  #storyText{transition:color .09s linear}
+  #driverText,#storyText{z-index:2;word-break:keep-all;text-wrap:balance}
+  #driverText{display:none}   /* 문구는 이제 3D 지면 위에 그려진다 (car-scene.js) */
+  #driverText{left:50%;top:50%;transform:translate(-50%,-50%);font-weight:500;font-size:clamp(22px,2.4vw,34px);line-height:1.34}   /* Hey, I'm LIEU 와 같은 크기 · 굵기 */
+  #driverText b{font-weight:600;color:#9ABEFF}
+  #storyText{left:50%;top:50%;transform:translate(-50%,-50%);font-weight:500;font-size:var(--storyFs,clamp(30px,4.6vw,68px));line-height:1.29;width:96%;color:#35353b;letter-spacing:0}
+  @media (max-width:640px){ #driverText{left:50%;top:50%;font-size:clamp(26px,7.2vw,34px)} #storyText{width:98%} }
+  #heyText b{font-weight:600;color:#9ABEFF}
   #heyText .ruler{position:static;visibility:hidden;height:0;overflow:hidden}
 
   /* ── GNB : 왼쪽 심볼 · 오른쪽 언어 ── */
@@ -96,7 +107,7 @@
     .sym::after{content:"";position:absolute;inset:-14px -18px}                    /* 심볼 터치 영역 확대 (44px 이상) */
     .lang>button{padding:16px 0 16px 14px;margin-right:-2px}
     #gnb{height:calc(var(--margin) + 28px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px)}   /* 노치 · 다이내믹 아일랜드 */
-    #hero{top:clamp(0px,8dvh,72px)}
+    #hero{top:clamp(40px,24dvh,240px)}   /* 세로로 긴 화면에서 도넛이 위에 몰리지 않고 시각 중심에 오도록 */
     .langpop{mix-blend-mode:normal;background:rgba(10,12,20,.74);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:16px;padding:6px 20px;top:calc(var(--margin) + 36px + env(safe-area-inset-top,0px));right:var(--margin);box-shadow:0 12px 40px rgba(0,0,0,.28)}
     .langpop ul{gap:0;padding:0}
     .langpop li button{padding:14px 0;font-size:14px;opacity:.55}
@@ -112,6 +123,7 @@
   body:not(.ready) #gnb,body:not(.ready) .langpop{opacity:0}
   #gnb,.langpop{transition:opacity .9s ease .5s}
 </style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -138,17 +150,18 @@
   <svg id="lsSym" aria-hidden="true"></svg>
   <svg id="lsText" viewBox="8.5 90.2 76.7 27.6" aria-hidden="true"><defs><clipPath id="cL"><rect x="8" y="90.2" width="77.7" height="28"/></clipPath></defs><g clip-path="url(#cL)"><path fill="#171A18" d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748ZM40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861ZM35.6283 90.5748V116.646H30.1162V90.5748H35.6283ZM9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/></g></svg>
 </div>
-<div id="bgWord" aria-hidden="true"><svg viewBox="8.5 90.2 76.7 27.6"><path d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748ZM40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861ZM35.6283 90.5748V116.646H30.1162V90.5748H35.6283ZM9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/></svg></div>
+<div id="bgWord" aria-hidden="true"><svg viewBox="3.5 90.2 86.7 27.6"><path transform="translate(-5 0)" d="M9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/><path transform="translate(-1.7 0)" d="M35.6283 90.5748V116.646H30.1162V90.5748H35.6283Z"/><path transform="translate(1.7 0)" d="M40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861Z"/><path transform="translate(5 0)" d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748Z"/></svg></div>
 <img id="hero" src="assets/product.webp" alt="" draggable="false">
 <div id="topShade" aria-hidden="true"></div>
-<div id="hey" aria-hidden="true"><div id="heyDots"></div><div id="heyText"><span class="hey">Hey,</span><span class="im">I'm <b>LIEU</b></span></div></div>
+<canvas id="carCv" aria-hidden="true"></canvas>
+<div id="hey" aria-hidden="true"><div id="darkWipe"></div><div id="driverText" class="sbText"></div><div id="storyText" class="sbText"></div><div id="heyDots"></div><div id="heyText"><span class="hey">Hey,</span><span class="im">I'm <b>LIEU</b></span></div></div>
 <div id="scrollspace"></div>
 
 
 
 <script src="assets/grid.js?v=1792760836"></script>
 <script src="assets/ripplegrid.js?v=1792761110"></script>
-<script src="assets/lieu-morph.js?v=1792834292"></script>
+<script src="assets/lieu-morph.js?v=1792900001"></script>
 <script>
 (() => {
 'use strict';
@@ -375,18 +388,21 @@ function drawHeyDots(f, erase, tt, appear) {
     heyCtx.beginPath(); heyCtx.arc(x, y, .85 + lit * .45 + (ringIn + ringOut) * .55, 0, 6.283); heyCtx.fill();
   }
 }
+const smooth01 = t => t * t * (3 - 2 * t);
 const heyEase = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, heyOut = t => 1 - Math.pow(1 - t, 3), heySeg = (x, a, b) => clamp((x - a) / (b - a));
 /* ── 다국어 : 언어를 고르면 문구 전체가 바뀐다 (ko · en · ja · zh · es) ── */
 const I18N = {
-  ko: { hey: '안녕하세요,', im: '저는 <b>루</b>예요', home: 'LIEU — 처음으로', lang: '언어 선택' },
-  en: { hey: 'Hey,', im: "I'm <b>LIEU</b>", home: 'LIEU — back to top', lang: 'Language' },
-  ja: { hey: 'やあ、', im: '<b>LIEU</b>です', home: 'LIEU — トップへ', lang: '言語を選択' },
-  zh: { hey: '嗨，', im: '我是 <b>LIEU</b>', home: 'LIEU — 回到顶部', lang: '选择语言' },
-  es: { hey: 'Hola,', im: 'soy <b>LIEU</b>', home: 'LIEU — volver al inicio', lang: 'Idioma' }
+  ko: { drv: ["저는 로보택시를 위한", "새로운 종류의 <b>'운전자'</b>예요"], story: ['제가 어떻게 만들어졌는지', '이야기해 드릴게요'], hey: '안녕하세요,', im: '저는 <b>루</b>예요', home: 'LIEU — 처음으로', lang: '언어 선택' },
+  en: { drv: ["I'm a new kind of", "<b>'Driver'</b> for robotaxis"], story: ['Here\'s how', 'I came to be.'], hey: 'Hey,', im: "I'm <b>LIEU</b>", home: 'LIEU — back to top', lang: 'Language' },
+  ja: { drv: ['私はロボタクシーのための', '新しい種類の<b>「ドライバー」</b>です'], story: ['私がどう作られたか、', 'そのお話です'], hey: 'やあ、', im: '<b>LIEU</b>です', home: 'LIEU — トップへ', lang: '言語を選択' },
+  zh: { drv: ['我是为自动驾驶出租车打造的', '全新<b>「司机」</b>'], story: ['这是我是如何', '被创造的故事'], hey: '嗨，', im: '我是 <b>LIEU</b>', home: 'LIEU — 回到顶部', lang: '选择语言' },
+  es: { drv: ['Soy un nuevo tipo de', "<b>'conductor'</b> para robotaxis"], story: ['Esta es la historia', 'de cómo fui creado'], hey: 'Hola,', im: 'soy <b>LIEU</b>', home: 'LIEU — volver al inicio', lang: 'Idioma' }
 };
 function applyLang(code) {
   const T = I18N[code] || I18N.en;
   heyA.textContent = T.hey; heyB.innerHTML = T.im;
+  document.getElementById('driverText').innerHTML = T.drv.join('<br>'); document.getElementById('storyText').innerHTML = T.story.join('<br>');
+  window.__story = T.story; window.__drv = T.drv; if (window.CarScene) { window.CarScene.setStory(T.story); window.CarScene.setDriver(T.drv); }
   const home = document.getElementById('symLink'), lb = document.getElementById('langBtn');
   if (home) home.setAttribute('aria-label', T.home); if (lb) lb.setAttribute('aria-label', T.lang);
   heyKey = '';                                                                              // 글자 폭을 다시 잰다
@@ -398,6 +414,22 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { he
 function drawHey() {
   const nowH = performance.now(); heyDt = Math.min(.1, (nowH - heyLast) / 1000); heyLast = nowH;
   const vh = innerHeight, q = clamp((scrollY - 2.5 * vh) / (2 * vh));
+  const out = smooth01(heySeg(scrollY, 4.35 * vh, 5.0 * vh)), push = Math.min(84, vh * .12);       // 스크롤하면 Hey, I'm LIEU 가 위로 밀려 올라가며 사라진다
+  // 스토리보드 장면 진행도 : ⓪ Hey, I'm LIEU 가 완전히 사라지면 문구가 한 번에 뜬 뒤 ① 차가 우측 상단에서 중앙으로(5.5→7.9vh) ② 지붕 안쪽 장치로 줌인(7.9→9.5vh) ③ 빛이 바닥에 글씨를 비추고 위에서 내려다봄(9.5→11.2vh) ④ 글씨만 남음
+  const sc = (scrollY - 5.5 * vh) / (2.4 * vh), sz2 = (scrollY - 7.9 * vh) / (1.6 * vh), sz3 = (scrollY - 9.5 * vh) / (1.7 * vh);
+  if (window.CarScene) { const dbg = window.__carDebug; if (dbg) window.CarScene.update(dbg[0], dbg[1], dbg[2], dbg[3] == null ? 1 : dbg[3]); else window.CarScene.update(sc, sz2, sz3, smooth01(heySeg(scrollY, 4.55 * vh, 5.1 * vh))); }   // __carDebug = [c, z2, z3] : 장면을 직접 확인할 때만 쓴다
+  { const dt = document.getElementById('driverText'), st = document.getElementById('storyText'), cc = clamp(sc);
+    const dIn = smooth01(heySeg(scrollY, 4.55 * vh, 5.1 * vh)), dOut = smooth01(heySeg(cc, .4, .58)), dv = dIn * (1 - dOut);   // 차가 아직 우측 상단에 있을 때 문구가 뜨고, 차가 중앙에 가까워지면 사라진다
+    dt.style.opacity = dv.toFixed(3); dt.style.transform = `translate(-50%, calc(-50% + ${((1 - dIn) * push - dOut * 30).toFixed(1)}px))`;   // Hey, I'm LIEU 가 위로 밀려 올라가고, 다음 문구가 아래에서 밀고 올라온다
+    dt.style.filter = `blur(${((1 - dIn) * 8 + dOut * 8).toFixed(1)}px)`;
+    const sIn = smooth01(heySeg(sz3, .94, 1)); st.style.opacity = sIn.toFixed(3); st.style.filter = 'none';
+    // 글씨가 나온 뒤 조금 더 스크롤하면 스위치처럼 '탁!' 다크모드로 바뀐다 (배경과 글씨 색이 동시에)
+    const dkOn = scrollY > 11.5 * vh, dw = document.getElementById('darkWipe');
+    dw.style.background = '#06060a'; dw.style.opacity = dkOn ? 1 : 0;
+    st.style.color = dkOn ? '#F2F2F6' : '#35353b';
+    const fo = smooth01(heySeg(scrollY, 11.9 * vh, 12.5 * vh));   // 다크모드에서 더 스크롤하면 스토리 문구가 흐려지며 위로 사라진다
+    st.style.opacity = (sIn * (1 - fo)).toFixed(3); st.style.filter = fo > .001 ? `blur(${(fo * 8).toFixed(1)}px)` : 'none';
+    st.style.transform = `translate(-50%, calc(-50% - ${(fo * 30).toFixed(1)}px))`; }
   const on = scrollY > 2.3 * vh;
   if (scrollY > 2.45 * vh) { if (heyT0 == null) heyT0 = performance.now(); } else if (scrollY < 2.3 * vh) heyT0 = null;      // 흰색이 되는 순간 시간으로 바로 시작 (스크롤 속도와 무관)
   const ht = heyT0 == null ? 0 : (performance.now() - heyT0) / 1000;
@@ -410,11 +442,11 @@ function drawHey() {
   // 2) 'Hey,' 가 왼쪽으로 가고 "I'm LIEU" 가 뜬다
   const m = heyEase(heySeg(q, .46, .66));
   const xa = -m * (heyW[1] + gap) / 2, xb = (1 - m) * 0 + (heyW[0] + gap) / 2;
-  heyA.style.transform = `translate(${(xa - heyW[0] / 2).toFixed(1)}px,${((1 - a1) * 18 - fs / 2).toFixed(1)}px)`;
-  heyA.style.opacity = a1.toFixed(3); heyA.style.filter = `blur(${((1 - a1) * 10).toFixed(1)}px)`;
+  heyA.style.transform = `translate(${(xa - heyW[0] / 2).toFixed(1)}px,${((1 - a1) * 18 - fs / 2 - out * push).toFixed(1)}px)`;
+  heyA.style.opacity = (a1 * (1 - out)).toFixed(3); heyA.style.filter = `blur(${((1 - a1) * 10 + out * 8).toFixed(1)}px)`;
   const b1 = heyOut(heySeg(q, .52, .7));
-  heyB.style.transform = `translate(${(xb - heyW[1] / 2 + (1 - b1) * 24).toFixed(1)}px,${(-fs / 2).toFixed(1)}px)`;
-  heyB.style.opacity = b1.toFixed(3); heyB.style.filter = `blur(${((1 - b1) * 10).toFixed(1)}px)`;
+  heyB.style.transform = `translate(${(xb - heyW[1] / 2 + (1 - b1) * 24).toFixed(1)}px,${(-fs / 2 - out * push).toFixed(1)}px)`;
+  heyB.style.opacity = (b1 * (1 - out)).toFixed(3); heyB.style.filter = `blur(${((1 - b1) * 10 + out * 8).toFixed(1)}px)`;
   // 3) 도트는 다시 페이드아웃
   heyEr += (heyEase(heySeg(q, .6, 1)) - heyEr) * (1 - Math.exp(-heyDt * 2.4));   // 스크롤이 급해도 지워지는 속도는 늘 느긋하게 (지연 추종)
   drawHeyDots(dotF, heyEr, performance.now() / 1000, heyEase(heySeg(ht, 0, .35)));
@@ -1331,5 +1363,6 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   })();
 })();
 </script>
+<script type="module" src="assets/car-scene.js?v=38"></script>
 </body>
 </html>
