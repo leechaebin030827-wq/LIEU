@@ -427,6 +427,7 @@ function drawHey() {
     const dkOn = scrollY > 11.5 * vh, dw = document.getElementById('darkWipe');
     dw.style.background = '#06060a'; dw.style.opacity = dkOn ? 1 : 0;
     st.style.color = dkOn ? '#F2F2F6' : '#35353b';
+    dt.style.color = dkOn ? '#F2F2F6' : ''; if (window.CarScene) window.CarScene.setDark(dkOn);
     const fo = smooth01(heySeg(scrollY, 11.9 * vh, 12.5 * vh));   // 다크모드에서 더 스크롤하면 스토리 문구가 흐려지며 위로 사라진다
     st.style.opacity = (sIn * (1 - fo)).toFixed(3); st.style.filter = fo > .001 ? `blur(${(fo * 8).toFixed(1)}px)` : 'none';
     st.style.transform = `translate(-50%, calc(-50% - ${(fo * 30).toFixed(1)}px))`; }
@@ -447,8 +448,8 @@ function drawHey() {
   const b1 = heyOut(heySeg(q, .52, .7));
   heyB.style.transform = `translate(${(xb - heyW[1] / 2 + (1 - b1) * 24).toFixed(1)}px,${(-fs / 2 - out * push).toFixed(1)}px)`;
   heyB.style.opacity = (b1 * (1 - out)).toFixed(3); heyB.style.filter = `blur(${((1 - b1) * 10 + out * 8).toFixed(1)}px)`;
-  // 3) 도트는 다시 페이드아웃
-  heyEr += (heyEase(heySeg(q, .6, 1)) - heyEr) * (1 - Math.exp(-heyDt * 2.4));   // 스크롤이 급해도 지워지는 속도는 늘 느긋하게 (지연 추종)
+  // 3) 도트는 "I'm LIEU" 가 뜬 뒤에도 남아 있다가, Hey, I'm LIEU 가 위로 밀려 사라질 때 함께 페이드아웃
+  heyEr += (heyEase(heySeg(scrollY, 4.4 * vh, 5.15 * vh)) - heyEr) * (1 - Math.exp(-heyDt * 2.4));   // 스크롤이 급해도 지워지는 속도는 늘 느긋하게 (지연 추종)
   drawHeyDots(dotF, heyEr, performance.now() / 1000, heyEase(heySeg(ht, 0, .35)));
 }
 const bgWord = document.getElementById('bgWord'), topShade = document.getElementById('topShade'), heroEl = document.getElementById('hero'), wipeEl = document.getElementById('wipe');
@@ -1341,8 +1342,35 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
     on = !on; if (on) { pos = raf ? pos : scrollY; start(); } else if (!raf) start();
   });
   const abort = () => { on = false; v = 0; if (raf) { cancelAnimationFrame(raf); raf = 0; } };
+  window.__autoBusy = () => !!raf;
   addEventListener('wheel', abort, { passive: true }); addEventListener('touchstart', abort, { passive: true });
   addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) abort(); });
+})();
+/* 약한 스냅 : 스크롤을 멈추면 가까운 '장면이 완성된 지점'으로 살짝 끌려가 자리 잡는다 (멀리 있으면 그대로 두고, 휠·터치·키보드 입력이 오면 즉시 멈춘다) */
+(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const POINTS = [0, 4.2, 5.15, 7.9, 9.5, 11.2, 11.75, 12.6];       // 화면 높이 배수 : 첫 화면 · Hey · 문구 · 차 도착 · 줌인 · 스토리 · 다크 스토리 · 끝
+  const RADIUS = .32, IDLE = 170, DUR = 520;
+  let timer = 0, raf = 0, touching = false;
+  const maxY = () => document.documentElement.scrollHeight - innerHeight;
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const cancel = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } };
+  const settle = () => {
+    if (touching || raf || !document.body.classList.contains('ready') || (window.__autoBusy && window.__autoBusy())) return;
+    const vh = innerHeight, y = scrollY; let best = null, bd = RADIUS * vh;
+    for (const k of POINTS) { const t = Math.min(k * vh, maxY()), d = Math.abs(t - y); if (d < bd && d > 1) { bd = d; best = t; } }
+    if (best == null) return;
+    const y0 = y, t0 = performance.now();
+    const go = now => { const p = Math.min(1, (now - t0) / DUR); scrollTo(0, y0 + (best - y0) * ease(p)); if (p < 1) raf = requestAnimationFrame(go); else raf = 0; };
+    raf = requestAnimationFrame(go);
+  };
+  const arm = () => { clearTimeout(timer); timer = setTimeout(settle, IDLE); };
+  addEventListener('scroll', () => { if (!raf) arm(); }, { passive: true });
+  const stop = () => { cancel(); clearTimeout(timer); };
+  addEventListener('wheel', stop, { passive: true });
+  addEventListener('touchstart', () => { touching = true; stop(); }, { passive: true });
+  addEventListener('touchend', () => { touching = false; arm(); }, { passive: true });
+  addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', 'Space'].includes(e.key) || e.code === 'Space') stop(); });
 })();
 /* 커서 */
 (() => {
@@ -1363,6 +1391,6 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   })();
 })();
 </script>
-<script type="module" src="assets/car-scene.js?v=38"></script>
+<script type="module" src="assets/car-scene.js?v=40"></script>
 </body>
 </html>

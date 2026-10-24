@@ -42,6 +42,7 @@ if (cv) {
   });
   material.extensions = { derivatives: true };
 
+  let dark = false;
   let model = null, W = 0, H = 0, roofY = .28, floorY = -.17, kkG = 1, storyFont = 124;
   const P = { c: 0, z2: 0, z3: 0, d: 0 };
   let groundY = -.34;
@@ -75,7 +76,7 @@ if (cv) {
   };
   const drawStory = lines => {
     const cvs = document.createElement('canvas'); cvs.width = 1400; cvs.height = 790; const x = cvs.getContext('2d'), fam = storyFam();
-    x.clearRect(0, 0, cvs.width, cvs.height); x.fillStyle = '#35353b'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    x.clearRect(0, 0, cvs.width, cvs.height); x.fillStyle = dark ? '#F2F2F6' : '#35353b'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
     const ls = (lines && lines.length ? lines : ["Here's how", 'I came to be.']);
     let fs = 124; x.font = `500 ${fs}px ${fam}`; const mw = Math.max(...ls.map(t => x.measureText(t).width)); if (mw > 1300) fs = Math.floor(124 * 1300 / mw); storyFont = fs; x.font = `500 ${fs}px ${fam}`;
     const lh = fs * 1.29, off = baselineOff(fs, fam);
@@ -98,7 +99,7 @@ if (cv) {
     drvFs = fs; drvCW = 2000; drvCH = Math.ceil(ls.length * fs * 1.34 + 60); cvs.width = drvCW; cvs.height = drvCH;
     x.clearRect(0, 0, drvCW, drvCH); x.textBaseline = 'middle'; x.textAlign = 'left';
     runs.forEach((r, i) => { let px = (drvCW - width(fs, r)) / 2; const y = drvCH / 2 + (i - (ls.length - 1) / 2) * fs * 1.34;
-      r.forEach(q => { x.font = `${q.b ? 600 : 500} ${fs}px ${fam}`; x.fillStyle = q.b ? '#9ABEFF' : '#171A18'; x.fillText(q.t, px, y); px += x.measureText(q.t).width; }); });
+      r.forEach(q => { x.font = `${q.b ? 600 : 500} ${fs}px ${fam}`; x.fillStyle = q.b ? '#9ABEFF' : (dark ? '#F2F2F6' : '#171A18'); x.fillText(q.t, px, y); px += x.measureText(q.t).width; }); });
     const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; if (drvMat.map) drvMat.map.dispose(); drvMat.map = tex; drvMat.needsUpdate = true;
   };
   drawDriver(window.__drv);
@@ -189,7 +190,16 @@ if (cv) {
     drvMat.opacity = smooth(d) * (1 - smooth(seg(c, .38, .72)));
     renderer.render(scene, camera);
   };
+  // 다크모드 : 배경이 어두워지면 글씨 · 장치 · 차 선의 색을 밝게 바꾼다 (스위치처럼 한 번에)
+  const applyDark = () => {
+    const u = material.uniforms, d = devMat.uniforms;
+    u.uColA.value.set(dark ? '#EDEDF2' : '#D8D8D8'); u.uColB.value.set(dark ? '#9A9AA6' : '#8C8C8C'); u.uBase.value = dark ? .03 : .02; u.uRim.value = dark ? .6 : .36; u.uLine.value = dark ? .75 : .5;
+    d.uColA.value.set(dark ? '#F4F4FA' : '#6A6A72'); d.uColB.value.set(dark ? '#A9A9B6' : '#1A1A1E'); d.uBase.value = dark ? .12 : .16; d.uRim.value = dark ? .75 : .8; d.uLine.value = dark ? .9 : .85;
+    coneMat.uniforms.uCol.value.set(dark ? '#D8D8E4' : '#B9B9C0');
+    drawStory(window.__story); drawDriver(window.__drv);
+  };
   window.CarScene = {
+    setDark(v) { v = !!v; if (v === dark) return; dark = v; applyDark(); render(); },
     set(c) { P.c = clamp(c); render(); },
     update(c, z2, z3, d) { P.c = clamp(c); P.z2 = clamp(z2); P.z3 = clamp(z3); P.d = clamp(d || 0); render(); },
     setDriver(lines) { window.__drv = lines; drawDriver(lines); render(); },
