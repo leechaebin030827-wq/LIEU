@@ -19,6 +19,11 @@
   /* 사진 위쪽 검정 그라데이션 (GNB 가독성 + 사진이 화면 위에서 자연스럽게 잠기도록) */
   #topShade{position:fixed;left:0;right:0;top:0;height:30vh;z-index:3;pointer-events:none;opacity:0;transition:opacity 1.8s ease .4s;
     background:linear-gradient(to bottom,rgba(6,6,10,.72) 0%,rgba(6,6,10,.5) 24%,rgba(6,6,10,.26) 52%,rgba(6,6,10,.09) 78%,rgba(6,6,10,0) 100%)}
+  /* 배경에 깔린 거대한 LIEU : 제품 뒤에서 아주 옅게 비치는 윤곽 글자 (제품 이미지가 앞을 가린다) */
+  #bgWord{position:absolute;left:-9vw;width:118vw;top:calc(min(92dvh,76vw) * .1);z-index:1;pointer-events:none;opacity:0;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%);mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%)}
+  #bgWord svg{display:block;width:100%;height:auto;overflow:visible}
+  #bgWord path{fill:rgba(154,190,255,.085);stroke:rgba(186,210,255,.5);stroke-width:1.4px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+  @media (max-width:640px){ #bgWord{left:-20vw;width:140vw;top:calc(min(60dvh,100vw) * .1 + 8dvh)} }
   #hero{position:absolute;left:50%;top:0;height:min(92vh,76vw);height:min(92dvh,76vw);width:auto;max-width:98vw;object-fit:contain;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform-origin:50% 0}
 
   body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink)}
@@ -133,6 +138,7 @@
   <svg id="lsSym" aria-hidden="true"></svg>
   <svg id="lsText" viewBox="8.5 90.2 76.7 27.6" aria-hidden="true"><defs><clipPath id="cL"><rect x="8" y="90.2" width="77.7" height="28"/></clipPath></defs><g clip-path="url(#cL)"><path fill="#171A18" d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748ZM40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861ZM35.6283 90.5748V116.646H30.1162V90.5748H35.6283ZM9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/></g></svg>
 </div>
+<div id="bgWord" aria-hidden="true"><svg viewBox="8.5 90.2 76.7 27.6"><path d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748ZM40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861ZM35.6283 90.5748V116.646H30.1162V90.5748H35.6283ZM9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/></svg></div>
 <img id="hero" src="assets/product.webp" alt="" draggable="false">
 <div id="topShade" aria-hidden="true"></div>
 <div id="hey" aria-hidden="true"><div id="heyDots"></div><div id="heyText"><span class="hey">Hey,</span><span class="im">I'm <b>LIEU</b></span></div></div>
@@ -413,7 +419,7 @@ function drawHey() {
   heyEr += (heyEase(heySeg(q, .6, 1)) - heyEr) * (1 - Math.exp(-heyDt * 2.4));   // 스크롤이 급해도 지워지는 속도는 늘 느긋하게 (지연 추종)
   drawHeyDots(dotF, heyEr, performance.now() / 1000, heyEase(heySeg(ht, 0, .35)));
 }
-const topShade = document.getElementById('topShade'), heroEl = document.getElementById('hero'), wipeEl = document.getElementById('wipe');
+const bgWord = document.getElementById('bgWord'), topShade = document.getElementById('topShade'), heroEl = document.getElementById('hero'), wipeEl = document.getElementById('wipe');
 let wipeWp = 0, lightS = 0, cur = 0, t0 = 0, last = 0, tm = 0, phase = 0;
 let fade = 1, fadeTarget = 1, pending = -1, freezeAt = null;
 let fired = [], ripples = [], punches = [], dust = [];
@@ -1186,6 +1192,7 @@ function frame(now) {
   if (hmask !== window.__hmask) { window.__hmask = hmask; heroEl.style.webkitMaskImage = hmask; heroEl.style.maskImage = hmask; }
   heroEl.style.opacity = (rvl > 0 ? 1 : 0) * clamp(1 - scrollY / (innerHeight * .9));
   if (topShade) { topShade.style.opacity = ht > 0 ? clamp(1 - scrollY / (innerHeight * .9)) : 0; if (ht > 2.4 && topShade.style.transition !== 'none') topShade.style.transition = 'none'; }   // 사진과 함께 사라진다
+  if (bgWord) bgWord.style.opacity = (Ease.inOutSine(prog(ht, .5, 2.8)) * clamp(1 - scrollY / (innerHeight * .8))).toFixed(3);   // 사진과 함께 서서히 나타나고, 스크롤하면 같이 사라진다
   heroEl.style.transform = 'translate(-50%, 0)';          // 이미지는 고정 (페이드 인만)
   if (SHOW_SCENE) drawScene(dt);
   drawHey();
@@ -1224,7 +1231,7 @@ requestAnimationFrame(t => { last = t; t0 = t; requestAnimationFrame(frame); });
     const symCy = cy;   // LIEU 가 내려와도 심볼은 제자리 (위로 밀리지 않는다)
     symEl.style.cssText = `left:${cx - 133.5 * k}px;top:${symCy - 90 * k}px;width:${266 * k}px;height:${220 * k}px`;
     txtEl.style.cssText = `left:${cx - tw / 2}px;top:${symCy + ex.bottom * k + gap}px;width:${tw}px;height:${capH}px`;
-    txtA = m.pole;                                                       // LIEU : 세로선과 똑같이 움직인다 (시작·끝 · 속도 모두) — 세로선이 ease in-out
+    { const x = clamp((m.pole - .32) / .68); txtA = x * x * (3 - 2 * x); }   // LIEU : 세로선이 32% 자란 뒤에 내려오기 시작해, 세로선이 다 자랄 때 함께 도착한다 (조금 늦게)
     const a = txtA;
     letters.forEach(el => el.setAttribute('transform', `translate(0 ${(-(1 - a) * 27.6).toFixed(2)})`)); txtEl.style.opacity = Math.min(1, a * 2.2).toFixed(3);   // 네 글자가 한 번에 위에서 아래로, 스르르
     return s;
