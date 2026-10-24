@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LIEU — Symbol Morph</title>
+<style>
+  html,body{margin:0;height:100%;background:#F7F8F5;color:#171A18}
+  main{min-height:100vh;display:grid;place-items:center;padding-left:300px;box-sizing:border-box}
+  #sym{width:min(56vmin,520px);height:auto;aspect-ratio:266/220;overflow:visible;display:block;cursor:pointer}
+  #scrub{position:fixed;left:calc(50% + 150px);bottom:40px;width:min(320px,50vw);transform:translateX(-50%);-webkit-appearance:none;appearance:none;height:20px;background:transparent;cursor:ew-resize}
+  #scrub::-webkit-slider-runnable-track{height:1px;background:rgba(23,26,24,.25)}
+  #scrub::-moz-range-track{height:1px;background:rgba(23,26,24,.25)}
+  #scrub::-webkit-slider-thumb{-webkit-appearance:none;width:9px;height:9px;border-radius:50%;background:#171A18;margin-top:-4px}
+  #scrub::-moz-range-thumb{width:9px;height:9px;border:0;border-radius:50%;background:#171A18}
+  #scrub:focus-visible{outline:1px solid #171A18;outline-offset:6px}
+  /* 구간별 모션 편집기 */
+  #ed{position:fixed;left:0;top:0;bottom:0;width:288px;overflow-y:auto;background:#F7F8F5;border-right:1px solid rgba(23,26,24,.1);padding:16px 16px 40px;box-sizing:border-box;font:500 11px/1.4 -apple-system,"SF Pro Text",Pretendard,Arial,sans-serif;letter-spacing:.03em;user-select:none}
+  #ed h1{font:600 12px/1 inherit;margin:0 0 4px;letter-spacing:.08em}
+  #ed .cap{opacity:.5;margin:0 0 12px}
+  #ed .bar{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+  #ed button{all:unset;cursor:pointer;padding:3px 0;border-bottom:1px solid rgba(23,26,24,.4)}
+  .ph{padding:10px 0 12px;border-top:1px solid rgba(23,26,24,.1);opacity:.55;transition:opacity .2s}
+  .ph.on{opacity:1}
+  .ph .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .ph .top b{font-weight:600}
+  .ph svg{display:block;width:100%;height:auto;background:rgba(23,26,24,.035);touch-action:none}
+  .ph .row{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .ph .row input{flex:1;accent-color:#171A18}
+  .ph code{font:500 10px ui-monospace,Menlo,monospace;opacity:.65}
+</style>
+</head>
+<body>
+<main><svg id="sym" role="img" aria-label="LIEU symbol"></svg></main>
+<input id="scrub" type="range" min="0" max="1" step="0.0005" value="0" aria-label="morph progress">
+<div id="ed" aria-label="구간별 모션 편집기">
+  <h1>MOTION</h1>
+  <p class="cap">구간마다 시간과 속도 곡선을 따로 조정 · 점을 끌어서 바꿉니다 (자동 저장 → index.html 에도 적용)</p>
+  <div class="bar"><button id="rep">▶ 재생</button><button id="rst">기본값</button><span id="tot"></span></div>
+  <div id="rows"></div>
+  <div class="ph"><div class="top"><b>회전 (완성 후)</b><code id="spv"></code></div><div class="row"><input id="sp" type="range" min=".4" max="3.5" step=".05"></div></div>
+</div>
+<script src="assets/lieu-morph.js?v=1792834292"></script>
+<script>
+  const sym = document.getElementById('sym'), scrub = document.getElementById('scrub');
+  const LM = LieuMorph;
+  let TL = LM.loadTimeline();
+  const m = LM.create(sym, { timeline: TL });
+  const save = () => { try { localStorage.setItem('lieu-timeline', JSON.stringify(TL)); } catch (e) {} m.setTimeline(TL); tot(); };
+  m.play(500);
+  sym.addEventListener('click', () => m.replay());
+  addEventListener('keydown', e => { if (e.key === ' ' && e.target === document.body) { e.preventDefault(); m.replay(); } });
+  scrub.addEventListener('input', () => { m.stop(); m.setProgress(+scrub.value); });
+
+  /* ── 편집기 ── */
+  const NS = 'http://www.w3.org/2000/svg', rows = document.getElementById('rows'), P = 20, W = 248, S = W - P * 2;
+  const px = x => P + x * S, py = y => W - P - y * S;
+  const els = [];
+  const tot = () => { document.getElementById('tot').textContent = '총 ' + (LM.timelineTotal(TL) + TL.spin).toFixed(1) + 's'; document.getElementById('sp').value = TL.spin; document.getElementById('spv').textContent = TL.spin.toFixed(2) + 's'; };
+  const build = () => {
+    rows.innerHTML = ''; els.length = 0;
+    TL.ph.forEach((ph, i) => {
+      const box = document.createElement('div'); box.className = 'ph';
+      box.innerHTML = `<div class="top"><b>${i + 1}. ${ph.n}</b><code class="v"></code></div>
+        <svg viewBox="0 0 ${W} ${W}" aria-label="${ph.n} 속도 곡선"><rect x="${P}" y="${P}" width="${S}" height="${S}" fill="none" stroke="rgba(23,26,24,.16)"/><path d="M${px(0)} ${py(0)}L${px(1)} ${py(1)}" stroke="rgba(23,26,24,.14)" stroke-dasharray="3 3" fill="none"/>
+        <line class="l1" stroke="rgba(23,26,24,.45)"/><line class="l2" stroke="rgba(23,26,24,.45)"/><path class="cv" fill="none" stroke="#171A18" stroke-width="1.6"/>
+        <circle class="h1" r="6" fill="#F7F8F5" stroke="#171A18" stroke-width="1.5" style="cursor:grab"/><circle class="h2" r="6" fill="#F7F8F5" stroke="#171A18" stroke-width="1.5" style="cursor:grab"/><circle class="pb" r="3" fill="#171A18"/></svg>
+        <div class="row"><span>시간</span><input type="range" min=".1" max="3.5" step=".05"><code class="dv"></code></div>`;
+      rows.appendChild(box);
+      const svg = box.querySelector('svg'), q = c => box.querySelector(c), rg = box.querySelector('input');
+      const draw = () => {
+        const [x1, y1, x2, y2] = ph.p;
+        q('.cv').setAttribute('d', `M${px(0)} ${py(0)}C${px(x1)} ${py(y1)} ${px(x2)} ${py(y2)} ${px(1)} ${py(1)}`);
+        [['.l1', 0, 0, x1, y1], ['.l2', 1, 1, x2, y2]].forEach(([c, ax, ay, bx, by]) => { const l = q(c); l.setAttribute('x1', px(ax)); l.setAttribute('y1', py(ay)); l.setAttribute('x2', px(bx)); l.setAttribute('y2', py(by)); });
+        q('.h1').setAttribute('cx', px(x1)); q('.h1').setAttribute('cy', py(y1)); q('.h2').setAttribute('cx', px(x2)); q('.h2').setAttribute('cy', py(y2));
+        q('.v').textContent = `(${ph.p.map(v => v.toFixed(2)).join(', ')})`; q('.dv').textContent = ph.d.toFixed(2) + 's'; rg.value = ph.d;
+      };
+      let drag = null;
+      svg.addEventListener('pointerdown', e => { const c = e.target.getAttribute('class'); if (c === 'h1' || c === 'h2') { drag = c; svg.setPointerCapture(e.pointerId); } });
+      svg.addEventListener('pointermove', e => {
+        if (!drag) return; const r = svg.getBoundingClientRect(), k = W / r.width;
+        const x = Math.min(1, Math.max(0, ((e.clientX - r.left) * k - P) / S)), y = Math.min(1.5, Math.max(-.5, (W - P - (e.clientY - r.top) * k) / S));
+        if (drag === 'h1') { ph.p[0] = x; ph.p[1] = y; } else { ph.p[2] = x; ph.p[3] = y; } draw(); save();
+      });
+      const up = () => { if (drag) { drag = null; m.replay(); } }; svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+      rg.addEventListener('input', () => { ph.d = +rg.value; draw(); save(); }); rg.addEventListener('change', () => m.replay());
+      draw(); els.push({ box, pb: q('.pb'), ph, i });
+    });
+    tot();
+  };
+  // 재생 중인 구간 강조 + 곡선 위 현재 위치 점
+  const hi = () => {
+    const tau = m.progress * LM.TT; let idx = LM.PHASE_TAU.findIndex((t, i) => i < LM.PHASE_TAU.length - 1 && tau >= t && tau < LM.PHASE_TAU[i + 1]); if (idx < 0) idx = LM.PHASE_TAU.length - 2;
+    els.forEach(({ box, pb, ph, i }) => {
+      box.classList.toggle('on', i === idx);
+      if (i === idx) { const x = (tau - LM.PHASE_TAU[i]) / (LM.PHASE_TAU[i + 1] - LM.PHASE_TAU[i]); const f = LM.bezier(...ph.p); let lo = 0, hh = 1; for (let k = 0; k < 18; k++) { const mid = (lo + hh) / 2; if (f(mid) < x) lo = mid; else hh = mid; } pb.setAttribute('cx', px((lo + hh) / 2)); pb.setAttribute('cy', py(Math.min(1, Math.max(0, x)))); pb.style.display = ''; } else pb.style.display = 'none';
+    });
+  };
+  document.getElementById('sp').addEventListener('input', e => { TL.spin = +e.target.value; tot(); save(); });
+  document.getElementById('sp').addEventListener('change', () => m.replay());
+  document.getElementById('rep').addEventListener('click', () => m.replay());
+  document.getElementById('rst').addEventListener('click', () => { TL = LM.copyTL(LM.DEFAULT_TL); build(); save(); m.replay(); });
+  build();
+  (function loop() { if (document.activeElement !== scrub) scrub.value = Math.min(1, Math.max(0, m.progress)); hi(); requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>

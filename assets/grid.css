@@ -1,0 +1,117 @@
+/* ───────────────────────────────────────────────────────────────
+   LIEU · GRID & TOKEN SYSTEM  v1
+   - 8pt 기반 · 유동(fluid) 12컬럼 · 4 / 8 / 12 컬럼 3단 구조
+   - 모든 값은 CSS 변수. 모션·스크롤 연출도 같은 토큰을 쓴다.
+   ─────────────────────────────────────────────────────────────── */
+
+:root {
+  /* 1. 단위 ---------------------------------------------------- */
+  --u: 8px;                                   /* 기본 단위 (모든 간격은 4의 배수, 가급적 8의 배수) */
+
+  /* 2. 그리드 (모바일 기본) ------------------------------------ */
+  --cols: 4;
+  --margin: clamp(20px, 5.2vw, 32px);         /* 좌우 여백 */
+  --gutter: clamp(12px, 3vw, 16px);           /* 컬럼 사이 */
+  --maxw: 1680px;                             /* 콘텐츠 최대 폭 — 이보다 넓으면 양옆이 늘어남 */
+  --content: min(100% - 2 * var(--margin), var(--maxw));
+  --col: calc((var(--content) - (var(--cols) - 1) * var(--gutter)) / var(--cols));  /* 컬럼 1개 폭 */
+
+  /* 3. 간격 스케일 (8pt, 약 1.5배씩) ---------------------------- */
+  --s-1: 4px;   --s-2: 8px;    --s-3: 12px;   --s-4: 16px;
+  --s-5: 24px;  --s-6: 32px;   --s-7: 48px;   --s-8: 64px;
+  --s-9: 96px;  --s-10: 128px; --s-11: 192px; --s-12: 256px;
+  --section: clamp(96px, 14vw, 240px);        /* 섹션 위아래 패딩 */
+
+  /* 4. 타입 스케일 (유동, 최소~최대) ---------------------------- */
+  --t-display: clamp(52px, 9.2vw, 168px);     /* 히어로 한 줄 */
+  --t-h1:      clamp(40px, 6vw, 104px);
+  --t-h2:      clamp(30px, 3.8vw, 64px);
+  --t-h3:      clamp(22px, 2.2vw, 36px);
+  --t-body-l:  clamp(18px, 1.5vw, 24px);
+  --t-body:    clamp(15px, 1.1vw, 18px);
+  --t-caption: clamp(11px, .8vw, 13px);
+  --lh-tight: 1.02; --lh-head: 1.12; --lh-body: 1.55;   /* 행간 */
+  --track-display: -.035em; --track-head: -.02em; --track-caption: .08em;
+
+  /* 5. 레이어 (z-index) ----------------------------------------- */
+  --z-bg: 0;  --z-aurora: 0;  --z-wipe: 1;  --z-hero: 2;
+  --z-content: 10;  --z-nav: 50;  --z-cursor: 90;  --z-overlay: 9999;
+
+  /* 6. 모션 토큰 ------------------------------------------------- */
+  --ease-out:    cubic-bezier(.16, 1, .3, 1);       /* 등장 · 반응 */
+  --ease-inout:  cubic-bezier(.65, 0, .35, 1);      /* 전환 */
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);   /* 마이크로 인터랙션 */
+  --d-instant: 120ms; --d-fast: 240ms; --d-base: 480ms; --d-slow: 900ms; --d-cinema: 1600ms;
+
+  /* 7. 스크롤 연출 길이 (beat = 화면 높이 100svh) ----------------- */
+  --beat: 100svh;
+  --scroll-hero-wipe: 2.6;   /* 다크 → 화이트 전환에 쓰는 스크롤 거리 (beat) */
+
+  /* 8. 색 — 아주 적게. 흑·백·회청 + 라임 한 점 ------------------------ */
+  --ink: #171A18;  --ink-2: #727772;  --paper: #F7F8F5;  --dark: #06060A;  --dark-2: #171C2B;
+  --blue: #8FAAD5;  --lime: #D4F36B;
+  --line: rgba(255,255,255,.14);  --line-light: rgba(23,26,24,.12);
+  --paper-2: #EEF0EA;  --accent: #8FAAD5;  --accent-2: #B6C6E3;  --accent-3: #E6EDF8;
+
+  /* 9. 컴포넌트 규칙 (미니멀) ---------------------------------- */
+  --r: 0px;                 /* 모서리: 기본은 각지게. 둥글게는 정말 필요한 곳만 */
+  --stroke: 1.7px;          /* 아이콘·로고 선 굵기 (화면에서 항상 동일) */
+  --hair: 1px;              /* 구분선 */
+  --label: 12px;            /* UI 라벨 크기 · 자간 .06–.14em · 대문자 */
+}
+
+/* 브레이크포인트 ──────────────────────────────────────────────
+   sm  <  640   : 4 컬럼
+   md  640–1023 : 8 컬럼
+   lg  1024–1439: 12 컬럼
+   xl  ≥ 1440   : 12 컬럼 (여백·거터 확대)                       */
+@media (min-width: 640px)  { :root { --cols: 8;  --margin: clamp(32px, 4.4vw, 48px); --gutter: 16px; } }
+@media (min-width: 1024px) { :root { --cols: 12; --margin: clamp(40px, 4vw, 64px);    --gutter: 20px; } }
+@media (min-width: 1440px) { :root { --cols: 12; --margin: clamp(56px, 4.4vw, 88px);  --gutter: 24px; } }
+
+/* 레이아웃 기본기 ───────────────────────────────────────────── */
+.container { width: var(--content); margin-inline: auto; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+.section { padding-block: var(--section); position: relative; z-index: var(--z-content); }
+.full-bleed { width: 100%; }
+.bleed-left  { margin-left:  calc(-1 * var(--margin)); }
+.bleed-right { margin-right: calc(-1 * var(--margin)); }
+
+/* 스팬/오프셋 : 변수 방식 (--span, --start) → 스팬과 시작 위치를 함께 써도 충돌하지 않는다.
+   모바일 .m* / .ms*, 태블릿 .t* / .ts*, 데스크톱 .c* / .s*                                   */
+.grid > * { grid-column: var(--start, auto) / span var(--span, var(--cols)); }
+.m1{--span:1}.m2{--span:2}.m3{--span:3}.m4{--span:4}
+.ms1{--start:1}.ms2{--start:2}.ms3{--start:3}.ms4{--start:4}
+@media (min-width: 640px) {
+  .t1{--span:1}.t2{--span:2}.t3{--span:3}.t4{--span:4}.t5{--span:5}.t6{--span:6}.t7{--span:7}.t8{--span:8}
+  .ts1{--start:1}.ts2{--start:2}.ts3{--start:3}.ts4{--start:4}.ts5{--start:5}.ts6{--start:6}.ts7{--start:7}.ts8{--start:8}
+}
+@media (min-width: 1024px) {
+  .c1{--span:1}.c2{--span:2}.c3{--span:3}.c4{--span:4}.c5{--span:5}.c6{--span:6}.c7{--span:7}.c8{--span:8}.c9{--span:9}.c10{--span:10}.c11{--span:11}.c12{--span:12}
+  .s1{--start:1}.s2{--start:2}.s3{--start:3}.s4{--start:4}.s5{--start:5}.s6{--start:6}.s7{--start:7}.s8{--start:8}.s9{--start:9}.s10{--start:10}.s11{--start:11}.s12{--start:12}
+}
+
+/* 타입 유틸 ──────────────────────────────────────────────────── */
+.t-display { font-size: var(--t-display); line-height: var(--lh-tight); letter-spacing: var(--track-display); font-weight: 600; }
+.t-h1 { font-size: var(--t-h1); line-height: var(--lh-tight); letter-spacing: var(--track-display); font-weight: 600; }
+.t-h2 { font-size: var(--t-h2); line-height: var(--lh-head);  letter-spacing: var(--track-head);    font-weight: 600; }
+.t-h3 { font-size: var(--t-h3); line-height: var(--lh-head);  letter-spacing: var(--track-head);    font-weight: 500; }
+.t-body-l { font-size: var(--t-body-l); line-height: var(--lh-body); }
+.t-body { font-size: var(--t-body); line-height: var(--lh-body); }
+.t-caption { font-size: var(--t-caption); line-height: 1.4; letter-spacing: var(--track-caption); text-transform: uppercase; }
+
+/* 그리드 오버레이 (G 키) — 화면에 UI 가 없는 대신 개발·디자인 검수용 ------------------- */
+#grid-overlay { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-overlay); opacity: 0; transition: opacity var(--d-fast) var(--ease-out); }
+#grid-overlay.on { opacity: 1; }
+#grid-overlay .cols { height: 100%; }
+#grid-overlay .cols > i { grid-column: auto; }
+#grid-overlay .cols > i { background: rgba(255, 70, 110, .09); outline: 1px solid rgba(255, 70, 110, .35); outline-offset: -1px; }
+#grid-overlay .base {
+  position: absolute; inset: 0; display: none;
+  background-image: repeating-linear-gradient(to bottom, rgba(70, 140, 255, .28) 0 1px, transparent 1px var(--u));
+}
+#grid-overlay.base-on .base { display: block; }

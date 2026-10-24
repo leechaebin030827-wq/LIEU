@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LIEU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/grid.css">
+<style>
+  :root{--ink:#0b0b10;--font-ui:"Inter",-apple-system,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif}
+  html,body{margin:0;min-height:100%;background:#06060a;-webkit-user-select:none;user-select:none}
+  canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;}
+
+  #wipe{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1}
+  /* 사진 위쪽 검정 그라데이션 (GNB 가독성 + 사진이 화면 위에서 자연스럽게 잠기도록) */
+  #topShade{position:fixed;left:0;right:0;top:0;height:30vh;z-index:3;pointer-events:none;opacity:0;transition:opacity 1.8s ease .4s;
+    background:linear-gradient(to bottom,rgba(6,6,10,.72) 0%,rgba(6,6,10,.5) 24%,rgba(6,6,10,.26) 52%,rgba(6,6,10,.09) 78%,rgba(6,6,10,0) 100%)}
+  #hero{position:absolute;left:50%;top:0;height:min(92vh,76vw);height:min(92dvh,76vw);width:auto;max-width:98vw;object-fit:contain;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform-origin:50% 0}
+
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink)}
+  #scrollspace{height:560vh}
+  /* ── 흰 화면 장면 : 도트가 중앙에서 쫙 퍼지고 'Hey,' → 왼쪽으로 → 'I'm LIEU' ── */
+  #hey{position:fixed;inset:0;z-index:4;pointer-events:none;visibility:hidden}
+  #heyDots{position:absolute;inset:0}
+  #heyText{position:absolute;left:50%;top:50%;font:600 clamp(22px,2.4vw,34px)/1 var(--font-ui,-apple-system,"SF Pro Display","Pretendard",Arial,sans-serif);letter-spacing:-.03em;color:#171A18;white-space:nowrap}
+  #heyText span{position:absolute;left:0;top:0;display:block;will-change:transform,opacity,filter}
+  #heyText .im{opacity:0}
+  #heyText b{font-weight:700;color:#9ABEFF}
+  #heyText .ruler{position:static;visibility:hidden;height:0;overflow:hidden}
+
+  /* ── GNB : 왼쪽 심볼 · 오른쪽 언어 ── */
+  #gnb{position:fixed;left:0;right:0;top:0;z-index:var(--z-nav);height:calc(var(--margin) + 28px);padding-inline:var(--margin);display:flex;align-items:center;justify-content:space-between;color:#fff;mix-blend-mode:difference;pointer-events:none}   /* difference : 어두운 곳에선 흰색, 밝은 곳에선 검정으로 자동 반전 */
+  #gnb a,#gnb button{pointer-events:auto}
+  .sym{display:block;width:27px;height:22px;margin-left:-3px;color:inherit;text-decoration:none;outline-offset:4px}
+  .sym>svg:not(.sw){display:block;width:100%;height:100%;overflow:visible}
+    .lang{position:relative;font:500 12px/1 var(--font-ui,-apple-system,"SF Pro Text","Pretendard",Arial,sans-serif);letter-spacing:.14em}
+  .lang>button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;text-transform:uppercase;position:relative}
+  /* ── 공통 호버 : 심볼의 곡선과 같은 선이 요소 위를 한 번 지나간다 ([data-sw] 에 JS 가 svg 주입) ── */
+  [data-sw]{position:relative}
+  /* 호버 : 가로선 하나가 글자 아래에서 위로 올라오며, 지나간 자리에 글자가 새로 생긴다 */
+  .sp{position:relative;display:inline-block;white-space:nowrap}
+  .sp .a{display:block}
+  .sp .b{position:absolute;left:-1px;right:-1px;top:calc(100% - 4px);height:1px;background:currentColor;opacity:0;pointer-events:none}
+  @keyframes spA{0%{clip-path:inset(100% 0 0 0);transform:translateY(6px)}100%{clip-path:inset(-2px 0 -2px 0);transform:none}}
+  @keyframes spB{0%{top:calc(100% + 2px);opacity:0}14%{opacity:.9}100%{top:-6px;opacity:0}}   /* 선은 글자가 생기는 경계보다 4px 앞서 올라간다 → 글자와 겹치지 않음 */
+  [data-sw]:hover .sp .a,[data-sw]:focus-visible .sp .a,#langBtn[aria-expanded="true"] .sp .a{animation:spA 640ms cubic-bezier(.45,0,.15,1) 1 both}
+  [data-sw]:hover .sp .b,[data-sw]:focus-visible .sp .b,#langBtn[aria-expanded="true"] .sp .b{animation:spB 640ms cubic-bezier(.45,0,.15,1) 1 both}
+  .sw{display:none}
+  @media (prefers-reduced-motion:reduce){.sp .a,.sp .b{animation:none!important}}
+  .lang>button:focus-visible{outline:2px solid #D4F36B;outline-offset:6px;border-radius:2px}
+  .lang .chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform var(--d-base) var(--ease-out);opacity:.7}
+  .lang>button[aria-expanded="true"] .chev{transform:translateY(1px) rotate(-135deg)}
+  /* 드롭다운 : 박스 없이 텍스트만. 헤더와 같은 difference 로 어떤 배경에서도 읽힌다 */
+  .langpop{position:fixed;z-index:calc(var(--z-nav) + 1);right:var(--margin);top:calc((var(--margin) + 28px) / 2 + 22px);color:#fff;mix-blend-mode:difference;pointer-events:none;font:400 12px/1 var(--font-ui,-apple-system,"SF Pro Text","Pretendard",Arial,sans-serif);letter-spacing:.06em}
+  .langpop ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .langpop li{opacity:0;transform:translateY(-4px);transition:opacity var(--d-fast) var(--ease-out),transform var(--d-base) var(--ease-out)}
+  .langpop.open li{opacity:1;transform:none;transition-delay:calc(var(--i,0) * 38ms)}
+  .langpop li button{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:10px;padding:9px 0;position:relative;opacity:.5;transition:opacity var(--d-fast) var(--ease-out)}
+  .langpop li button:hover,.langpop li button:focus-visible,.langpop li button[aria-checked="true"]{opacity:1}
+  .langpop:not(.open){visibility:hidden;transition:visibility 0s var(--d-fast)}
+  .langpop.open{visibility:visible;pointer-events:none}
+  .langpop.open li button{pointer-events:auto}
+  .langpop li button:focus-visible{outline:1px solid currentColor;outline-offset:4px}
+
+  /* ── 로고 씬 : 은근한 리플 그리드 위에 심볼이 그려지고 → 왼쪽으로 빠지며 → LIEU 워드마크 ── */
+  #rgrid{position:fixed;left:0;top:0;width:100%;height:100%;z-index:1;pointer-events:none}
+  #logoScene{position:fixed;inset:0;z-index:3;pointer-events:none;color:#171A18;visibility:hidden}
+  #lsSym{position:absolute;overflow:visible}
+  #lsText{position:absolute;overflow:visible}
+  #lsText path{will-change:transform}
+
+  /* ── 오프닝 : 검정 화면에 흰 로고(모핑 + LIEU) → 가운데 선을 따라 위아래로 열린다 ── */
+  #intro{position:fixed;inset:0;z-index:300;pointer-events:all;color:#fff}
+  #intro{transition:opacity 2.2s cubic-bezier(.2,.1,.35,1)}
+  #intro .half{position:absolute;left:0;right:0;height:50.2%;background:#06060A}
+  #intro .top{top:0}
+  #intro .bottom{bottom:0}
+  #intro.open{opacity:0;pointer-events:none}
+  #intro .logo{position:absolute;inset:0;transition:opacity .8s cubic-bezier(.45,0,.25,1)}
+  #intro.logo-out .logo{opacity:0}
+  #introSym,#introText{position:absolute;overflow:visible}
+  /* ── 커서 : 솔리드 원 하나 (difference). 누를 수 있는 곳에서는 커졌다가, 누르면 작아진다 ── */
+  @media (hover:hover) and (pointer:fine){ html.cur, html.cur *{cursor:none!important} }
+  #cur{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:500;mix-blend-mode:difference;color:#fff;opacity:0;transition:opacity .4s ease}
+  #cur.on{opacity:1}
+  #cur i{position:absolute;left:0;top:0;display:block;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:currentColor;will-change:transform;transition:width .5s cubic-bezier(.16,1,.3,1),height .5s cubic-bezier(.16,1,.3,1),margin .5s cubic-bezier(.16,1,.3,1)}
+  #cur.hov i{width:44px;height:44px;margin:-22px 0 0 -22px}
+  #cur.down i{width:10px;height:10px;margin:-5px 0 0 -5px}
+  #cur.hov.down i{width:34px;height:34px;margin:-17px 0 0 -17px}
+  body:not(.ready) #gnb,body:not(.ready) .langpop{opacity:0}
+  #gnb,.langpop{transition:opacity .9s ease .5s}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="wipe"></div>
+<header id="gnb">
+  <a class="sym" href="#" id="symLink" aria-label="LIEU — 처음으로"><svg id="symMorph" aria-hidden="true"></svg></a>
+  <div class="lang" id="lang">
+    <button type="button" id="langBtn" data-sw aria-haspopup="menu" aria-expanded="false" aria-controls="langMenu" aria-label="언어 선택 / Language"><span id="langCode">KO</span><i class="chev" aria-hidden="true"></i></button>
+
+  </div>
+</header>
+<div class="langpop" id="langPop">
+<ul id="langMenu" role="menu" aria-label="Language">
+      <li role="none" style="--i:0"><button type="button" data-sw role="menuitemradio" aria-checked="true" data-lang="ko" data-code="KO" lang="ko">한국어</button></li>
+      <li role="none" style="--i:1"><button type="button" data-sw role="menuitemradio" aria-checked="false" data-lang="en" data-code="EN" lang="en">English</button></li>
+      <li role="none" style="--i:2"><button type="button" data-sw role="menuitemradio" aria-checked="false" data-lang="ja" data-code="JA" lang="ja">日本語</button></li>
+      <li role="none" style="--i:3"><button type="button" data-sw role="menuitemradio" aria-checked="false" data-lang="zh" data-code="ZH" lang="zh">中文</button></li>
+      <li role="none" style="--i:4"><button type="button" data-sw role="menuitemradio" aria-checked="false" data-lang="es" data-code="ES" lang="es">Español</button></li>
+    </ul>
+</div>
+<div id="intro" aria-hidden="true"><div class="half top"></div><div class="half bottom"></div><div class="logo"><svg id="introSym"></svg><svg id="introText" viewBox="8.5 90.2 76.7 27.6"></svg></div></div>
+<canvas id="rgrid" aria-hidden="true"></canvas>
+<div id="logoScene" role="img" aria-label="LIEU">
+  <svg id="lsSym" aria-hidden="true"></svg>
+  <svg id="lsText" viewBox="8.5 90.2 76.7 27.6" aria-hidden="true"><defs><clipPath id="cL"><rect x="8" y="90.2" width="77.7" height="28"/></clipPath></defs><g clip-path="url(#cL)"><path fill="#171A18" d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748ZM40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861ZM35.6283 90.5748V116.646H30.1162V90.5748H35.6283ZM9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/></g></svg>
+</div>
+<img id="hero" src="assets/product.webp" alt="" draggable="false">
+<div id="topShade" aria-hidden="true"></div>
+<div id="hey" aria-hidden="true"><div id="heyDots"></div><div id="heyText"><span class="hey">Hey,</span><span class="im">I'm <b>LIEU</b></span></div></div>
+<div id="scrollspace"></div>
+
+
+
+<script src="assets/grid.js?v=1792760836"></script>
+<script src="assets/ripplegrid.js?v=1792761110"></script>
+<script src="assets/lieu-morph.js?v=1792834292"></script>
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2, D2R = Math.PI / 180;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp  = (a, b, t) => a + (b - a) * t;
+const prog  = (t, a, b) => clamp((t - a) / (b - a));
+const Ease = {
+  out3: t => 1 - Math.pow(1 - t, 3),
+  out5: t => 1 - Math.pow(1 - t, 5),
+  inOut3: t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2,
+  inOut5: t => t < .5 ? 16*t*t*t*t*t : 1 - Math.pow(-2*t + 2, 5) / 2,
+  inOutSine: t => -(Math.cos(Math.PI * t) - 1) / 2,
+  outExpo: t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t),
+  outBack: (t, s = 1.70158) => 1 + (s + 1) * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2),
+  outElastic: t => (t <= 0 || t >= 1) ? t : Math.pow(2, -10 * t) * Math.sin((t * 10 - .75) * (TAU / 3)) + 1,
+  smooth: t => t * t * (3 - 2 * t)
+};
+
+/* ───────────── 심볼 지오메트리 (벡터 파라미터, 월드 단위) ─────────────
+   R: 도넛 중심 반지름 · t: 도넛 튜브 반지름 · r: 원통 반지름
+   a/b: 도넛 중심 기준 원통 위/아래 길이 · gap: 겹침부 화이트 분리선 */
+const G = { R: 80.5, t: 44.5, r: 25, a: 200, b: 44, gap: 0, h: 52, cr: 21 };
+/* 도넛 단면 : 제품처럼 윗면이 납작하고 모서리만 둥근 라운드 사각형 */
+const XS = (() => { const pts = [], hw = G.t, hh = G.h / 2, cr = G.cr;
+  const cs = [[hw - cr, hh - cr, 0], [-(hw - cr), hh - cr, 90], [-(hw - cr), -(hh - cr), 180], [hw - cr, -(hh - cr), 270]];
+  for (const [cx, cz, a0] of cs) for (let k = 0; k <= 8; k++) { const an = (a0 + k * 90 / 8) * D2R; pts.push([cx + cr * Math.cos(an), cz + cr * Math.sin(an)]); }
+  return pts; })();
+function ringSlices(st) {
+  const out = [], N = 260, ce = Math.cos(st.e), se = Math.sin(st.e), ct = Math.cos(st.tau), stt = Math.sin(st.tau), cp = Math.cos(st.psi), sp = Math.sin(st.psi);
+  for (let i = 0; i < N; i++) {
+    const th = i / N * TAU, c0 = Math.cos(th), s0 = Math.sin(th), poly = [];
+    for (const [u, z] of XS) {
+      const rho = (G.R + u) * st.Rk, x = rho * c0, y = rho * s0;
+      const x1 = x * ct + z * stt, z1 = -x * stt + z * ct;
+      const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+      poly.push(x1, -(y2 * se + z2 * ce));
+    }
+    const yc = G.R * st.Rk * s0, zc = 0, x1c = G.R * st.Rk * c0 * ct, z1c = -G.R * st.Rk * c0 * stt;
+    const y2c = yc * cp - z1c * sp, z2c = yc * sp + z1c * cp;
+    out.push({ poly, front: (-y2c * ce + z2c * se) > 0 });
+  }
+  return out;
+}
+function drawSlices(c, slices, front) {
+  c.globalCompositeOperation = 'source-over'; c.fillStyle = '#000'; c.strokeStyle = '#000'; c.lineWidth = 3; c.lineJoin = 'round';
+  for (const sl of slices) {
+    if (sl.front !== front) continue;
+    const p = sl.poly; c.beginPath(); c.moveTo(p[0], p[1]);
+    for (let k = 2; k < p.length; k += 2) c.lineTo(p[k], p[k + 1]);
+    c.closePath(); c.fill(); c.stroke();
+  }
+}
+const TH0 = 135 * D2R;   // 위성(도넛 시작점) 각도 : 좌상단
+
+/* ───────────── 10가지 버전 ───────────── */
+const BASE = {
+  T: { dot:[.15,.75], sat:[.8,1.4], arc:[1.35,2.35], tilt:[2.6,3.9], prec:[3.5,5.2] },
+  satEase:'out3', arcEase:'inOut3', tiltEase:'inOut3',
+  turns:1, hair:0, neck:false,
+  bg:['aurora'], bgAmp:.55, fill:'ink', glow:0, spec:.14,
+  omega:1.5, At:11, Ap:8, eRange:8, punch:.35,
+  hits:[{t:2.35,ripple:.6,punch:.5},{t:3.9,ripple:.9,punch:1}],
+  ripple:.5, shadow:1, reveal:false, sheen:{ start:4.1, every:7 }
+};
+const V = [
+  /* 시작 = 06 (카메라 하강 + 마우스 오빗) · 위성/회전 = 05 (세포분열 넥, 탄성, 자이로 회전) */
+  { neck:true, satEase:'outElastic', tiltEase:'inOutSine', eRange:16, At:6, Ap:4, omega:1.5, bg:[], bgAmp:0, glow:0, spec:0,
+    ripple:0, shadow:0, sheen:{ start:1e9, every:1e9 },
+    T:{ dot:[.15,.8], sat:[.85,1.75], arc:[1.7,2.7], tilt:[2.95,4.5], prec:[3.9,5.6] },
+    hits:[{t:1.75,ripple:0,punch:.9},{t:2.7,ripple:0,punch:.6},{t:4.5,ripple:0,punch:1}] }
+].map(v => Object.assign({}, BASE, v, { T: Object.assign({}, BASE.T, v.T || {}) }));
+
+/* ───────────── 캔버스 ───────────── */
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const mk = () => document.createElement('canvas');
+const lcv = mk(), lc = lcv.getContext('2d');          // 로고 레이어
+const gA = mk(), gAx = gA.getContext('2d');           // 글로우 (저해상도)
+const gB = mk(), gBx = gB.getContext('2d');
+const mcv = mk(), mctx = mcv.getContext('2d');        // 블라인드 마스크
+const hasFilter = typeof lc.filter === 'string';
+let W, H, DPR, U, Ls, S, CX, CY;
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = cv.width = Math.round(innerWidth * DPR);
+  H = cv.height = Math.round(innerHeight * DPR);
+  U = Math.min(W, H);
+  Ls = lcv.width = lcv.height = mcv.width = mcv.height = Math.round(U * .92);
+  gA.width = gA.height = Math.round(Ls / 3);
+  gB.width = gB.height = Math.round(Ls / 12);
+  S = Ls / 540;
+  CX = W / 2; CY = H / 2 - U * .02;
+}
+addEventListener('resize', resize); resize();
+
+/* ───────────── 상태 ───────────── */
+/* GNB 로고 : 평소엔 제품(기둥 + 도넛). 호버하면 택시 갓등으로 돌아갔다가 곧바로 선을 통과해 다시 제품이 된다 (끊김 없는 한 번의 동작) */
+(() => {
+  const link = document.getElementById('symLink'), svg = document.getElementById('symMorph');
+  const m = window.LieuMorph.create(svg, { stroke: 12, squash: 0, timeline: window.LieuMorph.loadTimeline() });      // 모든 심볼 모션은 같은 구간별 타임라인을 쓴다
+  m.setProgress(1, true);
+  link.addEventListener('pointerenter', () => m.play(160));   // 역재생 없이 곧바로 갓등 → 선 통과 → 제품 모션
+  link.addEventListener('focus', () => m.play(160));
+  window.__symMorph = m;
+})();
+/* 공통 호버 선 : [data-sw] 마다 같은 곡선 svg 주입 */
+const setSp = (el, t) => { el.querySelector('.a').textContent = t; };
+const mkSp = el => { const t = el.textContent; el.textContent = ''; el.classList.add('sp'); el.innerHTML = '<span class="a"></span><span class="b" aria-hidden="true"></span>'; setSp(el, t); };
+mkSp(document.getElementById('langCode'));
+document.querySelectorAll('.langpop li button').forEach(b => { const w = document.createElement('span'); w.textContent = b.textContent; b.textContent = ''; b.appendChild(w); mkSp(w); });
+document.querySelectorAll('[data-sw]').forEach(el => {
+  el.insertAdjacentHTML('beforeend', '<span class="sw" aria-hidden="true"><i class="rail"></i><i class="dome"></i></span>');
+});
+/* GNB : 언어 설정 (선택 값은 이 브라우저에 저장) */
+(() => {
+  const gnb = document.getElementById('gnb'), box = document.getElementById('lang'), pop = document.getElementById('langPop'), btn = document.getElementById('langBtn'), menu = document.getElementById('langMenu'), code = document.getElementById('langCode');
+  const items = [...menu.querySelectorAll('button')];
+  const set = (lang, save = true) => {
+    const it = items.find(b => b.dataset.lang === lang) || items[0];
+    items.forEach(b => b.setAttribute('aria-checked', String(b === it)));
+    setSp(code, it.dataset.code); document.documentElement.lang = it.dataset.lang;
+    if (save) { try { localStorage.setItem('lieu-lang', it.dataset.lang); } catch (e) {} }
+    window.dispatchEvent(new CustomEvent('lieu:lang', { detail: it.dataset.lang }));
+  };
+  let saved = null; try { saved = localStorage.getItem('lieu-lang'); } catch (e) {}
+  set(saved || (navigator.language || 'ko').slice(0, 2), false);
+  const open = (v, focus = true) => { pop.classList.toggle('open', v); box.classList.toggle('open', v); btn.setAttribute('aria-expanded', String(v)); if (v && focus) (menu.querySelector('[aria-checked="true"]') || items[0]).focus(); };
+  btn.addEventListener('click', e => { if (e.detail > 0 && matchMedia('(hover:hover) and (pointer:fine)').matches) { open(true, false); return; } open(!pop.classList.contains('open')); });   // 마우스는 호버로 열리므로 클릭해도 닫히지 않는다
+  // 호버만 해도 내려온다 (마우스일 때) — 벗어나면 잠시 뒤 닫힌다
+  let hoverT = 0; const canHover = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const hin = () => { if (!canHover) return; clearTimeout(hoverT); if (!pop.classList.contains('open')) open(true, false); };
+  const hout = () => { if (!canHover) return; clearTimeout(hoverT); hoverT = setTimeout(() => open(false), 220); };
+  [box, pop].forEach(el => { el.addEventListener('pointerenter', hin); el.addEventListener('pointerleave', hout); });
+  menu.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; set(b.dataset.lang); open(false); btn.focus(); });
+  document.addEventListener('click', e => { if (!box.contains(e.target) && !pop.contains(e.target)) open(false); });
+  const onKey = e => {
+    if (e.key === 'Escape') { open(false); btn.focus(); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!pop.classList.contains('open')) { open(true); return; } const i = items.indexOf(document.activeElement); items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus(); }
+  };
+  box.addEventListener('keydown', onKey); pop.addEventListener('keydown', onKey);
+  document.getElementById('symLink').addEventListener('click', e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  // 배경이 화이트로 바뀌면 GNB 색 반전
+  window.__gnbTheme = light => document.body.classList.toggle('light', light);
+})();
+/* ── 로고 씬 (스크롤 2.6vh 이후 2.3vh 구간) ─────────────────────────────────
+   격자 셀(c) 기준: 심볼 4c × 2c, 글자 높이 2c, 둘 사이 2c — 모두 격자선에 맞춘다 */
+const rgCanvas = document.getElementById('rgrid'), lsEl = document.getElementById('logoScene'), lsSym = document.getElementById('lsSym'),
+      lsText = document.getElementById('lsText'),
+      lsLetters = [...lsText.querySelectorAll('path')];
+const rgOK = window.RippleGrid && window.RippleGrid.init(rgCanvas);
+const lsMorph = window.LieuMorph.create(lsSym, { stiffness: 22, damping: 8.5, squash: 0 });   // 스크롤에 따라 갓등 → 선 통과 → 제품
+lsMorph.setProgress(0, true);
+let lsTextW = 0, lsFont = 0, lsPrevP = 0;
+const sceneEase = t => { t = clamp(t); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+const seg01 = (x, a, b) => clamp((x - a) / (b - a));
+function drawScene(dt) {
+  const vw = innerWidth, vh = innerHeight, c = vw < 640 ? 10 : 14, g = c * 2;       // c = 심볼 기준 단위 · g = 격자 한 칸: 레일 폭 = 정확히 3칸
+  const p = clamp((scrollY - 2.6 * vh) / (2.3 * vh));
+  const soft = t => t * t * t * (t * (t * 6 - 15) + 10);                              // smootherstep : 시작·끝이 아주 부드러운 곡선
+  const pres0 = soft(seg01(p, 0, .32));
+  const k = 6 * c / 246;                                                               // 심볼 단위 → px (레일 폭 = 6칸)
+  const gap = 52 * k, capH = 243 * k * 27.6 / 76.7;                                                     // 새 로고 규격: 몸통 아래 52 · 글자 높이 93 · 폭 243
+  lsTextW = 243 * k;
+  const cx = vw / 2, cy = vh / 2;
+  const gridOut = 1 - soft(seg01(p, .58, .98));
+  const pres = pres0 * gridOut;
+  if (rgOK) window.RippleGrid.draw({ dt, presence: pres, cell: g, shiftX: 0 });
+  lsEl.style.visibility = p > .001 ? 'visible' : 'hidden';
+  if (p <= .001) { lsPrevP = p; return; }
+
+  // 심볼 모핑 : 갓등이 선을 통과해 밑으로 쏙 내려오는 동안 — 같은 진행값(s)에 LIEU 가 심볼 아래에서 올라온다
+  lsMorph.setProgress(sceneEase(seg01(p, .2, .56)));
+  const s = lsMorph.progress;
+  const lift = (gap + capH) / 2 * sceneEase(seg01(s, .3, .9));                         // 글자가 생기는 만큼 전체가 위로 올라가 가운데를 유지
+  const symCy = cy - lift;
+  lsSym.style.cssText = `left:${cx - 133.5 * k}px;top:${symCy - 90 * k}px;width:${266 * k}px;height:${220 * k}px;opacity:${sceneEase(seg01(p, .06, .18)).toFixed(3)}`;
+  const ex = lsMorph.extents();                                                          // 몸통(과 아래 기둥)의 현재 가장 아래 → 글자가 그 밑에 붙어 같이 내려온다
+  lsText.style.cssText = `left:${cx - lsTextW / 2}px;top:${symCy + ex.bottom * k + gap}px;width:${lsTextW}px;height:${capH}px`;
+  const dropA = sceneEase(seg01(s, .3, .68));                                            // 네 글자 모두 같은 타이밍으로 한 번에
+  lsLetters.forEach(el => { const a = dropA; el.setAttribute('transform', `translate(0 ${(-(1 - a) * 27.6).toFixed(2)})`); });     // 위에서 아래로 내려오며 나타난다
+
+  // 격자는 딱 한 번만 : 처음 나타날 때 중앙에서 잔물결 하나
+  if (lsPrevP < .05 && p >= .05 && window.RippleGrid) window.RippleGrid.ripple(0, 0, .9);
+  lsPrevP = p;
+}
+/* 스크롤 장면(닦임 · 그리드 · 로고 씬)은 아직 비활성. 다시 켜려면 true */
+const ENABLE_SCROLL = true;      // 스크롤 → 다크에서 화이트로 닦임
+const SHOW_SCENE = false;        // 그리드 · 로고 씬은 꺼둠
+if (!ENABLE_SCROLL) { const sp = document.getElementById('scrollspace'); if (sp) sp.style.display = 'none'; }
+/* ── 흰 화면 장면 (스크롤 연출) ── */
+const heyEl = document.getElementById('hey'), heyHost = document.getElementById('heyDots'), heyA = document.querySelector('#heyText .hey'), heyB = document.querySelector('#heyText .im'), heyBox = document.getElementById('heyText');
+/* 'Hey,' 에서 수채화가 번지듯 : 아주 촘촘하고 작은 도트 격자가 원형 영역에서만 반응한다 (영역 밖은 보이지 않음). 번지는 가장자리는 불규칙, 색은 그라데이션 */
+const heyCv = document.createElement('canvas'); heyCv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; heyHost.appendChild(heyCv);
+const heyCtx = heyCv.getContext('2d');
+const hMix = (a, b, t) => a + (b - a) * t;
+const HEY_STOPS = [[124, 166, 252], [154, 190, 255], [186, 210, 255], [214, 228, 255]];            // 첫 화면 오로라의 하늘색 계열
+const heyGrad = t => { t = clamp(t) * (HEY_STOPS.length - 1); const i = Math.min(HEY_STOPS.length - 2, Math.floor(t)), u = t - i, A = HEY_STOPS[i], B = HEY_STOPS[i + 1]; return [hMix(A[0], B[0], u), hMix(A[1], B[1], u), hMix(A[2], B[2], u)]; };
+const heyEdge = (th, tt) => 1 + .13 * Math.sin(th * 3 + tt * .6) + .08 * Math.sin(th * 5 - tt * .45 + 1.7) + .05 * Math.sin(th * 9 + tt * .8 + .6);   // 번지는 가장자리의 불규칙한 윤곽
+function drawHeyDots(f, erase, tt, appear) {
+  const dpr = Math.min(2, devicePixelRatio || 1), W = innerWidth, H = innerHeight;
+  if (heyCv.width !== Math.round(W * dpr) || heyCv.height !== Math.round(H * dpr)) { heyCv.width = Math.round(W * dpr); heyCv.height = Math.round(H * dpr); }
+  heyCtx.setTransform(dpr, 0, 0, dpr, 0, 0); heyCtx.clearRect(0, 0, W, H);
+  if (appear <= .002 || erase >= 1) return;
+  // 도트 자리는 화면 전체에 고정. 중앙에서 원형으로 '촤아아' 밝혀지며 그라데이션 색이 켜진다 (도트가 움직이지 않는다)
+  const step = W < 640 ? 8 : 10, cx = W / 2, cy = H / 2, Rfull = Math.hypot(W, H) * .5;
+  const front = (1 - Math.pow(1 - f, 2.6)) * Rfull * 1.55, soft = Rfull * .7, T = Rfull * .3;                         // T : 링의 두께
+  const E = erase * Rfull * 1.9, softE = Rfull * .9;                                       // 스크롤 : 지워지는 경계가 중심에서 바깥으로 번지며 사라진다
+  const sm5 = t => t * t * t * (t * (t * 6 - 15) + 10);
+  const cols = Math.ceil(W / step / 2) + 1, rows = Math.ceil(H / step / 2) + 1;
+  for (let j = -rows; j <= rows; j++) for (let i = -cols; i <= cols; i++) {
+    const gx = i * step, gy = j * step, x = cx + gx, y = cy + gy;
+    if (x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
+    const d = Math.hypot(gx, gy), R = front * (1 + (heyEdge(Math.atan2(gy, gx), tt) - 1) * .45);
+    const lit = sm5(clamp((R - d) / (T * 1.3)));                                            // 링이 지나간 자리는 켜진 채 유지된다 (링 두께만큼의 짧은 전이)
+    const kd = clamp(d / Rfull), t = clamp(.7 * kd + .3 * ((gx * .7071 + gy * .7071) / (Rfull * 1.3) * .5 + .5)), G = heyGrad(t);   // 하늘색 그라데이션
+    // 페이드인 : 중앙에서 두꺼운 원형 링이 바깥으로 번지며 지나간 자리가 켜진다
+    const ringIn = f < 1 ? Math.exp(-Math.pow((R - d - T * .5) / T, 2)) * (1 - f * f * f) : 0;
+    // 페이드아웃 : 그 링이 커지면서 바깥으로 퍼져 나가고, 지나간 안쪽 자리는 꺼진다
+    const gone = sm5(clamp((d - E) / softE)), ringOut = erase > .004 ? Math.exp(-Math.pow((d - E - softE * .5) / T, 2)) * Math.sin(Math.PI * clamp(erase)) : 0;
+    const body = .62 * lit * (1 - .35 * kd);                                               // 링이 오기 전에는 아무것도 없다
+    const a = appear * (body * gone + .8 * ringIn + .5 * ringOut * body);
+    if (a < .004) continue;
+    heyCtx.fillStyle = `rgba(${Math.round(G[0])},${Math.round(G[1])},${Math.round(G[2])},${Math.min(1, a).toFixed(3)})`;
+    heyCtx.beginPath(); heyCtx.arc(x, y, .85 + lit * .45 + (ringIn + ringOut) * .55, 0, 6.283); heyCtx.fill();
+  }
+}
+const heyEase = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, heyOut = t => 1 - Math.pow(1 - t, 3), heySeg = (x, a, b) => clamp((x - a) / (b - a));
+/* ── 다국어 : 언어를 고르면 문구 전체가 바뀐다 (ko · en · ja · zh · es) ── */
+const I18N = {
+  ko: { hey: '안녕하세요,', im: '저는 <b>루</b>예요', home: 'LIEU — 처음으로', lang: '언어 선택' },
+  en: { hey: 'Hey,', im: "I'm <b>LIEU</b>", home: 'LIEU — back to top', lang: 'Language' },
+  ja: { hey: 'やあ、', im: '<b>LIEU</b>です', home: 'LIEU — トップへ', lang: '言語を選択' },
+  zh: { hey: '嗨，', im: '我是 <b>LIEU</b>', home: 'LIEU — 回到顶部', lang: '选择语言' },
+  es: { hey: 'Hola,', im: 'soy <b>LIEU</b>', home: 'LIEU — volver al inicio', lang: 'Idioma' }
+};
+function applyLang(code) {
+  const T = I18N[code] || I18N.en;
+  heyA.textContent = T.hey; heyB.innerHTML = T.im;
+  const home = document.getElementById('symLink'), lb = document.getElementById('langBtn');
+  if (home) home.setAttribute('aria-label', T.home); if (lb) lb.setAttribute('aria-label', T.lang);
+  heyKey = '';                                                                              // 글자 폭을 다시 잰다
+}
+window.addEventListener('lieu:lang', e => applyLang(e.detail));
+let heyW = [0, 0], heyKey = '', heyT0 = null, heyEr = 0, heyLast = performance.now(), heyDt = 0;
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { heyKey = ''; });   // 폰트가 로드되면 글자 폭을 다시 잰다
+{ let saved = null; try { saved = localStorage.getItem('lieu-lang'); } catch (e) {} applyLang(saved || document.documentElement.lang || 'ko'); }   // 처음 로드된 언어 반영
+function drawHey() {
+  const nowH = performance.now(); heyDt = Math.min(.1, (nowH - heyLast) / 1000); heyLast = nowH;
+  const vh = innerHeight, q = clamp((scrollY - 2.5 * vh) / (2 * vh));
+  const on = scrollY > 2.3 * vh;
+  if (scrollY > 2.45 * vh) { if (heyT0 == null) heyT0 = performance.now(); } else if (scrollY < 2.3 * vh) heyT0 = null;      // 흰색이 되는 순간 시간으로 바로 시작 (스크롤 속도와 무관)
+  const ht = heyT0 == null ? 0 : (performance.now() - heyT0) / 1000;
+  heyEl.style.visibility = on ? 'visible' : 'hidden';
+  if (!on) return;
+  const key = innerWidth + 'x' + innerHeight; if (key !== heyKey) { heyKey = key; heyW = [heyA.offsetWidth, heyB.offsetWidth]; }
+  const fs = parseFloat(getComputedStyle(heyBox).fontSize), gap = fs * .3;
+  // 1) 'Hey,' 가 갑자기 중앙에 떠오르고, 동시에 도트가 중앙에서 쫙 퍼진다
+  const a1 = heyOut(heySeg(ht, 0, .45)), dotF = heySeg(ht, 0, 2.4);
+  // 2) 'Hey,' 가 왼쪽으로 가고 "I'm LIEU" 가 뜬다
+  const m = heyEase(heySeg(q, .46, .66));
+  const xa = -m * (heyW[1] + gap) / 2, xb = (1 - m) * 0 + (heyW[0] + gap) / 2;
+  heyA.style.transform = `translate(${(xa - heyW[0] / 2).toFixed(1)}px,${((1 - a1) * 18 - fs / 2).toFixed(1)}px)`;
+  heyA.style.opacity = a1.toFixed(3); heyA.style.filter = `blur(${((1 - a1) * 10).toFixed(1)}px)`;
+  const b1 = heyOut(heySeg(q, .52, .7));
+  heyB.style.transform = `translate(${(xb - heyW[1] / 2 + (1 - b1) * 24).toFixed(1)}px,${(-fs / 2).toFixed(1)}px)`;
+  heyB.style.opacity = b1.toFixed(3); heyB.style.filter = `blur(${((1 - b1) * 10).toFixed(1)}px)`;
+  // 3) 도트는 다시 페이드아웃
+  heyEr += (heyEase(heySeg(q, .6, 1)) - heyEr) * (1 - Math.exp(-heyDt * 2.4));   // 스크롤이 급해도 지워지는 속도는 늘 느긋하게 (지연 추종)
+  drawHeyDots(dotF, heyEr, performance.now() / 1000, heyEase(heySeg(ht, 0, .35)));
+}
+const topShade = document.getElementById('topShade'), heroEl = document.getElementById('hero'), wipeEl = document.getElementById('wipe');
+let wipeWp = 0, lightS = 0, cur = 0, t0 = 0, last = 0, tm = 0, phase = 0;
+let fade = 1, fadeTarget = 1, pending = -1, freezeAt = null;
+let fired = [], ripples = [], punches = [], dust = [];
+const ptr = { x: 0, y: 0, sx: 0, sy: 0, px: -1e4, py: -1e4, hot: 0 };
+
+function startVersion(i, now) {
+  cur = i; t0 = now; phase = 0; fired = []; ripples = []; punches = [];
+  const n = V[i].dust || 0;
+  dust = Array.from({ length: n }, () => ({ x: Math.random(), y: Math.random(), vx: (Math.random() - .5) * .012,
+    vy: -.004 - Math.random() * .012, s: .8 + Math.random() * 2.4, ph: Math.random() * TAU, hue: 190 + Math.random() * 150, f: .8 + Math.random() * 1.8 }));
+}
+function select(i) {
+  if (fade > .05 && fadeTarget === 1) { pending = i; fadeTarget = 0; } else { pending = i; }
+}
+
+/* ───────────── 입력 ───────────── */
+addEventListener('pointermove', e => {
+  ptr.px = e.clientX * DPR; ptr.py = e.clientY * DPR;
+  ptr.x = clamp((e.clientX / innerWidth) * 2 - 1, -1, 1);
+  ptr.y = clamp((e.clientY / innerHeight) * 2 - 1, -1, 1);
+});
+document.addEventListener('pointerleave', () => { ptr.x = ptr.y = 0; ptr.px = ptr.py = -1e4; });
+cv.addEventListener('pointerdown', () => {
+  punches.push({ t0: tm, amp: 1 });
+  ripples.push({ t0: tm, s: 1 });
+});
+
+/* ───────────── 3D → 2D 투영 ─────────────
+   x 오른쪽 · y 안쪽(top view 에서 위) · z 위 · e = 카메라 고도(90°=top, 0°=front) */
+function ringPoint(th, rad, tau, psi, e) {
+  const x0 = rad * Math.cos(th), y0 = rad * Math.sin(th);
+  const x1 = x0 * Math.cos(tau), z1 = -x0 * Math.sin(tau);        // roll
+  const y2 = y0 * Math.cos(psi) - z1 * Math.sin(psi);             // pitch
+  const z2 = y0 * Math.sin(psi) + z1 * Math.cos(psi);
+  const ce = Math.cos(e), se = Math.sin(e);
+  return { x: x1, y: -(y2 * se + z2 * ce), d: -y2 * ce + z2 * se };
+}
+
+/* ───────────── 타임라인 → 상태 ───────────── */
+function computeState(cfg) {
+  const T = cfg.T, st = {};
+  st.dotS  = Ease.outBack(prog(tm, T.dot[0], T.dot[1]));
+  st.satP  = Ease[cfg.satEase](prog(tm, T.sat[0], T.sat[1]));
+  st.arcP  = Ease[cfg.arcEase](prog(tm, T.arc[0], T.arc[1]));
+  st.tiltP = Ease[cfg.tiltEase](prog(tm, T.tilt[0], T.tilt[1]));
+  st.thickP = T.thick ? Ease.outBack(prog(tm, T.thick[0], T.thick[1]), 1.3) : 1;
+  st.env   = Ease.inOutSine(prog(tm, T.prec[0], T.prec[1]));
+  st.env2  = Ease.smooth(prog(tm, T.tilt[0] + .6, T.tilt[1] + .4));
+
+  for (let i = 0; i < cfg.hits.length; i++) {
+    const h = cfg.hits[i];
+    if (!fired[i] && tm >= h.t) { fired[i] = true; ripples.push({ t0: h.t, s: h.ripple }); punches.push({ t0: h.t, amp: h.punch }); }
+  }
+  let punch = 0;
+  for (let i = punches.length - 1; i >= 0; i--) {
+    const age = tm - punches[i].t0;
+    if (age > 2.2) { punches.splice(i, 1); continue; }
+    if (age >= 0) punch += punches[i].amp * Math.exp(-4.2 * age) * Math.cos(15 * age);
+  }
+  st.punch = punch * cfg.punch;
+
+  const eBase = Math.max(0, lerp(90, 0, st.tiltP)) * D2R;
+  st.e = clamp(eBase + cfg.eRange * D2R * (.5 - .5 * ptr.sy) * st.env2, 0, 90 * D2R);
+  st.tau = cfg.At * D2R * st.env * Math.cos(phase) + ptr.sx * 5 * D2R * st.env2;
+  st.psi = cfg.Ap * D2R * st.env * Math.sin(phase) - ptr.sy * 3 * D2R * st.env2;
+  st.Rk = (1 + .09 * st.tiltP) * (1 + .06 * st.punch);
+  st.aMul = 1 + .05 * st.punch + .035 * ptr.hot;
+  st.shift = ((G.a - G.b) / 2) * Math.cos(st.e);
+  st.zoom = 1 + .05 * Math.sin(Math.PI * prog(tm, cfg.T.tilt[0], cfg.T.tilt[1])) * .6;
+  return st;
+}
+
+/* ───────────── 링 세그먼트 ───────────── */
+function buildRing(cfg, st) {
+  const sEnd = st.arcP * TAU * cfg.turns;
+  const out = { segs: [], sat: null, slices: null };
+  if (st.arcP >= .999) { out.slices = ringSlices(st); return out; }
+  const R = G.R * st.Rk, wFull = 2 * G.t;
+  const hairHead = cfg.hair ? lerp(2 * 8.5, wFull, st.thickP) : wFull;
+  const hairTail = cfg.hair ? lerp(cfg.hair, wFull, st.thickP) : wFull;
+  if (sEnd < 0.002) {
+    // 아직 호가 시작되기 전 : 중심에서 밀려나오는 위성
+    const rad = lerp(0, R, st.satP);
+    const p = ringPoint(TH0, rad, st.tau, st.psi, st.e);
+    out.sat = { x: p.x, y: p.y, r: lerp(G.r * .8, hairHead / 2, st.satP), rad, d: p.d };
+    return out;
+  }
+  const sStart = Math.max(0, sEnd - TAU), span = sEnd - sStart;
+  const M = Math.max(3, Math.ceil(span / TAU * 200) + 1);
+  let prev = null;
+  for (let k = 0; k < M; k++) {
+    const s = sStart + span * k / (M - 1), th = TH0 - s;
+    const p = ringPoint(th, R, st.tau, st.psi, st.e);
+    const u = k / (M - 1);
+    p.w = cfg.hair ? lerp(hairTail, hairHead, u * u * (3 - 2 * u)) : wFull;
+    if (prev) out.segs.push({ x0: prev.x, y0: prev.y, x1: p.x, y1: p.y, w: (prev.w + p.w) / 2, front: (prev.d + p.d) > 0 });
+    prev = p;
+  }
+  return out;
+}
+function strokeSegs(c, segs, front, extra, comp) {
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  c.globalCompositeOperation = comp; c.strokeStyle = '#000';
+  for (const s of segs) {
+    if (s.front !== front) continue;
+    c.lineWidth = s.w + extra;
+    c.beginPath(); c.moveTo(s.x0, s.y0); c.lineTo(s.x1, s.y1); c.stroke();
+  }
+}
+function capsule(c, r, yt, yb) {
+  c.beginPath(); c.arc(0, yt, r, Math.PI, 0); c.arc(0, yb, r, 0, Math.PI); c.closePath(); c.fill();
+}
+function neckShape(c, c1, r1, c2, r2, half) {
+  const dx = c2.x - c1.x, dy = c2.y - c1.y, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+  const mx = (c1.x + c2.x) / 2, my = (c1.y + c2.y) / 2, ctl = 2 * half - (r1 + r2) / 2;
+  c.beginPath();
+  c.moveTo(c1.x + nx * r1, c1.y + ny * r1);
+  c.quadraticCurveTo(mx + nx * ctl, my + ny * ctl, c2.x + nx * r2, c2.y + ny * r2);
+  c.lineTo(c2.x - nx * r2, c2.y - ny * r2);
+  c.quadraticCurveTo(mx - nx * ctl, my - ny * ctl, c1.x - nx * r1, c1.y - ny * r1);
+  c.closePath(); c.fill();
+}
+
+/* ───────────── 로고 형상 그리기 (검정 알파 마스크) ───────────── */
+function paintLogo(cfg, st) {
+  const c = lc;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, Ls, Ls);
+  c.globalCompositeOperation = 'source-over';
+  c.translate(Ls / 2, Ls / 2 + st.shift * S); c.scale(S * st.zoom, S * st.zoom);
+  const ring = buildRing(cfg, st);
+  const cutK = clamp((90 * D2R - st.e) / (12 * D2R)), g = G.gap * cutK;
+  const rr = G.r * st.dotS * (1 + .03 * st.punch);
+  const ce = Math.cos(st.e);
+  const yt = -G.a * st.aMul * ce, yb = G.b * ce;
+  c.fillStyle = '#000';
+
+  // 1) 도넛 뒷면
+  if (ring.slices) drawSlices(c, ring.slices, false);
+  strokeSegs(c, ring.segs, false, 0, 'source-over');
+  c.globalCompositeOperation = 'source-over';
+  if (ring.sat) {
+    c.beginPath(); c.arc(ring.sat.x, ring.sat.y, Math.max(0, ring.sat.r), 0, TAU); c.fill();
+    if (cfg.neck && st.satP < .98 && rr > 0) {
+      const half = G.r * Math.max(0, 1 - Math.pow(st.satP, .8) * 1.15) * .95;
+      if (half > .6) neckShape(c, { x: 0, y: 0 }, rr * (1 - .1 * st.satP), { x: ring.sat.x, y: ring.sat.y }, ring.sat.r, half);
+    }
+  }
+  // 2) 원통 (뒷면 도넛과 흰 선으로 분리)
+  if (rr > .05) capsule(c, rr, yt, yb);
+  // 3) 도넛 앞면
+  if (g > .2) {
+    c.save(); c.beginPath(); c.arc(0, yt, rr, Math.PI, 0); c.arc(0, yb, rr, 0, Math.PI); c.closePath(); c.clip();
+    strokeSegs(c, ring.segs, true, g * 2, 'destination-out'); c.restore();
+  }
+  strokeSegs(c, ring.segs, true, 0, 'source-over');
+  if (ring.slices) drawSlices(c, ring.slices, true);
+  c.globalCompositeOperation = 'source-over';
+}
+
+/* ───────────── 컬러라이즈 (그라데이션 · 쉰 · 스펙큘러) ───────────── */
+/* ───────────── Shape Magic · Thermal 머티리얼 ─────────────
+   팔레트 컨투어 밴드(Angle 90 · Speed 1 · Contour .5) + 가장자리 Inner glow .4 */
+const THERMAL = [[2,2,10],[36,12,138],[142,52,144],[207,119,76],[243,227,132],[255,255,255]];
+const TH = { inner: .4, contour: .5, angle: 90, speed: 1 };
+function thermalAt(v) {                       // v: 0..1 → 팔레트
+  v = clamp(v) * (THERMAL.length - 1);
+  const i = Math.min(THERMAL.length - 2, Math.floor(v)), f = Ease.smooth(v - i), a = THERMAL[i], b = THERMAL[i + 1];
+  return `rgb(${Math.round(lerp(a[0], b[0], f))},${Math.round(lerp(a[1], b[1], f))},${Math.round(lerp(a[2], b[2], f))})`;
+}
+const rimCv = mk(), rimx = rimCv.getContext('2d');
+function colorize(cfg, st) {
+  const c = lc, L = Ls;
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  const ccx = L / 2, ccy = L / 2 + st.shift * S;
+  const ang = (TH.angle * D2R) + st.tau * .6 + ptr.sx * .12;
+  const dx = Math.cos(ang) * L * .5, dy = Math.sin(ang) * L * .5;   // 90° → 세로 방향 밴드
+  const gx0 = L / 2 - dx, gy0 = L / 2 - dy, gx1 = L / 2 + dx, gy1 = L / 2 + dy;
+  const g = c.createLinearGradient(gx0, gy0, gx1, gy1);
+  const K = 12 + TH.contour * 10, flow = tm * .45 * TH.speed + phase * .15 + ptr.sy * .25;
+  for (let i = 0; i <= 64; i++) {
+    const u = i / 64, w = .5 + .5 * Math.sin(u * K - flow * TAU * .5);
+    const w2 = .5 + .5 * Math.sin(u * K * .47 + flow * 1.7);
+    g.addColorStop(u, thermalAt(Math.pow(w * .7 + w2 * .3, 1.1)));
+  }
+  c.globalCompositeOperation = 'source-in'; c.fillStyle = g; c.fillRect(0, 0, L, L);
+
+  // Inner glow : 알파를 블러한 뒤 뒤집어 가장자리에만 따뜻한 빛을 남긴다
+  const rs = Math.round(L / 3);
+  if (rimCv.width !== rs) rimCv.width = rimCv.height = rs;
+  rimx.setTransform(1, 0, 0, 1, 0, 0); rimx.globalCompositeOperation = 'source-over'; rimx.clearRect(0, 0, rs, rs);
+  const rg = rimx.createLinearGradient(0, 0, 0, rs);
+  rg.addColorStop(0, '#fff3b0'); rg.addColorStop(.5, '#f3a35e'); rg.addColorStop(1, '#ffd9a0');
+  rimx.fillStyle = rg; rimx.fillRect(0, 0, rs, rs);
+  rimx.globalCompositeOperation = 'destination-out';
+  if (hasFilter) rimx.filter = `blur(${rs * .03}px)`;
+  rimx.drawImage(lcv, 0, 0, rs, rs); rimx.filter = 'none';
+  c.globalCompositeOperation = 'source-atop'; c.globalAlpha = clamp(TH.inner * 2.6) * (.6 + .4 * st.env2);
+  c.drawImage(rimCv, 0, 0, L, L); c.globalAlpha = 1;
+
+  // 포인터 스펙큘러
+  const sx = ccx + ptr.sx * L * .2, sy = ccy + ptr.sy * L * .2 - L * .04;
+  const sp = c.createRadialGradient(sx, sy, 0, sx, sy, L * .22);
+  const sa = .22 * st.env2 * (.6 + .6 * ptr.hot);
+  sp.addColorStop(0, `rgba(255,255,255,${sa})`); sp.addColorStop(1, 'rgba(255,255,255,0)');
+  c.fillStyle = sp; c.fillRect(0, 0, L, L);
+  c.globalCompositeOperation = 'source-over';
+}
+
+function revealMask() {
+  if (tm > 1.8) return;
+  const L = Ls, n = 36, step = L / n, m = mctx;
+  m.setTransform(1, 0, 0, 1, 0, 0); m.clearRect(0, 0, L, L); m.fillStyle = '#000';
+  for (let i = 0; i < n; i++) {
+    const d = Math.abs(i - (n - 1) / 2) / (n / 2);
+    const p = Ease.out3(prog(tm, .12 + d * .5, .12 + d * .5 + .75));
+    const h = p * L;
+    m.fillRect(i * step - .5, L / 2 - h / 2, step + 1, h);
+  }
+  lc.globalCompositeOperation = 'destination-in'; lc.drawImage(mcv, 0, 0); lc.globalCompositeOperation = 'source-over';
+}
+
+/* ───────────── 글로우 (저해상도 블러 + 색 그라데이션) ───────────── */
+function drawGlow(cfg, st, amt) {
+  if (amt < .01) return;
+  gAx.setTransform(1, 0, 0, 1, 0, 0); gAx.globalCompositeOperation = 'source-over'; gAx.clearRect(0, 0, gA.width, gA.height);
+  gAx.imageSmoothingEnabled = true; gAx.imageSmoothingQuality = 'high';
+  if (hasFilter) {
+    gAx.filter = `blur(${gA.width * .03}px)`; gAx.drawImage(lcv, 0, 0, gA.width, gA.height); gAx.filter = 'none';
+  } else {
+    gBx.clearRect(0, 0, gB.width, gB.height); gBx.imageSmoothingEnabled = true;
+    gBx.drawImage(lcv, 0, 0, gB.width, gB.height); gAx.drawImage(gB, 0, 0, gA.width, gA.height);
+  }
+  gAx.globalCompositeOperation = 'source-in';
+  const gx = gA.width / 2, gy = gA.height / 2 + st.shift * S / 3;
+  let g;
+  if (gAx.createConicGradient) {
+    g = gAx.createConicGradient(tm * .8, gx, gy);
+    for (let i = 0; i <= 6; i++) g.addColorStop(i / 6, `hsl(${(210 + i * 60 + tm * 25) % 360},95%,68%)`);
+  } else { g = gAx.createLinearGradient(0, 0, gA.width, gA.height); g.addColorStop(0, '#7aa2ff'); g.addColorStop(1, '#ff8fc7'); }
+  gAx.fillStyle = g; gAx.fillRect(0, 0, gA.width, gA.height);
+  ctx.save();
+  ctx.globalAlpha = clamp(amt) * fade; ctx.drawImage(gA, CX - Ls / 2, CY - Ls / 2, Ls, Ls);
+  ctx.globalAlpha = clamp(amt * .6) * fade; ctx.drawImage(gA, CX - Ls * .55, CY - Ls * .55, Ls * 1.1, Ls * 1.1);
+  ctx.restore();
+}
+
+/* ───────────── 배경 이펙트 (화이트 위 파스텔 그라데이션) ───────────── */
+const AUR = [{h:212,x:-.28,y:.06,r:.62},{h:282,x:.26,y:-.16,r:.56},{h:330,x:.06,y:.26,r:.5},{h:172,x:-.08,y:-.3,r:.46}];
+function bgAurora(a) {
+  for (let i = 0; i < AUR.length; i++) {
+    const b = AUR[i];
+    const x = CX + (b.x + .09 * Math.sin(tm * .33 + i * 2.1) - ptr.sx * .04) * U;
+    const y = CY + (b.y + .08 * Math.cos(tm * .29 + i * 1.7) - ptr.sy * .03) * U;
+    const r = b.r * U * (1 + .08 * Math.sin(tm * .5 + i));
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    const hue = (b.h + tm * 6) % 360;
+    g.addColorStop(0, `hsla(${hue},88%,74%,${.36 * a})`); g.addColorStop(.55, `hsla(${hue + 20},88%,78%,${.12 * a})`); g.addColorStop(1, `hsla(${hue},88%,80%,0)`);
+    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+}
+function bgSilk(a) {
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let k = 0; k < 3; k++) {
+    const yy = CY + (k - 1) * .2 * U, hue = (225 + k * 55 + tm * 8) % 360;
+    for (let l = 0; l < 6; l++) {
+      ctx.beginPath();
+      for (let i = 0; i <= 48; i++) {
+        const x = (i / 48) * (W + U * .4) - U * .2;
+        const y = yy + Math.sin(i * .2 + tm * .42 + k * 1.4) * .09 * U + Math.sin(i * .09 - tm * .3 + k) * .06 * U - ptr.sy * .02 * U;
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.strokeStyle = `hsla(${hue},85%,76%,${.05 * a})`; ctx.lineWidth = (.3 - l * .045) * U; ctx.stroke();
+    }
+  }
+}
+function bgOrb(a) {
+  for (let k = 0; k < 3; k++) {
+    const x = CX + Math.cos(tm * .45 + k * 2.1) * U * .05 + ptr.sx * U * .035;
+    const y = CY + Math.sin(tm * .52 + k * 2.1) * U * .05 + ptr.sy * U * .03 - U * .02;
+    const r = U * (.4 - k * .08), hue = (tm * 14 + k * 70 + 200) % 360;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `hsla(${hue},92%,78%,${.5 * a})`); g.addColorStop(.55, `hsla(${hue + 35},90%,80%,${.2 * a})`); g.addColorStop(1, `hsla(${hue},90%,82%,0)`);
+    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  if (ctx.createConicGradient) {
+    ctx.save(); ctx.translate(CX, CY - U * .02);
+    const g = ctx.createConicGradient(tm * .4, 0, 0);
+    for (let i = 0; i <= 6; i++) g.addColorStop(i / 6, `hsla(${(i * 60 + tm * 20) % 360},90%,76%,${.35 * a})`);
+    ctx.strokeStyle = g;
+    for (let l = 0; l < 5; l++) { ctx.lineWidth = U * (.07 - l * .012); ctx.globalAlpha = .12 + l * .04; ctx.beginPath(); ctx.arc(0, 0, U * .27, 0, TAU); ctx.stroke(); }
+    ctx.restore();
+  }
+}
+function bgBlinds(a) {
+  const step = 24 * DPR, n = Math.ceil(W / step) + 1;
+  const px = ptr.px > -1e3 ? ptr.px : CX;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  for (let i = 0; i < n; i++) {
+    const x = i * step, near = Math.exp(-Math.pow((x - px) / (U * .22), 2));
+    const hue = (i * 4 + tm * 30 + 210) % 360;
+    const al = a * (.045 + .05 * (.5 + .5 * Math.sin(i * .35 + tm * 1.1)) + .13 * near) * clamp(tm / 1.2);
+    const gr = ctx.createLinearGradient(0, 0, 0, H);
+    gr.addColorStop(0, `hsla(${hue},90%,78%,0)`); gr.addColorStop(.35, `hsla(${hue},90%,78%,${al})`);
+    gr.addColorStop(.65, `hsla(${hue + 70},90%,80%,${al})`); gr.addColorStop(1, `hsla(${hue + 70},90%,80%,0)`);
+    ctx.fillStyle = gr; ctx.fillRect(x, 0, step * .6, H);
+  }
+}
+function bgDust(a, cfg) {
+  const dt = 1 / 60;
+  for (const p of dust) {
+    p.x += p.vx * dt * 2; p.y += p.vy * dt * 2;
+    if (p.y < -.05) { p.y = 1.05; p.x = Math.random(); } if (p.x < -.05) p.x = 1.05; if (p.x > 1.05) p.x = -.05;
+    const tw = Math.pow(.5 + .5 * Math.sin(tm * p.f + p.ph), 2);
+    const x = p.x * W + ptr.sx * p.s * 6 * DPR, y = p.y * H + ptr.sy * p.s * 5 * DPR, r = p.s * DPR * .55 * (.7 + tw * .6);
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 4);
+    g.addColorStop(0, `hsla(${p.hue},90%,60%,${(.5 + .4 * tw) * a})`); g.addColorStop(1, `hsla(${p.hue},90%,70%,0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 4, 0, TAU); ctx.fill();
+  }
+}
+function drawRipples(cfg) {
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i], age = tm - r.t0, life = 2.4;
+    if (age > life) { ripples.splice(i, 1); continue; }
+    if (age < 0) continue;
+    const k = Ease.out3(age / life), rad = U * (.07 + .52 * k);
+    const al = Math.pow(1 - age / life, 1.6) * .6 * r.s * cfg.ripple;
+    ctx.save(); ctx.translate(CX, CY - U * .02);
+    let st = `hsla(${(r.t0 * 90 + 220) % 360},90%,62%,${al})`;
+    if (ctx.createConicGradient) {
+      const g = ctx.createConicGradient(r.t0 * 3 + age, 0, 0);
+      for (let q = 0; q <= 5; q++) g.addColorStop(q / 5, `hsla(${(q * 72 + r.t0 * 50 + 200) % 360},90%,64%,${al})`);
+      st = g;
+    }
+    ctx.strokeStyle = st; ctx.lineWidth = 1.5 * DPR; ctx.beginPath(); ctx.arc(0, 0, rad, 0, TAU); ctx.stroke();
+    ctx.globalAlpha = .16; ctx.lineWidth = 20 * DPR * (1 - k * .6); ctx.beginPath(); ctx.arc(0, 0, rad, 0, TAU); ctx.stroke();
+    ctx.restore();
+  }
+}
+function drawShadow(st) {
+  const a = .075 * st.tiltP * fade; if (a < .003) return;
+  const y = CY + (st.shift + G.b + G.r + 34) * S, rx = (96 + Math.abs(Math.sin(st.tau)) * 30) * S * (1 + .05 * st.punch), ry = 11 * S;
+  ctx.save(); ctx.translate(CX, y); ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, `rgba(20,20,60,${a * 2.4})`); g.addColorStop(1, 'rgba(20,20,60,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, TAU); ctx.fill(); ctx.restore();
+}
+
+/* ───────────── Shape Magic · Thermal (React Bits 셰이더 이식) ─────────────
+   로고 실루엣 → 프레임마다 부호 있는 거리장(SDF) → WebGL2 머티리얼 */
+const VERT = `#version 300 es
+in vec2 aPosition;
+void main() { gl_Position = vec4(aPosition, 0.0, 1.0); }`;
+const FRAG = `#version 300 es
+precision highp float;
+#define PI 3.14159265359
+#define MATERIAL_OUTSIDE true
+#define MATERIAL_REACH 0.3200
+uniform sampler2D uField;
+uniform vec2 uFieldScale;
+uniform vec2 uResolution;
+uniform float uTime;
+uniform float uFade;
+uniform vec4 uMatP[8];
+uniform vec4 uMatC[16];
+uniform vec4 uSurface;
+out vec4 outColor;
+#define C_colors(k) uMatC[0 + (k)]
+#define N_colors uMatP[0].x
+#define P_innerGlow uMatP[0].y
+#define P_outerGlow uMatP[0].z
+#define P_contour uMatP[0].w
+#define P_angle uMatP[1].x
+#define P_speed uMatP[1].y
+struct Surface { vec2 p; vec2 uv; vec2 frag; vec2 res; float unit; float px; float d; float aa; float cov; vec2 n; float slope; float time; };
+vec3 toLinear(vec3 c) { return pow(c, vec3(2.2)); }
+vec3 toDisplay(vec3 c) { return pow(max(c, 0.0), vec3(1.0 / 2.2)); }
+float shapeAt(vec2 q) { return texture(uField, q * uFieldScale + 0.5).r; }
+float m_hash(vec2 p) { uvec2 u = floatBitsToUint(p * vec2(141421356.0, 2718281828.0)); return float((u.x ^ u.y) * 3141592653u) / 4294967295.0; }
+float m_value(vec2 p) {
+  vec2 i = floor(p); vec2 f = p - i; f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(m_hash(i), m_hash(i + vec2(1.0, 0.0)), f.x), mix(m_hash(i + vec2(0.0, 1.0)), m_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float m_front(float a, float b, float tk, float phase) {
+  float pos = mix(-0.6, 0.6, tk);
+  float wob = m_value(vec2(b * 4.0 + phase * 13.7, tk * 3.0 + phase * 7.1)) - 0.5;
+  float e = a - pos + wob * 0.12;
+  float band = exp(-e * e / 0.0256);
+  float gate = smoothstep(0.0, 0.15, tk) * (1.0 - smoothstep(0.85, 1.0, tk));
+  return clamp(band * gate, 0.0, 1.0);
+}
+vec3 m_toLab(vec3 c) {
+  float l = 0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b;
+  float m = 0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b;
+  float s = 0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b;
+  l = sign(l) * pow(abs(l), 1.0 / 3.0); m = sign(m) * pow(abs(m), 1.0 / 3.0); s = sign(s) * pow(abs(s), 1.0 / 3.0);
+  return vec3(0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s);
+}
+vec3 m_fromLab(vec3 c) {
+  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  float m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  float s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  l = l * l * l; m = m * m * m; s = s * s * s;
+  return vec3(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s);
+}
+vec4 m_ramp(float t) {
+  float n = max(N_colors, 1.0);
+  vec4 c0 = C_colors(0);
+  vec3 lab = m_toLab(toLinear(c0.rgb));
+  float alpha = c0.a;
+  for (int i = 1; i < 8; i++) {
+    if (float(i) >= n) break;
+    float a = float(i - 1) / (n - 1.0); float b = float(i) / (n - 1.0);
+    float seg = clamp((t - a) / max(b - a, 1e-6), 0.0, 1.0);
+    vec4 ci = C_colors(i);
+    float wa = alpha * (1.0 - seg); float wb = ci.a * seg;
+    lab = (lab * wa + m_toLab(toLinear(ci.rgb)) * wb) / max(wa + wb, 0.001);
+    alpha = wa + wb;
+  }
+  return vec4(toDisplay(m_fromLab(lab)), alpha);
+}
+vec4 material(Surface s) {
+  float t = s.time * P_speed;
+  float depth = clamp(-s.d, 0.0, 0.7);
+  float f = s.d > 0.0 ? s.d * 0.5 : -0.5 * sqrt(max(depth * (1.4 - depth), 0.0));
+  float inside = s.cov;
+  vec2 rel = s.p * 0.5;
+  float ang = P_angle * PI / 180.0;
+  vec2 along = vec2(cos(ang), sin(ang));
+  vec2 across = vec2(-along.y, along.x);
+  float a = dot(rel, along);
+  float b = -dot(rel, across);
+  float base = 0.1 * t - 0.3;
+  float innerBlur = exp(-max(-f, 0.0) / 0.12);
+  float inner = 0.8 + 0.8 * innerBlur;
+  inner = mix(inner, 0.0, m_front(a, b, fract(base), 1.0));
+  inner = mix(inner, 0.0, m_front(a, b, fract(base + 1.0 / 3.0), 2.0));
+  inner = mix(inner, 0.0, m_front(a, b, fract(base + 2.0 / 3.0), 3.0));
+  inner *= 2.0 * P_innerGlow;
+  inner += P_contour * 2.0 * exp(-abs(f) / 0.03);
+  inner = min(inner, 1.0) * inside;
+  inner = pow(max(inner, 0.0), 1.2);
+  float reach = 0.05 + 0.15 * P_outerGlow;
+  float outerBlur = exp(-max(f, 0.0) / reach);
+  if (s.d > 0.0) {
+    float r = reach * 1.2; float k = 0.5 / reach;
+    outerBlur += exp(-max(shapeAt(s.p + vec2(r, 0.0)), 0.0) * k);
+    outerBlur += exp(-max(shapeAt(s.p - vec2(r, 0.0)), 0.0) * k);
+    outerBlur += exp(-max(shapeAt(s.p + vec2(0.0, r)), 0.0) * k);
+    outerBlur += exp(-max(shapeAt(s.p - vec2(0.0, r)), 0.0) * k);
+    outerBlur *= 0.2;
+  }
+  vec2 edge = smoothstep(vec2(-0.06), vec2(0.1), s.uv) * (1.0 - smoothstep(vec2(0.9), vec2(1.06), s.uv));
+  float sweep = fract(base * 3.0 - 0.1);
+  float y = fract(a * 1.2 - sweep);
+  float mask = 0.5 + smoothstep(0.3, 0.65, y) * (1.0 - smoothstep(0.65, 1.0, y));
+  float outer = 0.9 * pow(outerBlur, 0.8) * mask * 5.0 * P_outerGlow * P_outerGlow * (1.0 - inside) * edge.x * edge.y;
+  float heat = clamp(inner + outer, 0.0, 1.0);
+  heat += 0.005 * (m_hash(s.frag * vec2(1.7, 1.3)) - 0.5);
+  heat = clamp(heat, 0.0, 1.0);
+  float cover = clamp(inside + outer, 0.0, 1.0);
+  vec4 ramp = m_ramp(heat);
+  return vec4(clamp(ramp.rgb, 0.0, 1.0), ramp.a * cover);
+}
+void main() {
+  float unit = min(uResolution.x, uResolution.y) * 0.5;
+  vec2 frag = vec2(gl_FragCoord.x, uResolution.y - gl_FragCoord.y);
+  vec2 p = (frag - uResolution * 0.5) / unit;
+  float px = 1.0 / unit;
+  float d = shapeAt(p);
+  float aa = clamp(length(vec2(dFdx(d), dFdy(d))), px * 0.5, px * 1.5);
+  Surface s;
+  s.p = p; s.uv = frag / uResolution; s.frag = frag; s.res = uResolution; s.unit = unit; s.px = px; s.d = d; s.aa = aa;
+  s.cov = clamp(0.5 - d / aa, 0.0, 1.0); s.slope = 0.0; s.n = vec2(0.0); s.time = uTime;
+  vec4 m = material(s);
+  float reach = 1.0 - smoothstep(MATERIAL_REACH * 0.55, MATERIAL_REACH, d);
+  float a = clamp(MATERIAL_OUTSIDE ? m.a * max(reach, s.cov) : m.a * s.cov, 0.0, 1.0);
+  outColor = vec4(clamp(m.rgb, 0.0, 1.0) * a, a) * uFade;
+}
+`;
+const MAT = { colors: ['#cdccd9', '#7c8cd5', '#d6daff', '#f6e0ff'], innerGlow: .4, outerGlow: 0, contour: .5, angle: 108, speed: 1 };   // Shape Magic · Orbit 머티리얼
+const toRgba = hex => { const h = hex.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255).concat(1); };
+
+const glcv = mk(); glcv.style.cssText = 'position:fixed;pointer-events:none';
+document.body.appendChild(glcv);
+const gl = glcv.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false });
+const FS = 320;                                            // 거리장 해상도
+const fcv = mk(); fcv.width = fcv.height = FS;
+const fx = fcv.getContext('2d', { willReadFrequently: true });
+const fOuter = new Float64Array(FS * FS), fInner = new Float64Array(FS * FS), fData = new Float32Array(FS * FS), fTmp = new Float32Array(FS * FS);
+const eF = new Float64Array(FS), eV = new Int32Array(FS), eZ = new Float64Array(FS + 1);
+function edtPass(grid, offset, stride, length) {
+  for (let i = 0; i < length; i++) eF[i] = grid[offset + i * stride];
+  let k = 0; eV[0] = 0; eZ[0] = -1e20; eZ[1] = 1e20;
+  for (let q = 1; q < length; q++) {
+    let s = (eF[q] + q * q - (eF[eV[k]] + eV[k] * eV[k])) / (2 * q - 2 * eV[k]);
+    while (s <= eZ[k]) { k--; s = (eF[q] + q * q - (eF[eV[k]] + eV[k] * eV[k])) / (2 * q - 2 * eV[k]); }
+    k++; eV[k] = q; eZ[k] = s; eZ[k + 1] = 1e20;
+  }
+  k = 0;
+  for (let q = 0; q < length; q++) { while (eZ[k + 1] < q) k++; grid[offset + q * stride] = (q - eV[k]) * (q - eV[k]) + eF[eV[k]]; }
+}
+function edt(grid) { for (let x = 0; x < FS; x++) edtPass(grid, x, FS, FS); for (let y = 0; y < FS; y++) edtPass(grid, y * FS, 1, FS); }
+function buildField(src) {
+  fx.setTransform(1, 0, 0, 1, 0, 0); fx.clearRect(0, 0, FS, FS);
+  fx.imageSmoothingEnabled = true; fx.imageSmoothingQuality = 'high';
+  if (hasFilter) fx.filter = `blur(${FS * .006}px)`;   // 슬라이스 톱니·꺾임을 먼저 부드럽게
+  fx.drawImage(src || lcv, 0, 0, FS, FS); fx.filter = 'none';
+  const px = fx.getImageData(0, 0, FS, FS).data;
+  for (let i = 0; i < FS * FS; i++) {                      // 블러된 알파를 0.5 에서 이진화 → 정확한 거리
+    const inside = px[i * 4 + 3] >= 128;
+    fOuter[i] = inside ? 0 : 1e20; fInner[i] = inside ? 1e20 : 0;
+  }
+  edt(fOuter); edt(fInner);
+  const unit = FS / 2;
+  for (let i = 0; i < FS * FS; i++) fTmp[i] = (Math.sqrt(fOuter[i]) - Math.sqrt(fInner[i])) / unit;
+  for (let y = 0; y < FS; y++) for (let x = 0; x < FS; x++) {   // 3×3 평균으로 계단 제거
+    let sum = 0, n = 0;
+    for (let dy = -1; dy <= 1; dy++) { const yy = y + dy; if (yy < 0 || yy >= FS) continue;
+      for (let dx = -1; dx <= 1; dx++) { const xx = x + dx; if (xx < 0 || xx >= FS) continue; sum += fTmp[yy * FS + xx]; n++; } }
+    fData[y * FS + x] = sum / n;
+  }
+}
+let glU = null, glTex = null, glFirst = true;
+if (gl) {
+  const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(x)); return x; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG));
+  gl.bindAttribLocation(prog, 0, 'aPosition'); gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  glU = n => gl.getUniformLocation(prog, n);
+  glTex = gl.createTexture();
+  const P = new Float32Array(32), C = new Float32Array(64);
+  MAT.colors.forEach((c, i) => C.set(toRgba(c), i * 4));
+  P[0] = MAT.colors.length; P[1] = MAT.innerGlow; P[2] = MAT.outerGlow; P[3] = MAT.contour; P[4] = MAT.angle; P[5] = MAT.speed;
+  gl.uniform4fv(glU('uMatP'), P); gl.uniform4fv(glU('uMatC'), C);
+  gl.uniform4f(glU('uSurface'), .04, 0, 0, 0); gl.uniform1i(glU('uField'), 0);
+  gl.uniform2f(glU('uFieldScale'), .5, .5);
+}
+function drawThermal(fadeV, o) {
+  if (!gl) return false;
+  const src = o ? o.src : lcv, size = o ? o.size : Ls, cxd = o ? o.cx : CX, cyd = o ? o.cy : CY, tt = o ? o.time : tm;
+  buildField(src);
+  if (glcv.width !== size) { glcv.width = glcv.height = size; }
+  glcv.style.width = glcv.style.height = (size / DPR) + 'px';
+  glcv.style.left = ((cxd - size / 2) / DPR) + 'px'; glcv.style.top = ((cyd - size / 2) / DPR) + 'px';
+  gl.bindTexture(gl.TEXTURE_2D, glTex);
+  if (glFirst) {
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, FS, FS, 0, gl.RED, gl.FLOAT, fData);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    glFirst = false;
+  } else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, FS, FS, gl.RED, gl.FLOAT, fData);
+  gl.viewport(0, 0, size, size);
+  gl.uniform2f(glU('uResolution'), size, size); gl.uniform1f(glU('uTime'), tt); gl.uniform1f(glU('uFade'), fadeV);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  return true;
+}
+
+/* ───────────── 배경 · React Bits Aurora (셰이더 이식) ───────────── */
+const AUR_PROPS = { colorStops: ['#86aefc', '#b2c8ff', '#eaf3ff'], amplitude: .7, blend: .5, height: .45, speed: 2.0, glow: .6, scale: 1, brightness: 1, layers: 1 };
+const AFRAG = `#version 300 es
+precision highp float;
+precision highp int;
+uniform vec2 uResolution;
+uniform float uTime;
+uniform vec3 uStops[5];
+uniform int uStopCount;
+uniform float uAmplitude;
+uniform float uBlend;
+uniform float uHeight;
+uniform float uScale;
+uniform float uGlow;
+uniform float uBrightness;
+uniform int uLayers;
+uniform float uFlip;
+uniform vec3 uPointer;
+uniform float uReveal;
+uniform float uOpacity;
+uniform float uLightMode;
+out vec4 outColor;
+vec3 permute(vec3 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
+float snoise(vec2 v) {
+  const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  vec2 i = floor(v + dot(v, C.yy));
+  vec2 x0 = v - i + dot(i, C.xx);
+  vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+  i = mod(i, 289.0);
+  vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+  vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
+  m = m * m; m = m * m;
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
+  vec3 g;
+  g.x = a0.x * x0.x + h.x * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+float smootherstep(float edge0, float edge1, float x) { float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0); return t * t * t * (t * (t * 6.0 - 15.0) + 10.0); }
+vec3 oklabToLinear(vec3 c) {
+  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  float m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  float s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  l = l * l * l; m = m * m * m; s = s * s * s;
+  return vec3(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s);
+}
+vec3 toSrgb(vec3 c) { c = clamp(c, 0.0, 1.0); return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
+vec3 ramp(float t) {
+  float x = clamp(t, 0.0, 1.0) * float(uStopCount - 1);
+  int i = int(min(floor(x), float(uStopCount - 2)));
+  float f = x - float(i);
+  f = f * f * (3.0 - 2.0 * f);
+  vec3 lch = mix(uStops[i], uStops[i + 1], f);
+  lch.x = mix(lch.x, min(lch.x, 0.7), uLightMode);
+  return toSrgb(oklabToLinear(vec3(lch.x, lch.y * cos(lch.z), lch.y * sin(lch.z))));
+}
+float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+void main() {
+  vec2 frag = gl_FragCoord.xy;
+  float y = 1.0 - frag.y / uResolution.y;
+  y = mix(y, 1.0 - y, uFlip);
+  float u = frag.x / uResolution.x;
+  float X = (frag.x - uResolution.x * 0.5) / uResolution.y;
+  float t = uTime;
+  float reach = uPointer.z * exp(-pow((X - uPointer.x) / 0.38, 2.0));
+  vec3 glow = vec3(0.0);
+  float cover = 0.0;
+  for (int k = 0; k < 3; k++) {
+    if (k >= uLayers) break;
+    float layer = float(k);
+    float seed = layer * 13.7;
+    float pace = t * (1.0 - layer * 0.18);
+    float warp = snoise(vec2(X * 0.45 * uScale + pace * 0.02 + seed, pace * 0.05 + seed));
+    float wave = snoise(vec2(X * 0.75 * uScale + warp * 0.35 - pace * 0.03 + seed, pace * 0.07 - seed)) * 0.72
+      + snoise(vec2(X * 1.6 * uScale + warp * 0.5 + pace * 0.04 - seed, pace * 0.1 + seed * 0.5)) * 0.28;
+    float hem = uHeight + layer * 0.07 + wave * 0.15 * uAmplitude;
+    hem += reach * 0.08 * (layer < 0.5 ? 1.0 : 0.4);
+    hem = mix(-0.25, hem, uReveal);
+    float soft = (0.04 + uBlend * 0.16) * (1.0 + layer * 0.9);
+    float rise = hem - y;
+    float low = -soft - uGlow * 0.14;
+    float high = 0.26 + soft * 0.6;
+    float body = pow(smootherstep(low, high, rise), 1.5 + uGlow * 0.6);
+    float lobes = 0.86 + 0.14 * snoise(vec2(X * 0.9 * uScale - pace * 0.025 + seed, y * 0.3 + pace * 0.04));
+    float alpha = body * lobes * (layer < 0.5 ? 1.0 : 0.32 / layer);
+    alpha = clamp(alpha * (1.0 + reach * 0.25 * smootherstep(0.9, 0.0, abs(y - hem))), 0.0, 1.0);
+    vec3 tint = ramp(u + 0.05 * sin(pace * 0.08 + layer * 2.3) + layer * 0.1 + max(rise, 0.0) * 0.05);
+    glow = 1.0 - (1.0 - glow) * (1.0 - tint * alpha);
+    cover = 1.0 - (1.0 - cover) * (1.0 - alpha);
+  }
+  float fade = smootherstep(0.0, 0.7, uReveal) * uOpacity;
+  float strength = clamp(uBrightness, 0.0, 2.0);
+  glow *= fade * min(strength, 1.0);
+  cover *= fade * min(strength, 1.0);
+  glow = 1.0 - pow(1.0 - glow, vec3(max(strength, 1.0)));
+  float dither = (hash(frag) - 0.5) / 255.0;
+  outColor = vec4(glow + dither, clamp(cover + dither, 0.0, 1.0));
+}
+`;
+const acv = mk(); acv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:calc(100% + 160px);pointer-events:none';   // 하단 160px 여유 : 뷰포트가 커져도 끝이 잘려 보이지 않게
+document.body.insertBefore(acv, glcv);
+const agl = acv.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false });
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const aur = { clock: 0, reveal: 0, px: 0, py: .5, reach: 0, t0: 0 };
+let aU = null, aProg = null;
+const aStops = (() => {
+  const toOk = rgb => {
+    const [r, g, b] = rgb.map(c => c <= .04045 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4));
+    const l = Math.cbrt(.4122214708 * r + .5363325363 * g + .0514459929 * b), m = Math.cbrt(.2119034982 * r + .6806995451 * g + .1073969566 * b), s2 = Math.cbrt(.0883024619 * r + .2817188376 * g + .6299787005 * b);
+    const L = .2104542553 * l + .793617785 * m - .0040720468 * s2, A = 1.9779984951 * l - 2.428592205 * m + .4505937099 * s2, B = .0259040371 * l + .7827717662 * m - .808675766 * s2;
+    return [L, Math.hypot(A, B), Math.atan2(B, A)];
+  };
+  const raw = AUR_PROPS.colorStops.map(h => toOk([1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)));
+  const known = raw.findIndex(x => x[1] > .02); let prev = known === -1 ? 0 : raw[known][2];
+  const out = new Float32Array(15);
+  raw.forEach((x, i) => { let h = x[1] > .02 ? x[2] : prev; while (h - prev > Math.PI) h -= TAU; while (h - prev < -Math.PI) h += TAU; prev = h; out.set([x[0], x[1], h], i * 3); });
+  return out;
+})();
+if (agl) {
+  const sh = (type, src) => { const x = agl.createShader(type); agl.shaderSource(x, src); agl.compileShader(x); if (!agl.getShaderParameter(x, agl.COMPILE_STATUS)) console.error(agl.getShaderInfoLog(x)); return x; };
+  aProg = agl.createProgram();
+  agl.attachShader(aProg, sh(agl.VERTEX_SHADER, VERT)); agl.attachShader(aProg, sh(agl.FRAGMENT_SHADER, AFRAG));
+  agl.bindAttribLocation(aProg, 0, 'aPosition'); agl.linkProgram(aProg); agl.useProgram(aProg);
+  const buf = agl.createBuffer(); agl.bindBuffer(agl.ARRAY_BUFFER, buf);
+  agl.bufferData(agl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), agl.STATIC_DRAW);
+  agl.enableVertexAttribArray(0); agl.vertexAttribPointer(0, 2, agl.FLOAT, false, 0, 0);
+  aU = n => agl.getUniformLocation(aProg, n);
+}
+function drawAurora(dt) {
+  if (!agl) return;
+  const P = AUR_PROPS;
+  const AH = H + Math.round(160 * DPR);
+  if (acv.width !== W || acv.height !== AH) { acv.width = W; acv.height = AH; }
+  aur.clock += dt * P.speed * (reducedMotion ? 0 : 1);
+  aur.reveal = Math.min(1, aur.reveal + dt / 3.2);
+  const engaged = ptr.px > -1e3 ? 1 : 0, follow = 1 - Math.exp(-dt / .6);
+  // 마우스가 없어도 빛이 스스로 가로질러 흐른다 (자동 flow) — 마우스가 오면 그쪽을 따라간다
+  const k = aur.clock, aspect = W / H, ax = Math.sin(k * .16) * .5 * aspect * .8 + Math.sin(k * .07 + 1.3) * .12, ay = .28 + Math.sin(k * .11 + .6) * .1;
+  const tx = engaged ? (ptr.px - W / 2) / H : ax, ty = engaged ? 1 - ptr.py / AH : ay;
+  aur.px += (tx - aur.px) * follow; aur.py += (ty - aur.py) * follow;
+  aur.reach += ((engaged ? 1 : .85) - aur.reach) * (1 - Math.exp(-dt / .9));
+  agl.viewport(0, 0, W, AH);
+  agl.uniform2f(aU('uResolution'), W, AH); agl.uniform1f(aU('uTime'), aur.clock);
+  agl.uniform3fv(aU('uStops'), aStops); agl.uniform1i(aU('uStopCount'), AUR_PROPS.colorStops.length);
+  agl.uniform1f(aU('uAmplitude'), P.amplitude); agl.uniform1f(aU('uBlend'), P.blend); agl.uniform1f(aU('uHeight'), P.height + .85 * wipeWp);   // 스크롤하면 그라데이션도 함께 위로 올라감
+  // 세로 화면에서도 오로라 물결이 충분히 보이게 가로 주파수를 키움
+  agl.uniform1f(aU('uScale'), P.scale * Math.max(1, (H / W) * 1.15));
+  agl.uniform1f(aU('uGlow'), P.glow); agl.uniform1f(aU('uBrightness'), P.brightness);
+  agl.uniform1i(aU('uLayers'), P.layers); agl.uniform1f(aU('uFlip'), 1);
+  agl.uniform3f(aU('uPointer'), aur.px, aur.py, aur.reach);
+  agl.uniform1f(aU('uReveal'), 1 - Math.pow(1 - aur.reveal, 3)); agl.uniform1f(aU('uOpacity'), 1); agl.uniform1f(aU('uLightMode'), 0);
+  agl.clearColor(0, 0, 0, 0); agl.clear(agl.COLOR_BUFFER_BIT); agl.drawArrays(agl.TRIANGLES, 0, 3);
+}
+
+/* ───────────── 메인 루프 ───────────── */
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, Math.max(.001, (now - last) / 1000 || .016)); last = now;
+
+  // 창 크기·줌·DPR 이 바뀌면 resize 이벤트를 놓쳐도 즉시 따라간다
+  if (Math.round(innerWidth * Math.min(2, devicePixelRatio || 1)) !== W || Math.round(innerHeight * Math.min(2, devicePixelRatio || 1)) !== H) resize();
+  fade += (fadeTarget - fade) * (1 - Math.exp(-dt * 13));
+  if (fadeTarget === 0 && fade < .03 && pending >= 0) { startVersion(pending, now); pending = -1; fadeTarget = 1; fade = 0; }
+
+  const cfg = V[cur]; tm = freezeAt != null ? freezeAt : (now - t0) / 1000;
+  const k = 1 - Math.exp(-dt * 5);
+  ptr.sx += (ptr.x - ptr.sx) * k; ptr.sy += (ptr.y - ptr.sy) * k;
+  const dist = Math.hypot(ptr.px - CX, ptr.py - CY);
+  ptr.hot += ((dist < U * .26 ? 1 : 0) - ptr.hot) * (1 - Math.exp(-dt * 6));
+  phase += dt * cfg.omega * (1 + ptr.hot * 1.5);
+
+  const st = computeState(cfg);
+
+  // 배경
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  // 스크롤 전에는 다크 → 스크롤하면 화이트로 전환
+  lightS += (clamp(scrollY / (innerHeight * 2.6)) - lightS) * (1 - Math.exp(-dt * 5));   // 화면 2.6배 스크롤 동안 천천히 전환   // 스크롤 → 다크에서 화이트로
+  const lightK = 0;                         // 바탕은 다크 유지 — 화이트는 아래서 올라오는 wipe 오버레이
+  const bgv = Math.round(lerp(6, 255, lightK));
+  const wp = lightS * (2 - lightS), BAND = 135, front = 100 - wp * (100 + BAND + 2);   // 스크롤 즉시 반응(이즈 아웃) · 전환 폭 BAND%
+  const WST = [[0, 92, 102, 142, 0], [.1, 98, 110, 152, .26], [.28, 128, 142, 186, .58], [.48, 166, 178, 212, .8],
+               [.7, 208, 216, 236, .94], [.88, 241, 244, 251, 1], [1, 255, 255, 255, 1]];    // 다크 → 저채도 슬레이트 블루 → 연회청 → 화이트 (제품 톤)
+  const wst = WST.map(([k, r, g, b, al]) => `rgba(${r},${g},${b},${al}) ${(front + k * BAND).toFixed(2)}%`);
+  wipeEl.style.background = `linear-gradient(to bottom, rgba(255,255,255,0) ${front.toFixed(2)}%, ${wst.join(', ')})`;
+  wipeWp = wp;
+  window.__gnbTheme(wp > .85);
+  document.documentElement.style.background = lightS > .985 ? '#fff' : '#06060a';
+  ctx.fillStyle = `rgb(${bgv},${bgv},${Math.round(lerp(10, 255, lightK))})`; ctx.fillRect(0, 0, W, H);
+  const bgA = cfg.bgAmp * (.25 + .75 * Ease.smooth(prog(tm, cfg.T.arc[0], cfg.T.tilt[1] + .6))) * fade;
+  ctx.globalAlpha = 1;
+  for (const b of cfg.bg) {
+    if (b === 'aurora') bgAurora(bgA); else if (b === 'silk') bgSilk(bgA); else if (b === 'orb') bgOrb(bgA * (.6 + .5 * ptr.hot));
+    else if (b === 'blinds') bgBlinds(bgA); else if (b === 'dust') bgDust(bgA * .5, cfg);
+  }
+  drawRipples(Object.assign({}, cfg, { ripple: cfg.ripple * fade }));
+
+  drawAurora(dt);
+  // 로고(SVG/Thermal)는 잠시 숨김 → 제품 이미지 히어로
+  if (!window.__thermalOn) glcv.style.display = 'none';
+  const ht = window.__heroStart ? (performance.now() - window.__heroStart) / 1000 : -1;     // 오프닝이 열린 뒤부터
+  const rvl = Ease.inOutSine(prog(ht, 0, 2.8)), band = 70, edge = rvl * (100 + band);          // 아래에서부터 투명도가 차오르는 마스크
+  const hmask = `linear-gradient(to top, #000 ${(edge - band).toFixed(1)}%, rgba(0,0,0,0) ${edge.toFixed(1)}%)`;
+  if (hmask !== window.__hmask) { window.__hmask = hmask; heroEl.style.webkitMaskImage = hmask; heroEl.style.maskImage = hmask; }
+  heroEl.style.opacity = (rvl > 0 ? 1 : 0) * clamp(1 - scrollY / (innerHeight * .9));
+  if (topShade) { topShade.style.opacity = ht > 0 ? clamp(1 - scrollY / (innerHeight * .9)) : 0; if (ht > 2.4 && topShade.style.transition !== 'none') topShade.style.transition = 'none'; }   // 사진과 함께 사라진다
+  heroEl.style.transform = 'translate(-50%, 0)';          // 이미지는 고정 (페이드 인만)
+  if (SHOW_SCENE) drawScene(dt);
+  drawHey();
+  ctx.globalAlpha = 1;
+}
+
+startVersion(0, performance.now());
+requestAnimationFrame(t => { last = t; t0 = t; requestAnimationFrame(frame); });
+/* ── 오프닝 시퀀스 (새로고침할 때마다) ──────────────────────────────────────────
+   검정 화면 → 흰 심볼이 선을 통과해 모핑 + LIEU 가 함께 내려옴 → 잠깐 머문 뒤 가운데 선을 따라 위아래로 열린다 */
+(() => {
+  const ov = document.getElementById('intro');
+  if (!ov) return;
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root = document.documentElement;
+  const finish = () => { window.__heroStart = performance.now(); document.body.classList.add('ready'); root.style.overflow = ''; ov.remove(); };
+  if (reduceMotion) { finish(); return; }
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  scrollTo(0, 0); root.style.overflow = 'hidden';
+
+  const symEl = document.getElementById('introSym'), txtEl = document.getElementById('introText');
+  txtEl.innerHTML = lsText.innerHTML.replace(/id="c(.)"/g, 'id="ic$1"').replace(/url\(#c(.)\)/g, 'url(#ic$1)').replace(/#171A18/g, '#FFFFFF');
+  const letters = [...txtEl.querySelectorAll('path')];
+  const tlc = window.LieuMorph.loadTimeline();   // 구간별 타임라인 (logo-morph.html 에서 편집)
+  const m = window.LieuMorph.create(symEl, { stiffness: 4.0, damping: 4.3, squash: 0, timeline: tlc });
+  m.setProgress(0, true);
+  const ease = t => { t = clamp(t); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  const seg = (x, a, b) => clamp((x - a) / (b - a));
+  let opened = false, holdAt = 0, raf = 0, txtT0 = null, txtA = 0;
+  const txtEase = window.LieuMorph.bezier(.7, 0, .3, 1);          // LIEU : ease in-out
+
+  const place = () => {
+    const vw = innerWidth, vh = innerHeight, cx = vw / 2, cy = vh / 2;
+    const k = (vw < 640 ? 46 : 60) / 246, u = 246 * k / 6, gap = vw < 640 ? 12 : 16, ts = .8, tw = 243 * k * ts, capH = tw * 27.6 / 76.7;     // 작고 단정하게 : 레일 폭 60px (모바일 46px) · 새 로고 규격 비율
+    const s = m.progress, ex = m.extents();
+    const symCy = cy;   // LIEU 가 내려와도 심볼은 제자리 (위로 밀리지 않는다)
+    symEl.style.cssText = `left:${cx - 133.5 * k}px;top:${symCy - 90 * k}px;width:${266 * k}px;height:${220 * k}px`;
+    txtEl.style.cssText = `left:${cx - tw / 2}px;top:${symCy + ex.bottom * k + gap}px;width:${tw}px;height:${capH}px`;
+    txtA = m.pole;                                                       // LIEU : 세로선과 똑같이 움직인다 (시작·끝 · 속도 모두) — 세로선이 ease in-out
+    const a = txtA;
+    letters.forEach(el => el.setAttribute('transform', `translate(0 ${(-(1 - a) * 27.6).toFixed(2)})`)); txtEl.style.opacity = Math.min(1, a * 2.2).toFixed(3);   // 네 글자가 한 번에 위에서 아래로, 스르르
+    return s;
+  };
+  const open = () => {
+    if (opened) return; opened = true;
+    // 1단계 : 로고(심볼+글자)만 완전히 사라지게 → 검정 화면만 남김
+    ov.classList.add('logo-out'); glcv.style.transition = 'opacity .8s cubic-bezier(.45,0,.25,1)'; glcv.style.opacity = '0';
+    // 2단계 : 로고가 다 사라진 뒤에야 검정이 걷히며 배경(오로라·히어로)이 등장
+    setTimeout(() => {
+      ov.classList.add('open');
+      t0 = performance.now(); window.__heroStart = t0;
+      if (typeof aur !== 'undefined') aur.reveal = 0;
+      document.body.classList.add('ready');
+    }, 780);   // 로고가 완전히 사라져 검정이 되는 바로 그 순간 메인이 밝아지기 시작
+    setTimeout(() => { root.style.overflow = ''; ov.remove(); window.__thermalOn = false; glcv.style.display = 'none'; }, 780 + 2600);
+  };
+  setTimeout(() => { if (!opened && !/[?&]hold/.test(location.search)) open(); }, (window.LieuMorph.timelineTotal(tlc) + tlc.spin + 6) * 1000);   // 안전장치 : 어떤 경우에도 메인으로 넘어간다 (?hold 제외)
+  const tick = now => {
+    let s = 1; try { s = place(); renderThermal(now); } catch (e) { console.error(e); open(); return; }
+    if (!opened) {
+      if (s > .992 && txtA >= 1 && m.done) { holdAt = holdAt || now; if (now - holdAt > 250 && !/[?&]hold/.test(location.search)) open(); } else holdAt = 0;   // ?hold : 점검용으로 오프닝 마지막 장면에 머문다
+      raf = requestAnimationFrame(tick);
+    }
+  };
+  // ── Orbit 머티리얼 렌더 : 로고 실루엣 → 거리장 → 셰이더 ──────────────────────────────
+  symEl.style.visibility = 'visible'; symEl.style.color = '#fff'; symEl.querySelectorAll('.body,.rail').forEach(e => { e.style.fill = '#fff'; });          // 심볼만 머티리얼로 그리고, LIEU 글자는 순백 그대로 둔다
+  const mask = document.createElement('canvas'), mx = mask.getContext('2d');
+  const hasRR = typeof mx.roundRect === 'function';
+  const startT = performance.now();
+  glcv.style.zIndex = 301; glcv.style.display = 'block'; glcv.style.transition = 'opacity 1.4s cubic-bezier(.4,0,.2,1)';
+  window.__thermalOn = false; glcv.style.display = 'none';
+  const matrixTo = (el, ox, oy) => { const q = el.getScreenCTM(); mx.setTransform(q.a * DPR, q.b * DPR, q.c * DPR, q.d * DPR, (q.e - ox) * DPR, (q.f - oy) * DPR); };
+  const renderThermal = now => {
+    const vw = innerWidth, vh = innerHeight, Q = vw < 640 ? 150 : 200, ox = vw / 2 - Q / 2, oy = vh / 2 - Q / 2, size = Math.round(Q * DPR);
+    if (mask.width !== size) mask.width = mask.height = size;
+    mx.setTransform(1, 0, 0, 1, 0, 0); mx.clearRect(0, 0, size, size); mx.fillStyle = '#000';
+    const body = symEl.querySelector('.body'), rail = symEl.querySelector('.rail');
+    matrixTo(body, ox, oy); mx.fill(new Path2D(body.getAttribute('d')));
+    const rw = +rail.getAttribute('width'), rh = +rail.getAttribute('height'), rx = +rail.getAttribute('x'), ry = +rail.getAttribute('y'), rr = +rail.getAttribute('rx');
+    matrixTo(rail, ox, oy); mx.beginPath(); if (hasRR) mx.roundRect(rx, ry, rw, rh, rr); else mx.rect(rx, ry, rw, rh); mx.fill();
+    return; drawThermal(1, { src: mask, size, cx: (ox + Q / 2) * DPR, cy: (oy + Q / 2) * DPR, time: (now - startT) / 1000 });
+  };
+  place(); renderThermal(performance.now()); raf = requestAnimationFrame(tick);
+  setTimeout(() => m.play(420), 60);                          // 갓등 → 선 통과 → 제품
+  addEventListener('resize', place);
+})();
+
+window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) startVersion(i, performance.now()); freezeAt = v; fade = 1; fadeTarget = 1; }, get tm() { return tm; }, get cur() { return cur; }, V };
+})();
+</script>
+<script>
+/* 스페이스바 : 아주 부드러운 속도로 자동 스크롤 (다시 누르면 부드럽게 멈춘다 · 휠/터치/방향키는 즉시 직접 제어) */
+(() => {
+  const SPEED = 0.32;                                          // 초당 화면 높이의 비율
+  let on = false, v = 0, pos = 0, last = 0, raf = 0;
+  const maxY = () => document.documentElement.scrollHeight - innerHeight;
+  const step = now => {
+    raf = requestAnimationFrame(step);
+    const dt = Math.min(.05, (now - last) / 1000 || .016); last = now;
+    const target = on ? SPEED * innerHeight : 0;
+    v += (target - v) * (1 - Math.exp(-dt * (on ? 1.6 : 2.6)));          // 가속은 느긋하게, 멈출 때는 조금 더 빨리 잦아든다
+    pos = Math.min(maxY(), Math.max(0, pos + v * dt));
+    scrollTo(0, pos);
+    if (pos >= maxY() - .5) on = false;
+    if (!on && v < .5) { v = 0; cancelAnimationFrame(raf); raf = 0; }
+  };
+  const start = () => { if (!raf) { pos = scrollY; last = performance.now(); raf = requestAnimationFrame(step); } };
+  addEventListener('keydown', e => {
+    if (e.code !== 'Space' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (!document.body.classList.contains('ready')) return;                               // 오프닝 중에는 무시
+    if (e.target.closest && e.target.closest('button,a,input,select,textarea,[role=menuitemradio]')) return;   // 버튼 위에서는 원래 동작
+    e.preventDefault();
+    if (!on && pos >= maxY() - 1 && scrollY >= maxY() - 1) return;
+    on = !on; if (on) { pos = raf ? pos : scrollY; start(); } else if (!raf) start();
+  });
+  const abort = () => { on = false; v = 0; if (raf) { cancelAnimationFrame(raf); raf = 0; } };
+  addEventListener('wheel', abort, { passive: true }); addEventListener('touchstart', abort, { passive: true });
+  addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) abort(); });
+})();
+/* 커서 */
+(() => {
+  if (!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  const root = document.documentElement, el = document.createElement('div'); el.id = 'cur'; el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = '<i></i>'; document.body.appendChild(el); root.classList.add('cur');
+  const c = el.querySelector('i');
+  let x = -100, y = -100, rx = -100, ry = -100, seen = false;
+  addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; if (!seen) { seen = true; rx = x; ry = y; el.classList.add('on'); } el.classList.toggle('hov', !!e.target.closest('a,button,[data-sw],input,[role=button]')); }, { passive: true });
+  addEventListener('pointerdown', () => el.classList.add('down'));
+  addEventListener('pointerup', () => el.classList.remove('down'));
+  document.addEventListener('pointerleave', () => el.classList.remove('on'));
+  document.addEventListener('pointerenter', () => { if (seen) el.classList.add('on'); });
+  (function loop() {
+    rx += (x - rx) * .22; ry += (y - ry) * .22;
+    c.style.transform = `translate(${rx.toFixed(2)}px,${ry.toFixed(2)}px)`;
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>

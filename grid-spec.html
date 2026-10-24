@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LIEU · Grid System</title>
+<link rel="stylesheet" href="assets/grid.css">
+<style>
+  html{background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{margin:0}
+  .sec{padding-block:var(--s-9);border-top:1px solid var(--line-light)}
+  .sec:first-of-type{border-top:0;padding-top:var(--s-10)}
+  .label{color:#6b7088}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .b{background:linear-gradient(180deg,#e9eefc,#dfe6fb);border-radius:12px;min-height:72px;display:flex;align-items:flex-end;padding:12px 14px;font-size:12px;color:#3a4270}
+  .b.d{background:linear-gradient(180deg,#14151f,#06060a);color:#aab3e8}
+  .row{row-gap:var(--gutter);margin-top:var(--s-5)}
+  table{width:100%;border-collapse:collapse;font-size:var(--t-body)}
+  th,td{text-align:left;padding:14px 0;border-bottom:1px solid var(--line-light);vertical-align:top}
+  th{font-weight:500;color:#6b7088;font-size:var(--t-caption);letter-spacing:var(--track-caption);text-transform:uppercase}
+  .bar{height:12px;border-radius:6px;background:linear-gradient(90deg,#86aefc,#b2c8ff)}
+  .sw{display:grid;grid-template-columns:120px 1fr 80px;align-items:center;gap:16px;padding:8px 0}
+  .live{display:flex;flex-wrap:wrap;gap:12px 40px;margin-top:var(--s-6)}
+  .live b{display:block;font-size:var(--t-h3);letter-spacing:var(--track-head);font-weight:600}
+  ul.rules{margin:0;padding-left:1.1em;line-height:var(--lh-body)}
+  ul.rules li{margin:.4em 0}
+  .pill{display:inline-block;padding:4px 10px;border-radius:99px;background:#eef1f8;font-size:12px;margin:2px 4px 2px 0}
+</style>
+</head>
+<body>
+<main class="container">
+
+  <section class="sec">
+    <p class="t-caption label">LIEU — Grid &amp; Token System v1</p>
+    <h1 class="t-h1" style="margin:var(--s-4) 0 var(--s-6)">8pt 위에 세운<br>유동 12컬럼.</h1>
+    <p class="t-body-l label" style="max-width:34em">제품 이미지가 중심인 시네마틱 사이트를 위해, 간격·타입·모션·스크롤 길이를 한 세트의 변수로 묶었습니다. <span class="mono">G</span> 키로 컬럼, <span class="mono">Shift+G</span> 로 8pt 베이스라인을 겹쳐 볼 수 있습니다.</p>
+    <div class="live mono" id="live"></div>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h2">1. 그리드</h2>
+    <table style="margin-top:var(--s-6)">
+      <tr><th>구간</th><th>폭</th><th>컬럼</th><th>좌우 여백</th><th>거터</th></tr>
+      <tr><td>sm</td><td>~ 639</td><td>4</td><td>20 – 32</td><td>12 – 16</td></tr>
+      <tr><td>md</td><td>640 – 1023</td><td>8</td><td>32 – 48</td><td>16</td></tr>
+      <tr><td>lg</td><td>1024 – 1439</td><td>12</td><td>40 – 64</td><td>20</td></tr>
+      <tr><td>xl</td><td>1440 ~</td><td>12</td><td>56 – 88</td><td>24</td></tr>
+    </table>
+    <p class="t-body label" style="margin-top:var(--s-5)">콘텐츠 최대폭 1680px (그 이상에서는 양옆 여백이 늘어남). 컬럼 폭은 <span class="mono">--col</span> 로 계산되며 모든 값은 유동(clamp)입니다.</p>
+
+    <p class="t-caption label" style="margin-top:var(--s-8)">컬럼 조합 — 데스크톱(12)</p>
+    <div class="grid row">
+      <div class="b c12 t8 m4">12</div>
+      <div class="b c6 t4 m2">6</div><div class="b c6 t4 m2">6</div>
+      <div class="b c4 t4 m4">4</div><div class="b c4 t4 m4">4</div><div class="b c4 t8 m4">4</div>
+      <div class="b c3 t2 m2">3</div><div class="b c9 t6 m2">9</div>
+      <div class="b d c5 s2 t4 ts3 m3 ms2">5 · start 2</div><div class="b d c4 s8 t3 ts7 m1 ms4">4 · start 8</div>
+    </div>
+    <p class="t-body label" style="margin-top:var(--s-5)">클래스: 모바일 <span class="mono">.m1–m4 / .ms1–ms4</span> · 태블릿 <span class="mono">.t1–t8 / .ts1–ts8</span> · 데스크톱 <span class="mono">.c1–c12 / .s1–s12</span></p>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h2">2. 간격 (8pt)</h2>
+    <div style="margin-top:var(--s-6)" id="spacing"></div>
+    <p class="t-body label">섹션 위아래는 <span class="mono">--section</span> = clamp(96, 14vw, 240). 컴포넌트 내부는 s-2 ~ s-6, 섹션 안 블록 사이는 s-7 ~ s-9.</p>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h2">3. 타입</h2>
+    <div class="grid row" style="margin-top:var(--s-6)">
+      <div class="c4 t3 m4"><p class="t-caption label">display</p></div><div class="c8 t5 m4"><div class="t-display">Sound, Held.</div></div>
+      <div class="c4 t3 m4"><p class="t-caption label">h1</p></div><div class="c8 t5 m4"><div class="t-h1">Quiet by design</div></div>
+      <div class="c4 t3 m4"><p class="t-caption label">h2</p></div><div class="c8 t5 m4"><div class="t-h2">A new way to listen</div></div>
+      <div class="c4 t3 m4"><p class="t-caption label">h3</p></div><div class="c8 t5 m4"><div class="t-h3">Materials you can feel</div></div>
+      <div class="c4 t3 m4"><p class="t-caption label">body-l / body</p></div><div class="c8 t5 m4"><p class="t-body-l" style="margin:0 0 12px">LIEU 는 방 안의 소리를 가장 자연스러운 위치에 둡니다.</p><p class="t-body" style="margin:0">Body 15 – 18px · 행간 1.55. 한 줄은 34–40em 이하로 유지.</p></div>
+      <div class="c4 t3 m4"><p class="t-caption label">caption</p></div><div class="c8 t5 m4"><p class="t-caption" style="margin:0">Caption · Uppercase · +0.08em</p></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h2">4. 모션 · 스크롤</h2>
+    <table style="margin-top:var(--s-6)">
+      <tr><th>토큰</th><th>값</th><th>쓰임</th></tr>
+      <tr><td class="mono">--ease-out</td><td class="mono">.16, 1, .3, 1</td><td>등장 · 호버 반응</td></tr>
+      <tr><td class="mono">--ease-inout</td><td class="mono">.65, 0, .35, 1</td><td>섹션 전환</td></tr>
+      <tr><td class="mono">--ease-spring</td><td class="mono">.34, 1.56, .64, 1</td><td>마이크로 인터랙션(탄성)</td></tr>
+      <tr><td class="mono">--d-*</td><td class="mono">120 / 240 / 480 / 900 / 1600ms</td><td>instant / fast / base / slow / cinema</td></tr>
+      <tr><td class="mono">--beat</td><td class="mono">100svh</td><td>스크롤 연출의 기본 단위. 히어로 다크→화이트는 2.6 beat</td></tr>
+    </table>
+    <p class="t-caption label" style="margin-top:var(--s-7)">레이어 (z-index)</p>
+    <p><span class="pill mono">bg · aurora 0</span><span class="pill mono">wipe 1</span><span class="pill mono">hero 2</span><span class="pill mono">content 10</span><span class="pill mono">nav 50</span><span class="pill mono">cursor 90</span><span class="pill mono">overlay 9999</span></p>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h2">5. 컴포넌트 — 아주 미니멀하게</h2>
+    <div class="grid row" style="margin-top:var(--s-6)">
+      <div class="c4 t3 m4"><p class="t-caption label">원칙</p></div>
+      <div class="c8 t5 m4"><ul class="rules t-body-l">
+        <li><b>박스를 쓰지 않는다.</b> 패널·카드·그림자·블러 없이 글자와 가는 선만으로 구성한다.</li>
+        <li><b>선은 한 종류.</b> 1px 헤어라인, 아이콘은 1.7px 라운드 캡. 모서리는 기본 0.</li>
+        <li><b>글자는 두 크기.</b> 라벨 12px(대문자·넓은 자간), 본문 13–18px. 굵기는 400/500.</li>
+        <li><b>상태는 불투명도로.</b> 기본 50% → 호버·선택 100%. 색 변화 없음.</li>
+        <li><b>색은 반전으로.</b> 헤더·메뉴 글자는 <span class="mono">mix-blend-mode: difference</span> — 어두우면 흰색, 밝으면 검정.</li>
+        <li><b>호버 모션은 선 하나.</b> 선이 한 번 쓱 그려지고 사라지거나, 밑줄이 한 번 그어진다. 0.4–0.8초, <span class="mono">--ease-out</span>.</li>
+        <li><b>라임은 한 점.</b> 오직 활성/피드백 표시 한 곳에만.</li>
+      </ul></div>
+    </div>
+    <p class="t-caption label" style="margin-top:var(--s-8)">GNB 구성</p>
+    <table style="margin-top:var(--s-4)">
+      <tr><th>요소</th><th>규격</th><th>동작</th></tr>
+      <tr><td>심볼 (좌)</td><td class="mono">40×20 · stroke 1.7</td><td>호버 시 곡선이 한 번 다시 그려짐</td></tr>
+      <tr><td>언어 (우)</td><td class="mono">12px · .14em · KO ⌄</td><td>호버 시 선 하나가 사선으로 한 바퀴 감고 사라짐</td></tr>
+      <tr><td>언어 메뉴</td><td class="mono">박스 없음 · 12px · 우정렬</td><td>위에서 38ms 간격으로 순차 등장, 현재 언어는 앞에 14px 선</td></tr>
+    </table>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h2">6. 규칙</h2>
+    <ul class="rules t-body-l" style="margin-top:var(--s-5);max-width:40em">
+      <li>간격은 4의 배수만 쓴다. 임의의 px 금지, 토큰(<span class="mono">--s-*</span>)만 사용.</li>
+      <li>텍스트와 이미지는 컬럼 경계에 맞춘다. 풀블리드는 <span class="mono">.full-bleed</span> 로 의도적으로만.</li>
+      <li>히어로 제품은 항상 상단 중앙에 고정, 아래쪽 여백은 오로라가 차지한다.</li>
+      <li>스크롤 연출은 beat 단위로 설계하고, 한 연출은 최소 1.5 beat 이상 (너무 휙 지나가지 않게).</li>
+      <li>인터랙션 반응은 120–240ms, 장면 전환은 900ms 이상. 이징은 토큰만.</li>
+      <li>모든 연출은 <span class="mono">prefers-reduced-motion</span> 에서 정지 상태로 대체.</li>
+    </ul>
+  </section>
+
+</main>
+<script src="assets/grid.js"></script>
+<script>
+  const cs = getComputedStyle(document.documentElement);
+  const live = document.getElementById('live');
+  const paint = () => {
+    const v = n => cs.getPropertyValue(n).trim();
+    const W = innerWidth, cols = v('--cols');
+    const bp = W >= 1440 ? 'xl' : W >= 1024 ? 'lg' : W >= 640 ? 'md' : 'sm';
+    const m = document.querySelector('.container').getBoundingClientRect();
+    live.innerHTML = [['viewport', W + 'px'], ['breakpoint', bp], ['columns', cols], ['margin', Math.round(m.left) + 'px'], ['content', Math.round(m.width) + 'px']]
+      .map(([k, x]) => `<div><span class="label">${k}</span><b>${x}</b></div>`).join('');
+  };
+  paint(); addEventListener('resize', paint);
+  const sp = [[1,4],[2,8],[3,12],[4,16],[5,24],[6,32],[7,48],[8,64],[9,96],[10,128],[11,192],[12,256]];
+  document.getElementById('spacing').innerHTML = sp.map(([n, px]) =>
+    `<div class="sw"><span class="mono">--s-${n}</span><div class="bar" style="width:${Math.min(px, 256) / 256 * 100}%"></div><span class="mono label">${px}px</span></div>`).join('');
+</script>
+</body>
+</html>
