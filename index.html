@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LIEU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
 <link rel="stylesheet" href="assets/grid.css">
 <style>
   /* 스크롤바는 숨기되 스크롤은 그대로 된다 (크롬 · 사파리 · 파이어폭스) */
   html{scrollbar-width:none;-ms-overflow-style:none}
   html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
-  :root{--ink:#0b0b10;--font-ui:"IBM Plex Sans",-apple-system,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif}
+  :root{--ink:#0b0b10;--font-ui:"Helvetica Neue",Helvetica,Arial,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif}
   html,body{margin:0;min-height:100%;background:#06060a;-webkit-user-select:none;user-select:none}
   canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;}
 
@@ -21,31 +21,31 @@
     background:linear-gradient(to bottom,rgba(6,6,10,.72) 0%,rgba(6,6,10,.5) 24%,rgba(6,6,10,.26) 52%,rgba(6,6,10,.09) 78%,rgba(6,6,10,0) 100%)}
   /* 배경에 깔린 거대한 LIEU : 제품 뒤에서 아주 옅게 비치는 솔리드 글자 (제품 이미지가 앞을 가린다) */
   #carCv{position:fixed;left:0;top:0;width:100%;height:100%;z-index:5;pointer-events:none;visibility:hidden}
-  #bgWord{position:absolute;left:11vw;width:78vw;top:calc(min(92dvh,76vw) * .16);z-index:1;pointer-events:none;opacity:0;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%);mask-image:linear-gradient(to bottom,#000 0%,#000 48%,transparent 96%)}
-  #bgWord svg{display:block;width:100%;height:auto;overflow:visible}
+  #bgWord{position:absolute;left:5vw;width:90vw;top:38vh;top:38dvh;transform:translateY(-50%);z-index:1;pointer-events:none;opacity:0}   /* 화면 정중앙 */
+  #bgWord svg{display:block;width:100%;height:auto;aspect-ratio:100/13.49;overflow:visible}
   #bgWord path{fill:rgba(160,190,250,.11);stroke:none}   /* 윤곽선 없이 솔리드 색 면으로만 */
-  @media (max-width:640px){ #bgWord{left:5vw;width:90vw;top:calc(min(60dvh,100vw) * .12 + 24dvh)} }
+  @media (max-width:640px){ #bgWord{left:2vw;width:96vw} }
   #hero{position:absolute;left:50%;top:0;height:min(92vh,76vw);height:min(92dvh,76vw);width:auto;max-width:98vw;object-fit:contain;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform-origin:50% 0}
 
-  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink)}
-  #scrollspace{height:1360vh}
+  body{font-family:var(--font-ui);-webkit-font-smoothing:antialiased;color:var(--ink)}
+  #scrollspace{height:1560vh}
   /* ── 흰 화면 장면 : 도트가 중앙에서 쫙 퍼지고 'Hey,' → 왼쪽으로 → 'I'm LIEU' ── */
   #hey{position:fixed;inset:0;z-index:4;pointer-events:none;visibility:hidden}
   #heyDots{position:absolute;inset:0}
-  #heyText{position:absolute;left:50%;top:50%;font:500 clamp(22px,2.4vw,34px)/1 var(--font-ui,-apple-system,"SF Pro Display","Pretendard",Arial,sans-serif);letter-spacing:-.03em;color:#171A18;white-space:nowrap}
+  #heyText{position:absolute;left:50%;top:50%;font:500 clamp(22px,2.4vw,34px)/1 var(--font-ui);letter-spacing:-.03em;color:#171A18;white-space:nowrap}
   #heyText span{position:absolute;left:0;top:0;display:block;will-change:transform,opacity,filter}
   #heyText .im{opacity:0}
   /* 스토리보드 장면 : 차가 들어올 때 뜨는 문구 · 마지막 글씨 */
-  .sbText{position:absolute;text-align:center;opacity:0;will-change:opacity,filter;font-family:var(--font-ui,-apple-system,"SF Pro Display","Pretendard",Arial,sans-serif);letter-spacing:-.03em;color:#171A18}
+  .sbText{position:absolute;text-align:center;opacity:0;will-change:opacity,filter;font-family:var(--font-ui);letter-spacing:-.03em;color:#171A18}
   #darkWipe{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .09s linear}
   #storyText{transition:color .09s linear}
   #driverText,#storyText{z-index:2;word-break:keep-all;text-wrap:balance}
   #driverText{display:none}   /* 문구는 이제 3D 지면 위에 그려진다 (car-scene.js) */
   #driverText{left:50%;top:50%;transform:translate(-50%,-50%);font-weight:500;font-size:clamp(22px,2.4vw,34px);line-height:1.34}   /* Hey, I'm LIEU 와 같은 크기 · 굵기 */
-  #driverText b{font-weight:600;color:#9ABEFF}
-  #storyText{left:50%;top:50%;transform:translate(-50%,-50%);font-weight:500;font-size:var(--storyFs,clamp(30px,4.6vw,68px));line-height:1.29;width:96%;color:#35353b;letter-spacing:0}
+  #driverText b{font-weight:600;color:#86A8FF}
+  #storyText{left:50%;top:50%;transform:translate(-50%,-50%);font-weight:600;font-size:var(--storyFs,clamp(30px,4.6vw,68px));line-height:1.29;width:96%;color:#35353b;letter-spacing:0}
   @media (max-width:640px){ #driverText{left:50%;top:50%;font-size:clamp(26px,7.2vw,34px)} #storyText{width:98%} }
-  #heyText b{font-weight:600;color:#9ABEFF}
+  #heyText b{font-weight:600;color:#86A8FF}
   #heyText .ruler{position:static;visibility:hidden;height:0;overflow:hidden}
 
   /* ── GNB : 왼쪽 심볼 · 오른쪽 언어 ── */
@@ -53,7 +53,7 @@
   #gnb a,#gnb button{pointer-events:auto}
   .sym{display:block;width:27px;height:22px;margin-left:-3px;color:inherit;text-decoration:none;outline-offset:4px}
   .sym>svg:not(.sw){display:block;width:100%;height:100%;overflow:visible}
-    .lang{position:relative;font:500 12px/1 var(--font-ui,-apple-system,"SF Pro Text","Pretendard",Arial,sans-serif);letter-spacing:.14em}
+    .lang{position:relative;font:500 12px/1 var(--font-ui);letter-spacing:.14em}
   .lang>button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;text-transform:uppercase;position:relative}
   /* ── 공통 호버 : 심볼의 곡선과 같은 선이 요소 위를 한 번 지나간다 ([data-sw] 에 JS 가 svg 주입) ── */
   [data-sw]{position:relative}
@@ -71,7 +71,7 @@
   .lang .chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform var(--d-base) var(--ease-out);opacity:.7}
   .lang>button[aria-expanded="true"] .chev{transform:translateY(1px) rotate(-135deg)}
   /* 드롭다운 : 박스 없이 텍스트만. 헤더와 같은 difference 로 어떤 배경에서도 읽힌다 */
-  .langpop{position:fixed;z-index:calc(var(--z-nav) + 1);right:var(--margin);top:calc((var(--margin) + 28px) / 2 + 22px);color:#fff;mix-blend-mode:difference;pointer-events:none;font:400 12px/1 var(--font-ui,-apple-system,"SF Pro Text","Pretendard",Arial,sans-serif);letter-spacing:.06em}
+  .langpop{position:fixed;z-index:calc(var(--z-nav) + 1);right:var(--margin);top:calc((var(--margin) + 28px) / 2 + 22px);color:#fff;mix-blend-mode:difference;pointer-events:none;font:400 12px/1 var(--font-ui);letter-spacing:.06em}
   .langpop ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
   .langpop li{opacity:0;transform:translateY(-4px);transition:opacity var(--d-fast) var(--ease-out),transform var(--d-base) var(--ease-out)}
   .langpop.open li{opacity:1;transform:none;transition-delay:calc(var(--i,0) * 38ms)}
@@ -99,6 +99,7 @@
   #intro .logo{position:absolute;inset:0;transition:opacity .8s cubic-bezier(.45,0,.25,1)}
   #intro.logo-out .logo{opacity:0}
   #introSym,#introText{position:absolute;overflow:visible}
+  #introSym.metal,#introText.metal{opacity:0 !important}   /* 크롬 캔버스가 대신 그린다 */
   /* ── 커서 : 솔리드 원 하나 (difference). 누를 수 있는 곳에서는 커졌다가, 누르면 작아진다 ── */
   @media (hover:hover) and (pointer:fine){ html.cur, html.cur *{cursor:none!important} }
   /* ── 모바일 (≤640px) : 터치 영역 · 가독성 · 구도 ── */
@@ -144,13 +145,13 @@
       <li role="none" style="--i:4"><button type="button" data-sw role="menuitemradio" aria-checked="false" data-lang="es" data-code="ES" lang="es">Español</button></li>
     </ul>
 </div>
-<div id="intro" aria-hidden="true"><div class="half top"></div><div class="half bottom"></div><div class="logo"><svg id="introSym"></svg><svg id="introText" viewBox="8.5 90.2 76.7 27.6"></svg></div></div>
+<div id="intro" aria-hidden="true"><div class="half top"></div><div class="half bottom"></div><div class="logo"><svg id="introSym"></svg><svg id="introText" viewBox="0 0 100 13.49" preserveAspectRatio="xMidYMid meet"></svg></div></div>
 <canvas id="rgrid" aria-hidden="true"></canvas>
 <div id="logoScene" role="img" aria-label="LIEU">
   <svg id="lsSym" aria-hidden="true"></svg>
-  <svg id="lsText" viewBox="8.5 90.2 76.7 27.6" aria-hidden="true"><defs><clipPath id="cL"><rect x="8" y="90.2" width="77.7" height="28"/></clipPath></defs><g clip-path="url(#cL)"><path fill="#171A18" d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748ZM40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861ZM35.6283 90.5748V116.646H30.1162V90.5748H35.6283ZM9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/></g></svg>
+  <svg id="lsText" viewBox="0 0 100 13.49" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path fill="#171A18" d="M21.653 13.458L7.123 13.456C4.943 13.314 3.071 12.47 1.642 10.864C0.681 9.782 0.17 8.493 0.001 7.023L0.037 1.446C0.043 0.592 0.958 0.051 1.682 0.032C2.464 0.012 3.396 0.505 3.41 1.374L3.501 6.987C3.699 9.168 5.47 10.688 7.618 10.941L21.756 10.971C22.448 10.973 22.852 11.708 22.856 12.251C22.859 12.824 22.408 13.458 21.653 13.458"/><path fill="#171A18" d="M31.876 12.004C31.874 12.913 31.069 13.443 30.307 13.466C29.631 13.485 28.646 13.012 28.645 12.177L28.633 1.333C28.632 0.568 29.467 0.1 30.092 0.046C30.651 -0.003 31.095 0.176 31.427 0.493C31.8 0.848 31.9 1.333 31.899 1.88Z"/><path fill="#171A18" d="M66.88 10.958C67.599 10.958 68.05 11.611 68.063 12.167C68.076 12.72 67.612 13.452 66.909 13.452L44.849 13.466C42.372 13.173 40.253 11.821 39.145 9.626C37.783 6.782 38.519 3.448 41.033 1.527C42.131 0.688 43.43 0.069 44.879 0.068L65.845 0.059C66.526 0.059 67.011 0.818 66.99 1.325C66.963 1.936 66.507 2.574 65.799 2.572L45.841 2.54C43.454 2.536 41.457 3.973 41.239 6.383C41.07 8.66 42.68 10.678 45.095 10.935Z"/><path fill="#171A18" d="M64.014 7.944L45.468 7.968C44.673 7.969 44.076 7.447 44.065 6.753C44.052 5.943 44.624 5.404 45.458 5.404L63.738 5.405C64.499 5.405 65.044 5.777 65.155 6.493C65.244 7.072 64.836 7.943 64.014 7.944"/><path fill="#171A18" d="M96.719 1.348C96.728 0.473 97.677 0.018 98.41 0.038C99.108 0.056 100.002 0.585 100.002 1.405L100.002 6.996C100.001 10.362 96.458 13.426 93.073 13.424L80.336 13.414C77.019 13.411 73.668 10.534 73.679 6.803L73.696 1.425C73.698 0.602 74.477 0.079 75.203 0.038C75.889 0 76.844 0.419 76.864 1.219L76.937 4.128L76.91 6.327C76.896 7.424 77.035 8.523 77.758 9.4C78.513 10.318 79.688 10.933 80.922 10.935L92.004 10.954C92.706 10.955 93.32 10.801 93.937 10.555C95.77 9.826 96.646 8.074 96.667 6.134Z"/></svg>
 </div>
-<div id="bgWord" aria-hidden="true"><svg viewBox="3.5 90.2 86.7 27.6"><path transform="translate(-5 0)" d="M9.00879 116.646V90.5747H14.5209V112.101H25.6979V116.646H9.00879Z"/><path transform="translate(-1.7 0)" d="M35.6283 90.5748V116.646H30.1162V90.5748H35.6283Z"/><path transform="translate(1.7 0)" d="M40.7861 116.646V90.5748H58.3536V95.1195H46.2982V101.332H57.4498V105.876H46.2982V112.101H58.4045V116.646H40.7861Z"/><path transform="translate(5 0)" d="M79.0395 90.5748H84.6704V107.871C84.6704 109.813 84.2066 111.512 83.279 112.969C82.36 114.425 81.0725 115.561 79.4166 116.376C77.7607 117.182 75.8317 117.585 73.6297 117.585C71.4189 117.585 69.4856 117.182 67.8297 116.376C66.1738 115.561 64.8863 114.425 63.9673 112.969C63.0484 111.512 62.5889 109.813 62.5889 107.871V90.5748H68.2198V107.39C68.2198 108.404 68.4409 109.306 68.883 110.095C69.3338 110.883 69.9667 111.503 70.7817 111.954C71.5966 112.405 72.5459 112.63 73.6297 112.63C74.722 112.63 75.6714 112.405 76.4776 111.954C77.2926 111.503 77.9211 110.883 78.3633 110.095C78.8141 109.306 79.0395 108.404 79.0395 107.39V90.5748Z"/></svg></div>
+<div id="bgWord" aria-hidden="true"><svg viewBox="0 0 100 13.49" preserveAspectRatio="xMidYMid meet"><path d="M21.653 13.458L7.123 13.456C4.943 13.314 3.071 12.47 1.642 10.864C0.681 9.782 0.17 8.493 0.001 7.023L0.037 1.446C0.043 0.592 0.958 0.051 1.682 0.032C2.464 0.012 3.396 0.505 3.41 1.374L3.501 6.987C3.699 9.168 5.47 10.688 7.618 10.941L21.756 10.971C22.448 10.973 22.852 11.708 22.856 12.251C22.859 12.824 22.408 13.458 21.653 13.458"/><path d="M31.876 12.004C31.874 12.913 31.069 13.443 30.307 13.466C29.631 13.485 28.646 13.012 28.645 12.177L28.633 1.333C28.632 0.568 29.467 0.1 30.092 0.046C30.651 -0.003 31.095 0.176 31.427 0.493C31.8 0.848 31.9 1.333 31.899 1.88Z"/><path d="M66.88 10.958C67.599 10.958 68.05 11.611 68.063 12.167C68.076 12.72 67.612 13.452 66.909 13.452L44.849 13.466C42.372 13.173 40.253 11.821 39.145 9.626C37.783 6.782 38.519 3.448 41.033 1.527C42.131 0.688 43.43 0.069 44.879 0.068L65.845 0.059C66.526 0.059 67.011 0.818 66.99 1.325C66.963 1.936 66.507 2.574 65.799 2.572L45.841 2.54C43.454 2.536 41.457 3.973 41.239 6.383C41.07 8.66 42.68 10.678 45.095 10.935Z"/><path d="M64.014 7.944L45.468 7.968C44.673 7.969 44.076 7.447 44.065 6.753C44.052 5.943 44.624 5.404 45.458 5.404L63.738 5.405C64.499 5.405 65.044 5.777 65.155 6.493C65.244 7.072 64.836 7.943 64.014 7.944"/><path d="M96.719 1.348C96.728 0.473 97.677 0.018 98.41 0.038C99.108 0.056 100.002 0.585 100.002 1.405L100.002 6.996C100.001 10.362 96.458 13.426 93.073 13.424L80.336 13.414C77.019 13.411 73.668 10.534 73.679 6.803L73.696 1.425C73.698 0.602 74.477 0.079 75.203 0.038C75.889 0 76.844 0.419 76.864 1.219L76.937 4.128L76.91 6.327C76.896 7.424 77.035 8.523 77.758 9.4C78.513 10.318 79.688 10.933 80.922 10.935L92.004 10.954C92.706 10.955 93.32 10.801 93.937 10.555C95.77 9.826 96.646 8.074 96.667 6.134Z"/></svg></div>
 <img id="hero" src="assets/product.webp" alt="" draggable="false">
 <div id="topShade" aria-hidden="true"></div>
 <canvas id="carCv" aria-hidden="true"></canvas>
@@ -323,8 +324,8 @@ function drawScene(dt) {
   const soft = t => t * t * t * (t * (t * 6 - 15) + 10);                              // smootherstep : 시작·끝이 아주 부드러운 곡선
   const pres0 = soft(seg01(p, 0, .32));
   const k = 6 * c / 246;                                                               // 심볼 단위 → px (레일 폭 = 6칸)
-  const gap = 52 * k, capH = 243 * k * 27.6 / 76.7;                                                     // 새 로고 규격: 몸통 아래 52 · 글자 높이 93 · 폭 243
-  lsTextW = 243 * k;
+  const gap = 52 * k, capH = 243 * k * 1.32 * 13.49 / 100;                                                     // 새 로고 규격: 몸통 아래 52 · 글자 높이 93 · 폭 243
+  lsTextW = 243 * k * 1.32;
   const cx = vw / 2, cy = vh / 2;
   const gridOut = 1 - soft(seg01(p, .58, .98));
   const pres = pres0 * gridOut;
@@ -341,7 +342,7 @@ function drawScene(dt) {
   const ex = lsMorph.extents();                                                          // 몸통(과 아래 기둥)의 현재 가장 아래 → 글자가 그 밑에 붙어 같이 내려온다
   lsText.style.cssText = `left:${cx - lsTextW / 2}px;top:${symCy + ex.bottom * k + gap}px;width:${lsTextW}px;height:${capH}px`;
   const dropA = sceneEase(seg01(s, .3, .68));                                            // 네 글자 모두 같은 타이밍으로 한 번에
-  lsLetters.forEach(el => { const a = dropA; el.setAttribute('transform', `translate(0 ${(-(1 - a) * 27.6).toFixed(2)})`); });     // 위에서 아래로 내려오며 나타난다
+  lsLetters.forEach(el => { const a = dropA; el.setAttribute('transform', `translate(0 ${(-(1 - a) * 13.49).toFixed(2)})`); });     // 위에서 아래로 내려오며 나타난다
 
   // 격자는 딱 한 번만 : 처음 나타날 때 중앙에서 잔물결 하나
   if (lsPrevP < .05 && p >= .05 && window.RippleGrid) window.RippleGrid.ripple(0, 0, .9);
@@ -428,7 +429,7 @@ function drawHey() {
     dw.style.background = '#06060a'; dw.style.opacity = dkOn ? 1 : 0;
     st.style.color = dkOn ? '#F2F2F6' : '#35353b';
     dt.style.color = dkOn ? '#F2F2F6' : ''; if (window.CarScene) window.CarScene.setDark(dkOn);
-    const fo = smooth01(heySeg(scrollY, 11.9 * vh, 12.5 * vh));   // 다크모드에서 더 스크롤하면 스토리 문구가 흐려지며 위로 사라진다
+    const fo = smooth01(heySeg(scrollY, 13.2 * vh, 14.0 * vh));   // 다크모드에서 더 스크롤하면 스토리 문구가 흐려지며 위로 사라진다
     st.style.opacity = (sIn * (1 - fo)).toFixed(3); st.style.filter = fo > .001 ? `blur(${(fo * 8).toFixed(1)}px)` : 'none';
     st.style.transform = `translate(-50%, calc(-50% - ${(fo * 30).toFixed(1)}px))`; }
   const on = scrollY > 2.3 * vh;
@@ -1259,14 +1260,14 @@ requestAnimationFrame(t => { last = t; t0 = t; requestAnimationFrame(frame); });
 
   const place = () => {
     const vw = innerWidth, vh = innerHeight, cx = vw / 2, cy = vh / 2;
-    const k = (vw < 640 ? 58 : 60) / 246, u = 246 * k / 6, gap = vw < 640 ? 14 : 16, ts = .8, tw = 243 * k * ts, capH = tw * 27.6 / 76.7;     // 작고 단정하게 : 레일 폭 60px (모바일 46px) · 새 로고 규격 비율
+    const k = (vw < 640 ? 58 : 60) / 246, u = 246 * k / 6, gap = vw < 640 ? 14 : 16, ts = .8, tw = 243 * k * ts * 1.32, capH = tw * 13.49 / 100;     // 작고 단정하게 : 레일 폭 60px (모바일 46px) · 새 로고 규격 비율
     const s = m.progress, ex = m.extents();
     const symCy = cy;   // LIEU 가 내려와도 심볼은 제자리 (위로 밀리지 않는다)
     symEl.style.cssText = `left:${cx - 133.5 * k}px;top:${symCy - 90 * k}px;width:${266 * k}px;height:${220 * k}px`;
     txtEl.style.cssText = `left:${cx - tw / 2}px;top:${symCy + ex.bottom * k + gap}px;width:${tw}px;height:${capH}px`;
     { const x = clamp((m.pole - .32) / .68); txtA = x * x * (3 - 2 * x); }   // LIEU : 세로선이 32% 자란 뒤에 내려오기 시작해, 세로선이 다 자랄 때 함께 도착한다 (조금 늦게)
     const a = txtA;
-    letters.forEach(el => el.setAttribute('transform', `translate(0 ${(-(1 - a) * 27.6).toFixed(2)})`)); txtEl.style.opacity = Math.min(1, a * 2.2).toFixed(3);   // 네 글자가 한 번에 위에서 아래로, 스르르
+    letters.forEach(el => el.setAttribute('transform', `translate(0 ${(-(1 - a) * 13.49).toFixed(2)})`)); txtEl.style.opacity = Math.min(1, a * 2.2).toFixed(3);   // 네 글자가 한 번에 위에서 아래로, 스르르
     return s;
   };
   const open = () => {
@@ -1284,7 +1285,7 @@ requestAnimationFrame(t => { last = t; t0 = t; requestAnimationFrame(frame); });
   };
   setTimeout(() => { if (!opened && !/[?&]hold/.test(location.search)) open(); }, (window.LieuMorph.timelineTotal(tlc) + tlc.spin + 6) * 1000);   // 안전장치 : 어떤 경우에도 메인으로 넘어간다 (?hold 제외)
   const tick = now => {
-    let s = 1; try { s = place(); renderThermal(now); } catch (e) { console.error(e); open(); return; }
+    let s = 1; try { s = place(); renderThermal(now); if (metal) metal.draw(now); } catch (e) { console.error(e); open(); return; }
     if (!opened) {
       if (s > .992 && txtA >= 1 && m.done) { holdAt = holdAt || now; if (now - holdAt > 250 && !/[?&]hold/.test(location.search)) open(); } else holdAt = 0;   // ?hold : 점검용으로 오프닝 마지막 장면에 머문다
       raf = requestAnimationFrame(tick);
@@ -1295,6 +1296,72 @@ requestAnimationFrame(t => { last = t; t0 = t; requestAnimationFrame(frame); });
   const mask = document.createElement('canvas'), mx = mask.getContext('2d');
   const hasRR = typeof mx.roundRect === 'function';
   const startT = performance.now();
+  // ── Liquid Metal : 심볼 + LIEU 글자를 크롬으로 (libraries.dev/metal 참고 · 직접 구현한 셰이더) ──
+  const METAL_ON = false;   // 인트로 로고 메탈 효과 : 다시 켜려면 true
+  const metal = !METAL_ON ? null : (() => {
+    const host = document.querySelector('#intro .logo'), cv = document.createElement('canvas');
+    cv.style.cssText = 'position:absolute;pointer-events:none';
+    const g = cv.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false });
+    if (!g || !host) return null;
+    host.appendChild(cv);
+    const mc = document.createElement('canvas'), mctx = mc.getContext('2d');
+    const VS = 'attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
+    const FSH = `precision highp float;varying vec2 v;uniform sampler2D m;uniform vec2 res;uniform float t,dpr;
+float hAt(vec2 uv){return texture2D(m,uv).a;}
+vec3 env(float x){   // 밝은 새틴 메탈 : 전체는 밝게, 좁고 부드러운 그늘 띠 하나로 금속의 윤곽을 준다
+  x=fract(x);float b=smoothstep(.0,.3,x)*(1.-smoothstep(.45,.75,x));
+  float d=smoothstep(.62,.78,x)*(1.-smoothstep(.82,.98,x));
+  vec3 c=mix(vec3(.80,.83,.90),vec3(1.,1.,1.),b);c=mix(c,vec3(.46,.50,.62),d*.8);
+  return c;}
+void main(){
+  vec2 px=1./res;float R=3.2*dpr;vec2 acc=vec2(0.);float wsum=0.;
+  for(int i=0;i<16;i++){float a=float(i)*.3926991;vec2 d=vec2(cos(a),sin(a));
+    for(int j=1;j<=3;j++){float r=R*float(j)/3.;acc+=d*hAt(v+d*r*px)*(r/R);wsum+=1.;}}
+  vec2 acc2=vec2(0.);
+  for(int i=0;i<24;i++){float a=float(i)*.2617994;vec2 d=vec2(cos(a),sin(a));
+    for(int j=1;j<=4;j++){float r=R*4.*float(j)/4.;acc2+=d*hAt(v+d*r*px);}}
+  float cov=hAt(v);
+  vec2 gr=-(acc/wsum)*2.2-(acc2/48.)*3.0;
+  vec3 n=normalize(vec3(gr*3.2,1.));
+  // 로고 전체가 하나의 금속판처럼 : 화면 좌표 기준의 넓은 반사 띠 하나가 전체를 가로질러 흐르고, 면의 굴곡은 아주 조금만 더한다
+  float flow=v.x*.8+v.y*.45+t*.07;
+  float base=flow+dot(n.xy,vec2(.6,.8))*.3;
+  vec3 col=vec3(env(base+.006).r,env(base).g,env(base-.006).b);
+  float lx=fract(t*.22)*1.8-.4;
+  float sweep=exp(-pow((v.x-lx+(v.y-.5)*.3)*5.,2.));
+  col=mix(col,vec3(1.),sweep*.45*cov);
+  col=mix(col,col*vec3(.97,.99,1.04),.5);col*=.97+.03*n.z;   // 가장자리가 살짝 어두워지는 새틴 셰이딩
+  gl_FragColor=vec4(col*cov,cov);}`;
+    const sh = (ty, s) => { const x = g.createShader(ty); g.shaderSource(x, s); g.compileShader(x); if (!g.getShaderParameter(x, g.COMPILE_STATUS)) { console.error(g.getShaderInfoLog(x)); return null; } return x; };
+    const vs = sh(g.VERTEX_SHADER, VS), fs = sh(g.FRAGMENT_SHADER, FSH);
+    if (!vs || !fs) return null;
+    const pr = g.createProgram(); g.attachShader(pr, vs); g.attachShader(pr, fs); g.bindAttribLocation(pr, 0, 'p'); g.linkProgram(pr); g.useProgram(pr);
+    const b = g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER, b); g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), g.STATIC_DRAW);
+    g.enableVertexAttribArray(0); g.vertexAttribPointer(0, 2, g.FLOAT, false, 0, 0);
+    const tex = g.createTexture(); g.bindTexture(g.TEXTURE_2D, tex);
+    [[g.TEXTURE_MIN_FILTER, g.LINEAR], [g.TEXTURE_MAG_FILTER, g.LINEAR], [g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE], [g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE]].forEach(([a, c]) => g.texParameteri(g.TEXTURE_2D, a, c));
+    g.pixelStorei(g.UNPACK_FLIP_Y_WEBGL, true);
+    const U = n => g.getUniformLocation(pr, n);
+    return {
+      draw(now) {
+        const vw = innerWidth, vh = innerHeight, W = Math.min(vw, 320), H = Math.min(vh, 220), ox = vw / 2 - W / 2, oy = vh / 2 - H / 2, pw = Math.round(W * DPR), ph = Math.round(H * DPR);
+        if (mc.width !== pw || mc.height !== ph) { mc.width = cv.width = pw; mc.height = cv.height = ph; }
+        cv.style.cssText = `position:absolute;pointer-events:none;left:${ox}px;top:${oy}px;width:${W}px;height:${H}px`;
+        mctx.setTransform(1, 0, 0, 1, 0, 0); mctx.clearRect(0, 0, pw, ph); mctx.fillStyle = '#000';
+        const mt = el => { const q = el.getScreenCTM(); mctx.setTransform(q.a * DPR, q.b * DPR, q.c * DPR, q.d * DPR, (q.e - ox) * DPR, (q.f - oy) * DPR); };
+        const body = symEl.querySelector('.body'), rail = symEl.querySelector('.rail');
+        mctx.globalAlpha = 1; mt(body); mctx.fill(new Path2D(body.getAttribute('d')));
+        const rw = +rail.getAttribute('width'), rh = +rail.getAttribute('height'), rx = +rail.getAttribute('x'), ry = +rail.getAttribute('y'), rr = +rail.getAttribute('rx');
+        mt(rail); mctx.beginPath(); if (hasRR) mctx.roundRect(rx, ry, rw, rh, rr); else mctx.rect(rx, ry, rw, rh); mctx.fill();
+        mctx.globalAlpha = Math.min(1, txtA * 2.2);
+        letters.forEach(el => { mt(el); mctx.fill(new Path2D(el.getAttribute('d'))); });
+        g.viewport(0, 0, pw, ph); g.bindTexture(g.TEXTURE_2D, tex); g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, mc);
+        g.uniform2f(U('res'), pw, ph); g.uniform1f(U('t'), (now - startT) / 1000); g.uniform1f(U('dpr'), DPR); g.uniform1i(U('m'), 0);
+        g.clearColor(0, 0, 0, 0); g.clear(g.COLOR_BUFFER_BIT); g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
+      }
+    };
+  })();
+  if (metal) { symEl.classList.add('metal'); txtEl.classList.add('metal'); }   // 크롬 캔버스가 대신 그린다 (실패하면 흰 로고 그대로)
   glcv.style.zIndex = 301; glcv.style.display = 'block'; glcv.style.transition = 'opacity 1.4s cubic-bezier(.4,0,.2,1)';
   window.__thermalOn = false; glcv.style.display = 'none';
   const matrixTo = (el, ox, oy) => { const q = el.getScreenCTM(); mx.setTransform(q.a * DPR, q.b * DPR, q.c * DPR, q.d * DPR, (q.e - ox) * DPR, (q.f - oy) * DPR); };
@@ -1391,6 +1458,6 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   })();
 })();
 </script>
-<script type="module" src="assets/car-scene.js?v=40"></script>
+<script type="module" src="assets/car-scene.js?v=45"></script>
 </body>
 </html>

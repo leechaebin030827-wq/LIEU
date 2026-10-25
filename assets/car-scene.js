@@ -67,10 +67,10 @@ if (cv) {
   const textMat = new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, opacity: 0 });
   const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(.92, .52), textMat); textPlane.rotation.x = -Math.PI / 2; textPlane.renderOrder = 3; group.add(textPlane);
   // HTML #storyText 와 글자 위치가 정확히 같도록 : 같은 font-family(폴백 포함)를 쓰고, 줄 상자(line-height 1.29) 안에서 기준선이 놓이는 위치를 DOM 에서 직접 잰다 (글꼴마다 달라서 상수로는 안 맞는다)
-  const storyFam = () => { const el = document.getElementById('storyText'); return el ? getComputedStyle(el).fontFamily : '"IBM Plex Sans", sans-serif'; };
+  const storyFam = () => { const el = document.getElementById('storyText'); return el ? getComputedStyle(el).fontFamily : '"Helvetica Neue", Helvetica, Arial, sans-serif'; };
   const baselineOff = (fs, fam) => {
     const d = document.createElement('div'), m = document.createElement('i');
-    d.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font:500 ${fs}px/1.29 ${fam}`;
+    d.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font:600 ${fs}px/1.29 ${fam}`;
     m.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'; d.textContent = '가Hg'; d.appendChild(m); document.body.appendChild(d);
     const off = m.getBoundingClientRect().top - d.getBoundingClientRect().top; d.remove(); return off;
   };
@@ -78,7 +78,7 @@ if (cv) {
     const cvs = document.createElement('canvas'); cvs.width = 1400; cvs.height = 790; const x = cvs.getContext('2d'), fam = storyFam();
     x.clearRect(0, 0, cvs.width, cvs.height); x.fillStyle = dark ? '#F2F2F6' : '#35353b'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
     const ls = (lines && lines.length ? lines : ["Here's how", 'I came to be.']);
-    let fs = 124; x.font = `500 ${fs}px ${fam}`; const mw = Math.max(...ls.map(t => x.measureText(t).width)); if (mw > 1300) fs = Math.floor(124 * 1300 / mw); storyFont = fs; x.font = `500 ${fs}px ${fam}`;
+    let fs = 124; x.font = `600 ${fs}px ${fam}`; const mw = Math.max(...ls.map(t => x.measureText(t).width)); if (mw > 1300) fs = Math.floor(124 * 1300 / mw); storyFont = fs; x.font = `600 ${fs}px ${fam}`;
     const lh = fs * 1.29, off = baselineOff(fs, fam);
     ls.forEach((t, i) => x.fillText(t, cvs.width / 2, cvs.height / 2 + (i - (ls.length - 1) / 2) * lh - lh / 2 + off));
     const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; if (textMat.map) textMat.map.dispose(); textMat.map = tex; textMat.needsUpdate = true;
@@ -92,14 +92,14 @@ if (cv) {
   const drawDriver = lines => {
     const ls = (lines && lines.length ? lines : ["I'm a new kind of", "<b>'Driver'</b> for robotaxis"]);
     const cvs = document.createElement('canvas'), x = cvs.getContext('2d');
-    const fam = '"IBM Plex Sans", "Apple SD Gothic Neo", "Hiragino Sans", "PingFang SC", sans-serif';
+    const fam = '"Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", "Hiragino Sans", "PingFang SC", sans-serif';
     const runs = ls.map(l => l.split(/(<b>.*?<\/b>)/).filter(Boolean).map(t => t.startsWith('<b>') ? { t: t.slice(3, -4), b: true } : { t, b: false }));
     const width = (fs, r) => { let w = 0; r.forEach(q => { x.font = `${q.b ? 600 : 500} ${fs}px ${fam}`; w += x.measureText(q.t).width; }); return w; };
     let fs = 150; const mw = Math.max(...runs.map(r => width(fs, r))); if (mw > 1880) fs = Math.floor(150 * 1880 / mw);
     drvFs = fs; drvCW = 2000; drvCH = Math.ceil(ls.length * fs * 1.34 + 60); cvs.width = drvCW; cvs.height = drvCH;
     x.clearRect(0, 0, drvCW, drvCH); x.textBaseline = 'middle'; x.textAlign = 'left';
     runs.forEach((r, i) => { let px = (drvCW - width(fs, r)) / 2; const y = drvCH / 2 + (i - (ls.length - 1) / 2) * fs * 1.34;
-      r.forEach(q => { x.font = `${q.b ? 600 : 500} ${fs}px ${fam}`; x.fillStyle = q.b ? '#9ABEFF' : (dark ? '#F2F2F6' : '#171A18'); x.fillText(q.t, px, y); px += x.measureText(q.t).width; }); });
+      r.forEach(q => { x.font = `${q.b ? 600 : 500} ${fs}px ${fam}`; x.fillStyle = q.b ? '#86A8FF' : (dark ? '#F2F2F6' : '#171A18'); x.fillText(q.t, px, y); px += x.measureText(q.t).width; }); });
     const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; if (drvMat.map) drvMat.map.dispose(); drvMat.map = tex; drvMat.needsUpdate = true;
   };
   drawDriver(window.__drv);
@@ -206,5 +206,5 @@ if (cv) {
     setStory(lines) { window.__story = lines; drawStory(lines); render(); }
   };
   resize();
-  if (document.fonts) Promise.all([500, 600].map(w => document.fonts.load(`${w} 40px "IBM Plex Sans"`))).then(() => { if (window.__story) drawStory(window.__story); if (window.__drv) drawDriver(window.__drv); render(); }).catch(() => {});
+  if (document.fonts) Promise.all([500, 600].map(w => document.fonts.load(`${w} 40px "Helvetica Neue"`))).then(() => { if (window.__story) drawStory(window.__story); if (window.__drv) drawDriver(window.__drv); render(); }).catch(() => {});
 }
