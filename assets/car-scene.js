@@ -57,7 +57,8 @@ if (cv) {
   devMat.extensions = { derivatives: true };
   const donut = new THREE.Mesh(new THREE.TorusGeometry(.095, .036, 28, 56), devMat); donut.rotation.x = Math.PI / 2;
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(.011, .011, .15, 14), devMat);
-  dev.add(donut, pole); dev.renderOrder = 4; donut.renderOrder = 4; pole.renderOrder = 4;
+  dev.renderOrder = 4;   // 도넛 · 세로선은 뺀다 : 모델 안의 로봇이 LIEU 장치
+   donut.renderOrder = 4; pole.renderOrder = 4;
   const coneMat = new THREE.ShaderMaterial({
     transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false, uniforms: { uOp: { value: 0 }, uCol: { value: new THREE.Color('#B9B9C0') } },
     vertexShader: 'attribute float aH; varying float vH; void main(){ vH = aH; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -104,7 +105,7 @@ if (cv) {
   };
   drawDriver(window.__drv);
 
-  new GLTFLoader().load('assets/car.glb?v=2', gltf => {
+  new GLTFLoader().load('assets/car-nui.glb?v=8', gltf => {
     // 어떤 모델이 와도 같은 크기·방향으로 맞춘다 : 노드 변환을 굽고 → 긴 축을 X 로 → 길이 1.9 → 가운데 정렬
     gltf.scene.updateMatrixWorld(true);
     const src = gltf.scene.getObjectByProperty('isMesh', true);
@@ -177,7 +178,7 @@ if (cv) {
     material.uniforms.uOpacity.value = carOp;
     devMat.uniforms.uOpacity.value = smooth(seg(c, .55, .95)) * (1 - smooth(seg(z3, .7, 1)));
     coneMat.uniforms.uOp.value = smooth(clamp(seg(z2, .72, 1) * .3 + seg(z3, 0, .4) * .7)) * (1 - smooth(seg(z3, .85, 1)));   // 줌인이 끝나가는 시점(장치가 화면 위쪽에 자리 잡을 때)부터 빛이 서서히 나오기 시작한다
-    textMat.opacity = smooth(seg(z3, .1, .55)) * (1 - smooth(seg(z3, .94, 1)));
+    textMat.opacity = smooth(seg(z3, .05, .65)) * (1 - smooth(seg(z3, .86, 1)));
     // 마지막 HTML 글씨가 3D 바닥 글씨와 '같은 글씨'로 겹치도록, 지금 카메라에서 글씨가 화면에서 차지하는 크기를 CSS 변수로 넘긴다 (캔버스 글씨 124px 기준)
     const pxPerWorld = H / (2 * dist * tn);
     document.documentElement.style.setProperty('--storyFs', (storyFont * pxPerWorld * .92 * kkG / 1400).toFixed(2) + 'px');
@@ -187,7 +188,7 @@ if (cv) {
     const dk = (1 - smooth(d)) * Math.min(84, H * .12) / pxw0, azd = lerp(-Math.PI / 4, 0, turn);
     drvPlane.rotation.y = azd;                                                  // 문구는 항상 카메라 방향으로 정렬(처음 top view에서 똑바로 읽힘)
     drvPlane.position.set(Math.sin(azd) * dk, groundY, Math.cos(azd) * dk);
-    drvMat.opacity = smooth(d) * (1 - smooth(seg(c, .38, .72)));
+    drvMat.opacity = smooth(d) * (1 - smooth(seg(c, .32, .8)));
     renderer.render(scene, camera);
   };
   // 다크모드 : 배경이 어두워지면 글씨 · 장치 · 차 선의 색을 밝게 바꾼다 (스위치처럼 한 번에)
