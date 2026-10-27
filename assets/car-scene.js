@@ -21,7 +21,7 @@ if (cv) {
   const easeInOut = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
   // 색 : 차체(body) · 지붕 장치(dev) 의 밝은 쪽(A) / 진한 쪽(B). 라이트 · 다크 따로. 화면에서 C 키로 바꿔 볼 수 있다 (assets/color-panel.js)
-  const COL = { light: { bodyA: '#EAF0FF', bodyB: '#B4C6F8', devA: '#B4C6F8', devB: '#86A8FF' }, dark: { bodyA: '#D5DEFA', bodyB: '#9DB2EE', devA: '#C9D6FF', devB: '#9DB5FF' } };
+  const COL = { light: { bodyA: '#D4D9E8', bodyB: '#D8DCE8', devA: '#F0F4FF', devB: '#E6EAF4' }, dark: { bodyA: '#F0F2F9', bodyB: '#E2E6F3', devA: '#F0F4FF', devB: '#D9DEEC' } };
   const material = new THREE.ShaderMaterial({
     transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false,
     uniforms: { uOpacity: { value: 0 }, uRimPow: { value: 3.0 }, uBase: { value: .02 }, uRim: { value: .36 }, uLine: { value: .5 }, uCrease: { value: 5.5 },
