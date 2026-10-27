@@ -16,8 +16,8 @@ const T = { show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5
 const N = 5;
 // 허브 위치(화면 비율) · 이미지 칸 · 글 칸 : 데스크톱 / 모바일
 const LAY = {
-  d: { hub: [[3, 3], [9, 5], [3, 3], [9, 5], [6, 3]], img: [null, null, 'BR', 'TL', 'BL'], txt: ['BR', 'TL', 'TR', 'BL', 'TR'] },
-  m: { hub: [[1, 3], [3, 5], [1, 3], [3, 5], [1, 5]], img: [null, null, 'BR', 'TL', 'TR'], txt: ['BR', 'TL', 'TR', 'BL', 'BR'] }
+  d: { hub: [[2, 2], [10, 6], [2, 2], [10, 6], [4, 2]], img: [null, null, 'BR', 'TL', 'BL'], txt: ['BR', 'TL', 'TR', 'BL', 'TR'] },
+  m: { hub: [[1, 2], [3, 6], [1, 2], [3, 6], [1, 6]], img: [null, null, 'BR', 'TL', 'TR'], txt: ['BR', 'TL', 'TR', 'BL', 'BR'] }
 };
 const FALLBACK = { s1: ['I was born to bring', 'a little <em>human touch</em>', 'to driverless rides.'], s2a: ['Now, taxis can', 'drive themselves.'], s2b: ['But a driver did', '<em>more than</em> drive.'],
   b: [['A warm', 'welcome.'], ['A quick', 'heads-up.'], ['A gentle', 'reminder.']] };
@@ -31,7 +31,7 @@ const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), 
 const mk = (p, n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
 
 /* 허브 + 레일 */
-// grids03 (obys) 방식 : 화면을 4분할하는 가는 컬럼선이 늘 깔려 있고, 모든 글은 14px 베이스라인 위에 선다
+// grids03 (obys) 방식 : 화면을 4분할하는 가는 컬럼선이 늘 깔려 있고, 모든 글은 8pt 간격 위에 선다
 const gridLines = [1, 2, 3].map(() => mk(rail, 'line', { stroke: 'rgba(242,242,246,.08)', 'stroke-width': 1 }));
 const defs = mk(rail, 'defs', {});
 const grads = [0, 1, 2, 3].map(i => {
@@ -78,17 +78,18 @@ function setText(t) {
 setText(TX);
 
 /* ── 레이아웃 ── */
-let vw = 0, vh = 0, mob = false, mg = 24, top = 90, G = 18;
+let vw = 0, vh = 0, mob = false, mg = 24, top = 88, G = 16;
 let gcols = 12, gcw = 0, ggap = 16, gleft = 0;
 const probe = root.querySelector('.ht-probe');
 function metrics() {
-  vw = innerWidth; vh = innerHeight; mob = vw < 640; mg = Math.max(20, Math.min(56, vw * .04)); top = Math.max(84, vh * .11); G = 14; rail.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+  vw = innerWidth; vh = innerHeight; mob = vw < 640; mg = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin')) || 24; top = Math.round(Math.max(80, vh * .11) / 8) * 8; G = 16;   // 모든 간격은 8 의 배수 (grid.css --u) rail.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
   const cs = getComputedStyle(probe), content = parseFloat(cs.width) || vw - 2 * mg; ggap = parseFloat(cs.columnGap) || 16;
   gcols = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cols')) || 12; gcw = (content - (gcols - 1) * ggap) / gcols; gleft = (vw - content) / 2;
   gridLines.forEach((l, i) => { const x = Math.round(gleft + (i + 1) * (gcols / 4) * (gcw + ggap) - ggap / 2) + .5; l.setAttribute('x1', x); l.setAttribute('x2', x); l.setAttribute('y1', 0); l.setAttribute('y2', vh); });
 }
+const LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh-head')) || 1.15;   // 제목 행간 : 토큰 배율을 4px 단위로 맞춘다
 // 허브는 늘 그리드 선 위에 선다 : x 는 컬럼 사이 거터의 한가운데, y 는 화면을 8등분한 선
-const hubPx = h => { const k = mob ? h[0] : Math.round(h[0] * gcols / 12); return [gleft + k * (gcw + ggap) - ggap / 2, Math.round(h[1] * vh / 8 / 14) * 14]; };
+const hubPx = h => { const k = mob ? h[0] : Math.round(h[0] * gcols / 12); return [gleft + k * (gcw + ggap) - ggap / 2, Math.round(h[1] * vh / 8 / 16) * 16]; };
 metrics(); addEventListener('resize', metrics);
 const cell = (hx, hy, q, e) => q === 'TL' ? [0, 0, hx - e, hy - e] : q === 'TR' ? [hx + e, 0, vw - hx - e, hy - e] : q === 'BL' ? [0, hy + e, hx - e, vh - hy - e] : [hx + e, hy + e, vw - hx - e, vh - hy - e];
 const quad = (hx, hy, q) => {
@@ -175,9 +176,9 @@ function tick(now) {
     const d = u - i; let a = clamp(1 - Math.abs(d) / .6); if (i === 0) a = Math.min(a, ti);
     if (a <= 0) { b.el.style.visibility = 'hidden'; return; }
     const q = L.txt[i], g = quad(hx, hy, q), base = mob ? (i ? 22 : 26) : i < 2 ? Math.min(vw * (i ? .02 : .026), vh * (i ? .036 : .046)) : Math.min(vw * .018, vh * .032);
-    const lim = Math.max(g[3] - (i === 1 ? 70 : i >= 2 ? 36 : 0), 40) / (b.nl * 1.1);
+    const lim = Math.max(g[3] - (i === 1 ? 70 : i >= 2 ? 36 : 0), 40) / (b.nl * LH);
     const fs = Math.max(mob ? 20 : 22, Math.min(base, g[2] / (b.chars * b.fw), lim)), w = Math.max(120, g[2]);
-    if (Math.abs(fs - b.fs) > .5) { b.fs = fs; b.el.style.setProperty('--fs', fs.toFixed(1) + 'px'); b.el.style.setProperty('--lh', (Math.ceil(fs * 1.1 / 14) * 14) + 'px'); }
+    if (Math.abs(fs - b.fs) > .5) { b.fs = fs; b.el.style.setProperty('--fs', fs.toFixed(1) + 'px'); b.el.style.setProperty('--lh', (Math.round(fs * LH / 4) * 4) + 'px'); }
     const right = q === 'TL' || q === 'BL', up = q === 'TL' || q === 'TR', ax = right ? hx - G : hx + G, ay = up ? hy - G : hy + G;
     b.el.style.visibility = 'visible'; b.el.style.width = w.toFixed(0) + 'px'; b.el.style.textAlign = right ? 'right' : 'left';
     b.el.style.transform = `translate(${ax.toFixed(1)}px,${ay.toFixed(1)}px) translate(${right ? -100 : 0}%,${up ? -100 : 0}%)`;

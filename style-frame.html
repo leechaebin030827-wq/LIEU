@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LIEU · Style Frame (Web)</title>
+<style>
+  /* 지금 사이트(index.html)에서 실제로 쓰는 값만 담았다. 한 번에 한 주제만 보여준다. */
+  :root{--bg:#06060A;--ink:#F2F2F6;--acc:#86A8FF;--hair:rgba(242,242,246,.14);--mute:rgba(242,242,246,.56);--m:clamp(20px,4vw,56px);
+    --font:"Helvetica Neue",Helvetica,Arial,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow:hidden}
+  button{all:unset;cursor:pointer}
+  .cap{font:500 11px/1 var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  .app{height:100vh;height:100dvh;display:grid;grid-template-rows:72px minmax(0,1fr) 56px}
+  header{display:flex;justify-content:space-between;align-items:center;padding:0 var(--m)}
+  header b{font-weight:600;letter-spacing:.14em;font-size:12px}
+  nav{display:flex;gap:36px}
+  nav button{font:500 11px/1 var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--mute);padding:8px 0;border-bottom:1px solid transparent;transition:color .3s,border-color .3s}
+  nav button:hover,nav button.on{color:var(--ink)}nav button.on{border-color:var(--acc)}
+  main{position:relative;min-height:0;padding:0 var(--m)}
+  .view{display:none;height:100%;min-height:0}.view.on{display:flex}
+  footer{display:flex;justify-content:space-between;align-items:center;padding:0 var(--m)}
+  .mask{display:block;background:currentColor;-webkit-mask:var(--m2) center/contain no-repeat;mask:var(--m2) center/contain no-repeat}
+
+  /* 로고 */
+  #v-logo{gap:16px;padding-bottom:8px}
+  .lg{flex:1;display:grid;place-items:center;border:1px solid var(--hair);position:relative}
+  .lg.l{background:#fff;color:#171A18;border-color:#fff}
+  .lg .mask{width:min(56%,420px);aspect-ratio:100/13.49}
+  .lg .cap{position:absolute;left:20px;bottom:20px}.lg.l .cap{color:rgba(23,26,24,.5)}
+
+  /* 컬러 */
+  #v-color{flex-direction:column;justify-content:center;gap:8vh}
+  .sws{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+  .sw{cursor:pointer;display:flex;flex-direction:column;gap:12px}.sw i{display:block;height:22vh;border:1px solid var(--hair)}
+  .sw b{font-weight:600;font-size:14px}.sw span{font:500 11px/1 var(--mono);color:var(--mute)}
+  .grs{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .gr{display:flex;flex-direction:column;gap:12px}.gr .bx{height:10vh;border:1px solid var(--hair);display:grid;place-items:center}
+
+  /* 타입 */
+  #v-type{flex-direction:column;justify-content:center;padding-bottom:8px}
+  .th,.ty{display:grid;grid-template-columns:140px 1fr 1fr;gap:24px;align-items:baseline}
+  .th{padding-bottom:12px}
+  .ty{padding:1.5vh 0;border-top:1px solid var(--hair)}
+  .ty .sp2 b{font-weight:600;font-size:13px;margin-right:10px}.ty .sp2 span{font:500 10.5px/1 var(--mono);color:var(--mute)}
+  .ty p{margin:0;font-weight:var(--w);font-size:var(--fs);line-height:var(--lh);letter-spacing:var(--ls);text-transform:var(--up,none);white-space:nowrap;overflow:hidden}
+  .ty p[lang=ko]{line-height:calc(var(--lh) + .1);letter-spacing:calc(var(--ls) + .015em);color:rgba(242,242,246,.7)}
+
+  /* 이펙트 */
+  #v-fx{gap:var(--m);padding-bottom:8px}
+  .fxl{width:220px;display:flex;flex-direction:column;justify-content:center;gap:4px;flex:none}
+  .fxl button{display:flex;gap:16px;align-items:baseline;padding:11px 0;font-size:15px;color:var(--mute);transition:color .3s}
+  .fxl button i{font:500 11px/1 var(--mono);font-style:normal;opacity:.6}
+  .fxl button:hover,.fxl button.on{color:var(--ink)}.fxl button.on i{color:var(--acc);opacity:1}
+  .fxm{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px;padding-bottom:0}
+  .fxd{display:none;flex-direction:column;flex:1;min-height:0;gap:20px}.fxd.on{display:flex}
+  .stage{flex:1;min-height:0;position:relative;border:1px solid var(--hair);display:grid;place-items:center;overflow:hidden}
+  .stage.l{background:#fff;color:#171A18;border-color:#fff}
+  .info{display:flex;justify-content:space-between;gap:var(--m);align-items:flex-start;flex:none}
+  .info h3{margin:0;font-weight:600;font-size:20px;letter-spacing:-.02em}
+  .info p{margin:10px 0 0;color:var(--mute);font-size:14px;line-height:1.55;max-width:34em}
+  .info dl{margin:0;display:grid;grid-template-columns:auto auto;gap:6px 20px;font:500 11px/1.2 var(--mono);color:var(--mute);flex:none}
+  .info dd{margin:0;color:var(--ink)}
+  .ctl{display:flex;gap:18px;align-items:center;flex:none}
+  .ctl button{font:500 11px/1 var(--font);letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid currentColor;padding:3px 0}
+  .ctl input{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:16px;background:transparent;cursor:ew-resize}
+  .ctl input::-webkit-slider-runnable-track{height:1px;background:rgba(242,242,246,.3)}
+  .ctl input::-webkit-slider-thumb{-webkit-appearance:none;width:9px;height:9px;border-radius:50%;background:var(--ink);margin-top:-4px}
+  .ctl .cap{font-family:var(--mono);min-width:3em;text-align:right}
+  #sym{height:70%;width:auto;aspect-ratio:266/220;overflow:visible;cursor:pointer}
+  #dotCv{position:absolute;inset:0;width:100%;height:100%}
+  .hy{position:relative;font-weight:500;font-size:clamp(22px,2.4vw,34px);letter-spacing:-.03em}.hy b{font-weight:600;color:#86A8FF}
+  .rev{font-weight:600;font-size:clamp(34px,5vw,76px);letter-spacing:-.03em;line-height:1.06}.rev b{color:var(--acc);font-weight:600}
+  .ln{display:block;overflow:hidden;padding:.1em 0 .16em;margin:-.1em 0 -.16em}.ln i{display:block;font-style:normal;transform:translateY(110%);transition:transform .8s cubic-bezier(.16,1,.3,1)}
+  .rev.on .ln i{transform:none}.rev.on .ln:nth-child(2) i{transition-delay:.12s}.rev.on .ln:nth-child(3) i{transition-delay:.24s}
+  .sp{position:relative;display:inline-block;white-space:nowrap;font-size:clamp(28px,3.4vw,52px);font-weight:500;cursor:pointer}
+  .sp .a{display:block}.sp .b{position:absolute;left:-1px;right:-1px;top:calc(100% - 4px);height:1px;background:currentColor;opacity:0}
+  @keyframes spA{0%{clip-path:inset(100% 0 0 0);transform:translateY(6px)}100%{clip-path:inset(-2px 0 -2px 0);transform:none}}
+  @keyframes spB{0%{top:calc(100% + 2px);opacity:0}14%{opacity:.9}100%{top:-6px;opacity:0}}
+  .sp:hover .a{animation:spA 640ms cubic-bezier(.45,0,.15,1) 1 both}.sp:hover .b{animation:spB 640ms cubic-bezier(.45,0,.15,1) 1 both}
+  #curSt{cursor:none;background:linear-gradient(90deg,#fff 50%,#06060A 50%);grid-template-columns:1fr 1fr;place-items:center}
+  #curSt .btn{padding:14px 28px;border:1px solid currentColor;font-size:14px;letter-spacing:.02em}
+  #curDot{position:absolute;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#fff;mix-blend-mode:difference;pointer-events:none;transition:width .5s cubic-bezier(.16,1,.3,1),height .5s cubic-bezier(.16,1,.3,1),margin .5s cubic-bezier(.16,1,.3,1);will-change:transform}
+  #curDot.hov{width:44px;height:44px;margin:-22px 0 0 -22px}#curDot.down{width:10px;height:10px;margin:-5px 0 0 -5px}#curDot.hov.down{width:34px;height:34px;margin:-17px 0 0 -17px}
+  #frSt{cursor:crosshair}
+  #frame{width:min(46%,420px);aspect-ratio:4/5;color:rgba(242,242,246,.55);transition:color .4s}#frame.on{color:var(--acc)}
+  #frame svg{width:100%;height:100%;overflow:visible;display:block}
+
+  @media(max-width:899px){html,body{overflow:auto}.app{height:auto;grid-template-rows:72px auto 56px}main{padding-bottom:24px}#v-fx{flex-direction:column}.fxl{width:auto;flex-direction:row;flex-wrap:wrap;gap:4px 20px}.stage{min-height:340px}.sws,.grs{grid-template-columns:repeat(2,1fr)}.th,.ty{grid-template-columns:90px 1fr}.th span:last-child,.ty>div:last-child{display:none}#v-logo{flex-direction:column}.lg{min-height:200px}.info{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><b>LIEU</b>
+    <nav id="nav"><button data-v="logo">Logo</button><button data-v="color">Color</button><button data-v="type">Type</button><button data-v="fx">Effects</button></nav>
+  </header>
+  <main>
+    <section class="view" id="v-logo">
+      <div class="lg"><i class="mask" style="--m2:url(assets/lieu-wordmark.svg)"></i><span class="cap">On dark</span></div>
+      <div class="lg l"><i class="mask" style="--m2:url(assets/lieu-wordmark.svg)"></i><span class="cap">On light</span></div>
+    </section>
+
+    <section class="view" id="v-color">
+      <div class="sws" id="swatches"></div>
+      <div class="grs">
+        <div class="gr"><div class="bx" id="gSky"></div><span class="cap">Dot sky, 4 stops</span></div>
+        <div class="gr"><div class="bx" id="gWipe"></div><span class="cap">White wipe, 7 stops</span></div>
+        <div class="gr"><div class="bx" style="background:linear-gradient(to bottom,rgba(6,6,10,.72) 0%,rgba(6,6,10,.5) 24%,rgba(6,6,10,.26) 52%,rgba(6,6,10,.09) 78%,rgba(6,6,10,0) 100%),#8a93b4"></div><span class="cap">Top shade, 30vh</span></div>
+        <div class="gr"><div class="bx"><i class="mask" style="--m2:url(assets/lieu-wordmark.svg);width:60%;aspect-ratio:100/13.49;background:rgba(160,190,250,.11)"></i></div><span class="cap">Ghost wordmark, .11</span></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-type">
+      <div class="th cap"><span>Style</span><span>English</span><span>한국어</span></div>
+      <div class="ty" style="--w:600;--fs:min(10.5vh,7.4vw);--lh:1.02;--ls:-.035em"><div class="sp2"><b>Display</b><span>600</span></div><p lang="en">Hello.</p><p lang="ko">안녕하세요.</p></div>
+      <div class="ty" style="--w:600;--fs:min(6.4vh,4.6vw);--lh:1.04;--ls:-.03em"><div class="sp2"><b>H1</b><span>600</span></div><p lang="en">I'm a new driver</p><p lang="ko">저는 새 운전자예요</p></div>
+      <div class="ty" style="--w:600;--fs:min(4.2vh,3.2vw);--lh:1.12;--ls:-.025em"><div class="sp2"><b>H2</b><span>600</span></div><p lang="en">Here's how I came to be.</p><p lang="ko">제가 만들어진 이야기</p></div>
+      <div class="ty" style="--w:500;--fs:min(2.8vh,2.1vw);--lh:1.2;--ls:-.02em"><div class="sp2"><b>H3</b><span>500</span></div><p lang="en">A warm welcome.</p><p lang="ko">따뜻한 환영 인사.</p></div>
+      <div class="ty" style="--w:400;--fs:min(2.1vh,1.5vw);--lh:1.5;--ls:-.01em"><div class="sp2"><b>Body L</b><span>400</span></div><p lang="en">A driver did more than drive.</p><p lang="ko">기사님은 운전 그 이상을 했어요.</p></div>
+      <div class="ty" style="--w:400;--fs:min(1.75vh,1.25vw);--lh:1.55;--ls:0"><div class="sp2"><b>Body</b><span>400</span></div><p lang="en">I was born to bring a little human touch.</p><p lang="ko">사람의 온기를 더하려고 태어났어요.</p></div>
+      <div class="ty" style="--w:500;--fs:11px;--lh:1.4;--ls:.08em;--up:uppercase"><div class="sp2"><b>Caption</b><span>500</span></div><p lang="en">Photo 01, A warm welcome</p><p lang="ko">사진 01, 따뜻한 환영 인사</p></div>
+    </section>
+
+    <section class="view" id="v-fx">
+      <div class="fxl" id="fxl"></div>
+      <div class="fxm">
+
+        <div class="fxd" data-fx="symbol">
+          <div class="stage"><svg id="sym" role="img" aria-label="LIEU symbol"></svg></div>
+          <div class="ctl"><button id="mPlay">Play</button><input id="mScrub" type="range" min="0" max="1" step=".0005" value="0" aria-label="morph progress"><span class="cap" id="mVal">0.00</span></div>
+          <div class="info"><div><h3>Symbol morph</h3><p>택시 갓등이 선 하나를 통과해 제품이 된다. 하나의 연속 동작이고, 구간마다 시간과 곡선을 따로 쓴다. 심볼 위에 올리면 재생된다.</p></div><dl><span>Stroke</span><dd>12</dd><span>Spring</span><dd>4.0 / 4.3</dd><span>Trigger</span><dd>hover, load</dd></dl></div>
+        </div>
+
+        <div class="fxd" data-fx="dots">
+          <div class="stage l" id="dotBox" style="cursor:pointer"><canvas id="dotCv"></canvas><div class="hy">Hey, I'm <b>LIEU</b></div></div>
+          <div class="ctl"><button id="dPlay">Replay</button><input id="dScrub" type="range" min="0" max="2" step=".002" value="0" aria-label="dot progress"><span class="cap" id="dVal">0.00</span></div>
+          <div class="info"><div><h3>Dot reveal</h3><p>중앙에서 불규칙한 윤곽의 링이 번지며 도트가 켜진다. 스크롤하면 같은 링이 바깥으로 퍼지며 꺼진다. 슬라이더 0~1은 켜짐, 1~2는 꺼짐.</p></div><dl><span>Grid</span><dd>10px</dd><span>Color</span><dd>sky 4 stops</dd><span>Light</span><dd>2.4s</dd><span>Erase</span><dd>scroll</dd></dl></div>
+        </div>
+
+        <div class="fxd" data-fx="mask">
+          <div class="stage"><div class="rev" id="rev"><span class="ln"><i>I was born</i></span><span class="ln"><i>to bring a little</i></span><span class="ln"><i><b>human touch.</b></i></span></div></div>
+          <div class="ctl"><button id="rvPlay">Replay</button></div>
+          <div class="info"><div><h3>Mask reveal</h3><p>줄마다 overflow hidden 마스크 안에서 아래에서 위로 올라온다. 줄 사이에 짧은 간격을 둔다.</p></div><dl><span>Duration</span><dd>800ms</dd><span>Ease</span><dd>.16, 1, .3, 1</dd><span>Stagger</span><dd>120ms</dd></dl></div>
+        </div>
+
+        <div class="fxd" data-fx="hover">
+          <div class="stage"><span class="sp"><span class="a">Language</span><span class="b"></span></span></div>
+          <div class="info"><div><h3>Hover line</h3><p>가로선 하나가 글자 아래에서 올라오고, 지나간 자리에 글자가 새로 생긴다. 심볼의 선과 같은 움직임이다.</p></div><dl><span>Duration</span><dd>640ms</dd><span>Ease</span><dd>.45, 0, .15, 1</dd></dl></div>
+        </div>
+
+        <div class="fxd" data-fx="cursor">
+          <div class="stage" id="curSt"><div class="btn" role="button" tabindex="0">Hover me</div><div class="btn" role="button" tabindex="0" style="color:#fff">Press me</div><div id="curDot"></div></div>
+          <div class="info"><div><h3>Cursor</h3><p>솔리드 원 하나, difference 블렌드라 어떤 배경에서도 읽힌다. 누를 수 있는 곳에서는 커지고, 누르면 작아진다.</p></div><dl><span>Rest</span><dd>16px</dd><span>Hover</span><dd>44px</dd><span>Press</span><dd>10px</dd></dl></div>
+        </div>
+
+        <div class="fxd" data-fx="frame">
+          <div class="stage" id="frSt"><div id="frame"><svg id="frSvg"></svg></div></div>
+          <div class="info"><div><h3>Frame focus</h3><p>사진 자리는 선으로만 그린다. 네 모서리에서 나온 선이 커서 위치로 모이고, 프레임 위에서는 포인트 색으로 바뀐다.</p></div><dl><span>Stroke</span><dd>1.2px</dd><span>Focus</span><dd>pointer</dd><span>Accent</span><dd>#86A8FF</dd></dl></div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+  <footer><span class="cap" id="foot"></span><span class="cap">Style Frame · Web · v1</span></footer>
+</div>
+
+<script src="assets/lieu-morph.js"></script>
+<script>
+(() => {
+'use strict';
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const $ = id => document.getElementById(id);
+const FX = [['symbol', 'Symbol morph'], ['dots', 'Dot reveal'], ['mask', 'Mask reveal'], ['hover', 'Hover line'], ['cursor', 'Cursor'], ['frame', 'Frame focus']];
+let view = 'logo', fx = 'symbol';
+
+/* 화면 전환 */
+$('fxl').innerHTML = FX.map(([k, n], i) => `<button data-fx="${k}"><i>0${i + 1}</i>${n}</button>`).join('');
+function show() {
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + view));
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.v === view));
+  document.querySelectorAll('.fxd').forEach(d => d.classList.toggle('on', d.dataset.fx === fx));
+  document.querySelectorAll('#fxl button').forEach(b => b.classList.toggle('on', b.dataset.fx === fx));
+  $('foot').textContent = view === 'fx' ? FX.find(f => f[0] === fx)[1] : view;
+  try { history.replaceState(null, '', '#' + (view === 'fx' ? 'fx/' + fx : view)); } catch (e) {}
+  if (view === 'fx' && fx === 'mask') play();
+  if (view === 'fx' && fx === 'dots') { dPos = 0; dPlaying = true; }
+  if (view === 'fx' && fx === 'symbol') m.replay();
+}
+$('nav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { view = b.dataset.v; show(); } });
+$('fxl').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { fx = b.dataset.fx; show(); } });
+addEventListener('keydown', e => {
+  const V = ['logo', 'color', 'type', 'fx'];
+  if (e.key === 'ArrowRight') { view = V[(V.indexOf(view) + 1) % 4]; show(); }
+  if (e.key === 'ArrowLeft') { view = V[(V.indexOf(view) + 3) % 4]; show(); }
+  if (view === 'fx' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { const k = FX.map(f => f[0]), i = k.indexOf(fx); fx = k[(i + (e.key === 'ArrowDown' ? 1 : k.length - 1)) % k.length]; show(); e.preventDefault(); }
+});
+
+/* 심볼 */
+const m = LieuMorph.create($('sym'), { stroke: 12, squash: 0, timeline: LieuMorph.loadTimeline() });
+const sc = $('mScrub'), mv = $('mVal');
+sc.addEventListener('input', () => { m.setProgress(+sc.value, true); mv.textContent = (+sc.value).toFixed(2); });
+$('mPlay').addEventListener('click', () => { sc.value = 0; mv.textContent = '0.00'; m.replay(); });
+$('sym').addEventListener('pointerenter', () => m.play(120));
+(function follow() { if (document.activeElement !== sc) { const p = m.progress; sc.value = p; mv.textContent = p.toFixed(2); } requestAnimationFrame(follow); })();
+
+/* 색 */
+const SW = [['Dark', '#06060A'], ['Ink', '#F2F2F6'], ['Accent', '#86A8FF'], ['Ink on light', '#171A18'], ['Story gray', '#35353b'], ['White', '#FFFFFF']];
+$('swatches').innerHTML = SW.map(([n, h]) => `<div class="sw" data-h="${h}"><i style="background:${h}"></i><b>${n}</b><span>${h}</span></div>`).join('');
+$('swatches').addEventListener('click', e => { const s = e.target.closest('.sw'); if (s && navigator.clipboard) { navigator.clipboard.writeText(s.dataset.h); const b = s.querySelector('b'), t = b.textContent; b.textContent = 'Copied'; setTimeout(() => b.textContent = t, 900); } });
+const SKY = [[124, 166, 252], [154, 190, 255], [186, 210, 255], [214, 228, 255]];
+$('gSky').style.background = `linear-gradient(90deg,${SKY.map(c => `rgb(${c})`).join(',')})`;
+const WST = [[0, 92, 102, 142, 0], [.1, 98, 110, 152, .26], [.28, 128, 142, 186, .58], [.48, 166, 178, 212, .8], [.7, 208, 216, 236, .94], [.88, 241, 244, 251, 1], [1, 255, 255, 255, 1]];
+$('gWipe').style.background = `linear-gradient(90deg,${WST.map(([k, r, g, b, a]) => `rgba(${r},${g},${b},${a}) ${k * 100}%`).join(',')}),#06060A`;
+
+/* 도트 (index.html 의 drawHeyDots 와 같은 식) */
+const cv = $('dotCv'), cx2 = cv.getContext('2d'), mix = (a, b, t) => a + (b - a) * t;
+const grad = t => { t = clamp(t) * 3; const i = Math.min(2, Math.floor(t)), u = t - i; return SKY[i].map((v, k) => mix(v, SKY[i + 1][k], u)); };
+const edge = (th, tt) => 1 + .13 * Math.sin(th * 3 + tt * .6) + .08 * Math.sin(th * 5 - tt * .45 + 1.7) + .05 * Math.sin(th * 9 + tt * .8 + .6);
+const sm5 = t => t * t * t * (t * (t * 6 - 15) + 10);
+function dots(f, erase, tt) {
+  const dpr = Math.min(2, devicePixelRatio || 1), W = cv.clientWidth, H = cv.clientHeight;
+  if (!W || !H) return;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  cx2.setTransform(dpr, 0, 0, dpr, 0, 0); cx2.clearRect(0, 0, W, H);
+  if (erase >= 1) return;
+  const step = 10, cx = W / 2, cy = H / 2, Rfull = Math.hypot(W, H) * .5;
+  const front = (1 - Math.pow(1 - f, 2.6)) * Rfull * 1.55, T = Rfull * .3, E = erase * Rfull * 1.9, softE = Rfull * .9;
+  const cols = Math.ceil(W / step / 2) + 1, rows = Math.ceil(H / step / 2) + 1;
+  for (let j = -rows; j <= rows; j++) for (let i = -cols; i <= cols; i++) {
+    const gx = i * step, gy = j * step, x = cx + gx, y = cy + gy;
+    if (x < -4 || x > W + 4 || y < -4 || y > H + 4) continue;
+    const d = Math.hypot(gx, gy), R = front * (1 + (edge(Math.atan2(gy, gx), tt) - 1) * .45), lit = sm5(clamp((R - d) / (T * 1.3)));
+    const kd = clamp(d / Rfull), G = grad(clamp(.7 * kd + .3 * ((gx * .7071 + gy * .7071) / (Rfull * 1.3) * .5 + .5)));
+    const ringIn = f < 1 ? Math.exp(-Math.pow((R - d - T * .5) / T, 2)) * (1 - f * f * f) : 0;
+    const gone = sm5(clamp((d - E) / softE)), ringOut = erase > .004 ? Math.exp(-Math.pow((d - E - softE * .5) / T, 2)) * Math.sin(Math.PI * clamp(erase)) : 0;
+    const body = .62 * lit * (1 - .35 * kd), a = body * gone + .8 * ringIn + .5 * ringOut * body;
+    if (a < .004) continue;
+    cx2.fillStyle = `rgba(${Math.round(G[0])},${Math.round(G[1])},${Math.round(G[2])},${Math.min(1, a).toFixed(3)})`;
+    cx2.beginPath(); cx2.arc(x, y, .85 + lit * .45 + (ringIn + ringOut) * .55, 0, 6.283); cx2.fill();
+  }
+}
+const ds = $('dScrub'), dv = $('dVal'); let dPlaying = true, dPos = 0, last = performance.now();
+ds.addEventListener('pointerdown', () => { dPlaying = false; });
+ds.addEventListener('input', () => { dPos = +ds.value; });
+$('dPlay').addEventListener('click', () => { dPos = 0; dPlaying = true; });
+$('dotBox').addEventListener('click', () => { dPos = 0; dPlaying = true; });
+
+/* 마스크 리빌 */
+const rev = $('rev');
+function play() { rev.classList.remove('on'); void rev.offsetWidth; setTimeout(() => rev.classList.add('on'), 60); }
+$('rvPlay').addEventListener('click', play);
+
+/* 커서 */
+const cs = $('curSt'), cd = $('curDot'); let cx = -100, cy = -100, rx = -100, ry = -100;
+cs.addEventListener('pointermove', e => { const r = cs.getBoundingClientRect(); cx = e.clientX - r.left; cy = e.clientY - r.top; cd.classList.toggle('hov', !!e.target.closest('.btn')); });
+cs.addEventListener('pointerdown', () => cd.classList.add('down')); addEventListener('pointerup', () => cd.classList.remove('down'));
+
+/* 프레임 포커스 */
+const NS = 'http://www.w3.org/2000/svg', fsv = $('frSvg'), frame = $('frame');
+const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); fsv.appendChild(e); return e; };
+const fr = { rect: mk('rect', { fill: 'none', stroke: 'currentColor', 'stroke-width': 1.2 }), ls: [0, 1, 2, 3].map(() => mk('line', { stroke: 'currentColor', 'stroke-width': 1 })), dot: mk('circle', { r: 3.5, fill: 'currentColor' }), fx: .5, fy: .5, tx: .5, ty: .5 };
+$('frSt').addEventListener('pointermove', e => { const r = frame.getBoundingClientRect(), inn = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; frame.classList.toggle('on', inn); fr.tx = inn ? clamp((e.clientX - r.left) / r.width, .04, .96) : .5; fr.ty = inn ? clamp((e.clientY - r.top) / r.height, .04, .96) : .5; });
+$('frSt').addEventListener('pointerleave', () => { frame.classList.remove('on'); fr.tx = fr.ty = .5; });
+
+/* 루프 (보이는 이펙트만 그린다) */
+(function loop(now) {
+  const dt = Math.min(.1, (now - last) / 1000); last = now;
+  if (view === 'fx') {
+    if (fx === 'dots') {
+      if (dPlaying) { dPos += dt / (dPos < 1 ? 2.4 : 1.8); if (dPos > 2.6) dPos = 0; }
+      const p = clamp(dPos, 0, 2); ds.value = p; dv.textContent = p.toFixed(2); dots(clamp(p), clamp(p - 1), now / 1000);
+    } else if (fx === 'cursor') {
+      rx += (cx - rx) * .22; ry += (cy - ry) * .22; cd.style.transform = `translate(${rx.toFixed(1)}px,${ry.toFixed(1)}px)`;
+    } else if (fx === 'frame') {
+      const w = frame.clientWidth, h = frame.clientHeight, k = 1 - Math.exp(-dt * 9); fr.fx += (fr.tx - fr.fx) * k; fr.fy += (fr.ty - fr.fy) * k;
+      const px = fr.fx * w, py = fr.fy * h; fr.rect.setAttribute('x', .6); fr.rect.setAttribute('y', .6); fr.rect.setAttribute('width', Math.max(0, w - 1.2)); fr.rect.setAttribute('height', Math.max(0, h - 1.2));
+      [[0, 0], [w, 0], [w, h], [0, h]].forEach((c, i) => { const l = fr.ls[i]; l.setAttribute('x1', c[0]); l.setAttribute('y1', c[1]); l.setAttribute('x2', px.toFixed(1)); l.setAttribute('y2', py.toFixed(1)); });
+      fr.dot.setAttribute('cx', px.toFixed(1)); fr.dot.setAttribute('cy', py.toFixed(1));
+    }
+  }
+  requestAnimationFrame(loop);
+})(last);
+
+/* 시작 : 주소의 해시를 따른다 */
+const h = (location.hash || '#logo').slice(1).split('/');
+if (['logo', 'color', 'type', 'fx'].includes(h[0])) view = h[0]; if (h[1] && FX.some(f => f[0] === h[1])) fx = h[1];
+show();
+setTimeout(() => { if (view === 'fx' && fx === 'symbol') m.play(300); }, 300);
+})();
+</script>
+</body>
+</html>

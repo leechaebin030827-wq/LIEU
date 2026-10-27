@@ -4,14 +4,17 @@
    - 모든 값은 CSS 변수. 모션·스크롤 연출도 같은 토큰을 쓴다.
    ─────────────────────────────────────────────────────────────── */
 
+ @font-face { font-family: "Hero"; src: url(fonts/Hero-Light.woff2) format("woff2"); font-weight: 100 300; font-display: swap; }
+@font-face { font-family: "Hero"; src: url(fonts/Hero-Regular.woff2) format("woff2"); font-weight: 400 900; font-display: swap; }
+
 :root {
   /* 1. 단위 ---------------------------------------------------- */
   --u: 8px;                                   /* 기본 단위 (모든 간격은 4의 배수, 가급적 8의 배수) */
 
   /* 2. 그리드 (모바일 기본) ------------------------------------ */
   --cols: 4;
-  --margin: clamp(20px, 5.2vw, 32px);         /* 좌우 여백 */
-  --gutter: clamp(12px, 3vw, 16px);           /* 컬럼 사이 */
+  --margin: 24px;                             /* 좌우 여백 : 브레이크포인트마다 8의 배수로만 바뀐다 (24 / 32 / 48 / 64) */
+  --gutter: 16px;                             /* 컬럼 사이 */
   --maxw: 1680px;                             /* 콘텐츠 최대 폭 — 이보다 넓으면 양옆이 늘어남 */
   --content: min(100% - 2 * var(--margin), var(--maxw));
   --col: calc((var(--content) - (var(--cols) - 1) * var(--gutter)) / var(--cols));  /* 컬럼 1개 폭 */
@@ -30,8 +33,26 @@
   --t-body-l:  clamp(18px, 1.5vw, 24px);
   --t-body:    clamp(15px, 1.1vw, 18px);
   --t-caption: clamp(11px, .8vw, 13px);
-  --lh-tight: 1.02; --lh-head: 1.12; --lh-body: 1.55;   /* 행간 */
-  --track-display: -.035em; --track-head: -.02em; --track-caption: .08em;
+
+  /* 4-1. 글꼴 · 굵기 : Hero 는 Light / Regular 두 굵기만 있다 (파란 강조는 굵기가 아니라 색으로) */
+  --font-ui: "Hero", "Helvetica Neue", Helvetica, Arial, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --w-light: 300; --w-regular: 400;
+
+  /* 4-2. 행간 (글자 크기 대비 배율) */
+  --lh-tight: 1.05;   /* 아주 큰 글자 · 한 줄 */
+  --lh-head:  1.15;   /* 큰 문구 · 제목 */
+  --lh-title: 1.25;   /* 두 줄짜리 선언문 (Hey, I'm LIEU / Driver) */
+  --lh-body:  1.55;   /* 본문 */
+  --lh-label: 1;      /* 라벨 · 한 줄 UI */
+
+  /* 4-3. 자간 (em) : 글자가 클수록 더 조인다 */
+  --track-display: -.04em; --track-head: -.03em; --track-title: -.02em;
+  --track-body: -.01em; --track-caption: .08em; --track-label: .14em;
+
+  /* 4-4. 역할 : 크기 · 굵기 · 행간 · 자간을 한 묶음으로 */
+  --type-story-size: clamp(30px, 4.6vw, 68px);   --type-story-w: var(--w-regular); --type-story-lh: var(--lh-head);  --type-story-track: var(--track-head);
+  --type-title-size: clamp(22px, 2.4vw, 34px);   --type-title-w: var(--w-regular); --type-title-lh: var(--lh-title); --type-title-track: var(--track-title);
+  --type-label-size: 12px;                       --type-label-w: var(--w-regular); --type-label-lh: var(--lh-label); --type-label-track: var(--track-label);
 
   /* 5. 레이어 (z-index) ----------------------------------------- */
   --z-bg: 0;  --z-aurora: 0;  --z-wipe: 1;  --z-hero: 2;
@@ -65,9 +86,9 @@
    md  640–1023 : 8 컬럼
    lg  1024–1439: 12 컬럼
    xl  ≥ 1440   : 12 컬럼 (여백·거터 확대)                       */
-@media (min-width: 640px)  { :root { --cols: 8;  --margin: clamp(32px, 4.4vw, 48px); --gutter: 16px; } }
-@media (min-width: 1024px) { :root { --cols: 12; --margin: clamp(40px, 4vw, 64px);    --gutter: 20px; } }
-@media (min-width: 1440px) { :root { --cols: 12; --margin: clamp(56px, 4.4vw, 88px);  --gutter: 24px; } }
+@media (min-width: 640px)  { :root { --cols: 8;  --margin: 32px; --gutter: 16px; } }
+@media (min-width: 1024px) { :root { --cols: 12; --margin: 48px; --gutter: 24px; } }
+@media (min-width: 1440px) { :root { --cols: 12; --margin: 64px; --gutter: 24px; } }
 
 /* 레이아웃 기본기 ───────────────────────────────────────────── */
 .container { width: var(--content); margin-inline: auto; }
@@ -96,13 +117,13 @@
 }
 
 /* 타입 유틸 ──────────────────────────────────────────────────── */
-.t-display { font-size: var(--t-display); line-height: var(--lh-tight); letter-spacing: var(--track-display); font-weight: 600; }
-.t-h1 { font-size: var(--t-h1); line-height: var(--lh-tight); letter-spacing: var(--track-display); font-weight: 600; }
-.t-h2 { font-size: var(--t-h2); line-height: var(--lh-head);  letter-spacing: var(--track-head);    font-weight: 600; }
-.t-h3 { font-size: var(--t-h3); line-height: var(--lh-head);  letter-spacing: var(--track-head);    font-weight: 500; }
-.t-body-l { font-size: var(--t-body-l); line-height: var(--lh-body); }
-.t-body { font-size: var(--t-body); line-height: var(--lh-body); }
-.t-caption { font-size: var(--t-caption); line-height: 1.4; letter-spacing: var(--track-caption); text-transform: uppercase; }
+.t-display { font-size: var(--t-display); line-height: var(--lh-tight); letter-spacing: var(--track-display); font-weight: var(--w-regular); }
+.t-h1 { font-size: var(--t-h1); line-height: var(--lh-tight); letter-spacing: var(--track-display); font-weight: var(--w-regular); }
+.t-h2 { font-size: var(--t-h2); line-height: var(--lh-head);  letter-spacing: var(--track-head);    font-weight: var(--w-regular); }
+.t-h3 { font-size: var(--t-h3); line-height: var(--lh-title); letter-spacing: var(--track-title);   font-weight: var(--w-regular); }
+.t-body-l { font-size: var(--t-body-l); line-height: var(--lh-body); letter-spacing: var(--track-body); font-weight: var(--w-light); }
+.t-body { font-size: var(--t-body); line-height: var(--lh-body); letter-spacing: var(--track-body); font-weight: var(--w-light); }
+.t-caption { font-size: var(--t-caption); line-height: 1.4; letter-spacing: var(--track-caption); font-weight: var(--w-regular); text-transform: uppercase; }
 
 /* 그리드 오버레이 (G 키) — 화면에 UI 가 없는 대신 개발·디자인 검수용 ------------------- */
 #grid-overlay { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-overlay); opacity: 0; transition: opacity var(--d-fast) var(--ease-out); }

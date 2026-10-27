@@ -23,20 +23,24 @@ if (cv) {
   const material = new THREE.ShaderMaterial({
     transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false,
     uniforms: { uOpacity: { value: 0 }, uRimPow: { value: 3.0 }, uBase: { value: .02 }, uRim: { value: .36 }, uLine: { value: .5 }, uCrease: { value: 5.5 },
-      uColA: { value: new THREE.Color('#D8D8D8') }, uColB: { value: new THREE.Color('#8C8C8C') } },   // 그레이스케일   // 도트 그라데이션과 같은 하늘색 계열
+      uColA: { value: new THREE.Color('#CFE0F5') }, uColB: { value: new THREE.Color('#86A8FF') },
+      uBodyA: { value: new THREE.Color('#DCE8F1') }, uBodyB: { value: new THREE.Color('#A9BFD0') }, uBodyOp: { value: .16 }, uDevMin: { value: new THREE.Vector3(9, 9, 9) }, uDevMax: { value: new THREE.Vector3(-9, -9, -9) }, uAll: { value: 0 } },   // LIEU 장치(uDev 상자 안)만 기존 회색, 차량은 더 투명한 하늘회색   // 그레이스케일   // 도트 그라데이션과 같은 하늘색 계열
     vertexShader: `
-      varying vec3 vN; varying vec3 vV;
-      void main() { vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }`,
+      varying vec3 vN; varying vec3 vV; varying vec3 vP;
+      void main() { vP = position; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }`,
     fragmentShader: `
       precision highp float;
-      uniform float uOpacity, uRimPow, uBase, uRim, uLine, uCrease; uniform vec3 uColA, uColB;
-      varying vec3 vN; varying vec3 vV;
+      uniform float uOpacity, uRimPow, uBase, uRim, uLine, uCrease; uniform vec3 uColA, uColB, uBodyA, uBodyB; uniform float uBodyOp, uAll; uniform vec3 uDevMin, uDevMax;
+      varying vec3 vN; varying vec3 vV; varying vec3 vP;
       void main() {
         vec3 N = normalize(vN), V = normalize(vV);
         float fr = pow(1.0 - abs(dot(N, V)), uRimPow);                 // 가장자리 프레넬 (속은 투명, 둘레는 진하게)
         float crease = clamp(length(fwidth(N)) * uCrease, 0.0, 1.0);   // 모서리 라인 (표면 방향이 급히 바뀌는 곳)
-        float a = clamp(uBase + fr * uRim + crease * uLine, 0.0, 1.0) * uOpacity;
-        vec3 col = mix(uColA, uColB, clamp(fr * 1.2 + crease, 0.0, 1.0));
+        vec3 inB = step(uDevMin, vP) * step(vP, uDevMax);
+        float roof = max(inB.x * inB.y * inB.z, uAll);   // 1 = LIEU 장치, 0 = 차량
+        float a = clamp(uBase + fr * uRim + crease * uLine, 0.0, 1.0) * uOpacity * mix(uBodyOp, 1.0, roof);
+        float t = clamp(fr * 1.2 + crease, 0.0, 1.0);
+        vec3 col = mix(mix(uBodyA, uBodyB, t), mix(uColA, uColB, t), roof);
         gl_FragColor = vec4(col, a);
       }`
   });
@@ -52,9 +56,9 @@ if (cv) {
   scene.add(new THREE.AmbientLight(0xffffff, 1.1)); const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(1.5, 3, 2); scene.add(sun);
   const dev = new THREE.Group(); group.add(dev);
   const devMat = material.clone();      // 자동차와 같은 고스트(프레넬 + 모서리선) 셰이더, 색과 농도만 더 진하게
-  Object.assign(devMat.uniforms, { uColA: { value: new THREE.Color('#6A6A72') }, uColB: { value: new THREE.Color('#1A1A1E') } });
+  Object.assign(devMat.uniforms, { uColA: { value: new THREE.Color('#A9BFD0') }, uColB: { value: new THREE.Color('#5F7F9A') } });
   devMat.uniforms.uBase.value = .16; devMat.uniforms.uRim.value = .8; devMat.uniforms.uLine.value = .85; devMat.uniforms.uRimPow.value = 2.2;
-  devMat.extensions = { derivatives: true };
+  devMat.uniforms.uAll.value = 1; devMat.extensions = { derivatives: true };
   const donut = new THREE.Mesh(new THREE.TorusGeometry(.095, .036, 28, 56), devMat); donut.rotation.x = Math.PI / 2;
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(.011, .011, .15, 14), devMat);
   dev.renderOrder = 4;   // 도넛 · 세로선은 뺀다 : 모델 안의 로봇이 LIEU 장치
@@ -68,19 +72,24 @@ if (cv) {
   const textMat = new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, opacity: 0 });
   const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(.92, .52), textMat); textPlane.rotation.x = -Math.PI / 2; textPlane.renderOrder = 3; group.add(textPlane);
   // HTML #storyText 와 글자 위치가 정확히 같도록 : 같은 font-family(폴백 포함)를 쓰고, 줄 상자(line-height 1.29) 안에서 기준선이 놓이는 위치를 DOM 에서 직접 잰다 (글꼴마다 달라서 상수로는 안 맞는다)
-  const storyFam = () => { const el = document.getElementById('storyText'); return el ? getComputedStyle(el).fontFamily : '"Helvetica Neue", Helvetica, Arial, sans-serif'; };
-  const baselineOff = (fs, fam) => {
+  // 글자 규격(글꼴 · 굵기 · 행간 · 자간)은 grid.css 의 --type-* 토큰을 그대로 읽는다 : 캔버스와 HTML 이 항상 같은 값
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const ty = role => ({ w: +tok(`--type-${role}-w`) || 400, lh: parseFloat(tok(`--type-${role}-lh`)) || 1.3, tr: parseFloat(tok(`--type-${role}-track`)) || 0 });
+  const uiFam = () => tok('--font-ui') || '"Hero", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  const track = (x, fs, em) => { if ('letterSpacing' in x) x.letterSpacing = (em * fs).toFixed(2) + 'px'; };
+  const storyFam = () => { const el = document.getElementById('storyText'); return el ? getComputedStyle(el).fontFamily : uiFam(); };
+  const baselineOff = (fs, fam, w, lh) => {
     const d = document.createElement('div'), m = document.createElement('i');
-    d.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font:600 ${fs}px/1.29 ${fam}`;
+    d.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font:${w} ${fs}px/${lh} ${fam}`;
     m.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'; d.textContent = '가Hg'; d.appendChild(m); document.body.appendChild(d);
     const off = m.getBoundingClientRect().top - d.getBoundingClientRect().top; d.remove(); return off;
   };
   const drawStory = lines => {
-    const cvs = document.createElement('canvas'); cvs.width = 1400; cvs.height = 790; const x = cvs.getContext('2d'), fam = storyFam();
+    const cvs = document.createElement('canvas'); cvs.width = 1400; cvs.height = 790; const x = cvs.getContext('2d'), fam = storyFam(), T = ty('story');
     x.clearRect(0, 0, cvs.width, cvs.height); x.fillStyle = dark ? '#F2F2F6' : '#35353b'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
     const ls = (lines && lines.length ? lines : ["Here's how", 'I came to be.']);
-    let fs = 124; x.font = `600 ${fs}px ${fam}`; const mw = Math.max(...ls.map(t => x.measureText(t).width)); if (mw > 1300) fs = Math.floor(124 * 1300 / mw); storyFont = fs; x.font = `600 ${fs}px ${fam}`;
-    const lh = fs * 1.29, off = baselineOff(fs, fam);
+    let fs = 124; x.font = `${T.w} ${fs}px ${fam}`; track(x, fs, T.tr); const mw = Math.max(...ls.map(t => x.measureText(t).width)); if (mw > 1300) fs = Math.floor(124 * 1300 / mw); storyFont = fs; x.font = `${T.w} ${fs}px ${fam}`; track(x, fs, T.tr);
+    const lh = fs * T.lh, off = baselineOff(fs, fam, T.w, T.lh);
     ls.forEach((t, i) => x.fillText(t, cvs.width / 2, cvs.height / 2 + (i - (ls.length - 1) / 2) * lh - lh / 2 + off));
     const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; if (textMat.map) textMat.map.dispose(); textMat.map = tex; textMat.needsUpdate = true;
   };
@@ -93,14 +102,14 @@ if (cv) {
   const drawDriver = lines => {
     const ls = (lines && lines.length ? lines : ["I'm a new kind of", "<b>'Driver'</b> for robotaxis"]);
     const cvs = document.createElement('canvas'), x = cvs.getContext('2d');
-    const fam = '"Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", "Hiragino Sans", "PingFang SC", sans-serif';
+    const fam = uiFam(), T = ty('title');
     const runs = ls.map(l => l.split(/(<b>.*?<\/b>)/).filter(Boolean).map(t => t.startsWith('<b>') ? { t: t.slice(3, -4), b: true } : { t, b: false }));
-    const width = (fs, r) => { let w = 0; r.forEach(q => { x.font = `${q.b ? 600 : 500} ${fs}px ${fam}`; w += x.measureText(q.t).width; }); return w; };
+    const width = (fs, r) => { let w = 0; r.forEach(q => { x.font = `${T.w} ${fs}px ${fam}`; track(x, fs, T.tr); w += x.measureText(q.t).width; }); return w; };
     let fs = 150; const mw = Math.max(...runs.map(r => width(fs, r))); if (mw > 1880) fs = Math.floor(150 * 1880 / mw);
-    drvFs = fs; drvCW = 2000; drvCH = Math.ceil(ls.length * fs * 1.34 + 60); cvs.width = drvCW; cvs.height = drvCH;
+    drvFs = fs; drvCW = 2000; drvCH = Math.ceil(ls.length * fs * T.lh + 60); cvs.width = drvCW; cvs.height = drvCH;
     x.clearRect(0, 0, drvCW, drvCH); x.textBaseline = 'middle'; x.textAlign = 'left';
-    runs.forEach((r, i) => { let px = (drvCW - width(fs, r)) / 2; const y = drvCH / 2 + (i - (ls.length - 1) / 2) * fs * 1.34;
-      r.forEach(q => { x.font = `${q.b ? 600 : 500} ${fs}px ${fam}`; x.fillStyle = q.b ? '#86A8FF' : (dark ? '#F2F2F6' : '#171A18'); x.fillText(q.t, px, y); px += x.measureText(q.t).width; }); });
+    runs.forEach((r, i) => { let px = (drvCW - width(fs, r)) / 2; const y = drvCH / 2 + (i - (ls.length - 1) / 2) * fs * T.lh;
+      r.forEach(q => { x.font = `${T.w} ${fs}px ${fam}`; track(x, fs, T.tr); x.fillStyle = q.b ? '#86A8FF' : (dark ? '#F2F2F6' : '#171A18'); x.fillText(q.t, px, y); px += x.measureText(q.t).width; }); });
     const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; if (drvMat.map) drvMat.map.dispose(); drvMat.map = tex; drvMat.needsUpdate = true;
   };
   drawDriver(window.__drv);
@@ -116,6 +125,7 @@ if (cv) {
     geo.translate(-ctr.x, -ctr.y, -ctr.z); geo.scale(k, k, k);
     if (!geo.attributes.normal) geo.computeVertexNormals();
     geo.computeBoundingBox(); const H = geo.boundingBox.max.y - geo.boundingBox.min.y, kk = H / .6;     // kk : 장치 · 빛의 크기 보정
+    { const y0 = geo.boundingBox.min.y; material.uniforms.uDevMin.value.set(-.08, y0 + H * .80, -9); material.uniforms.uDevMax.value.set(.08, y0 + H * .93, 9); }   // 지붕 중앙에 매달린 LIEU 장치(도넛 + 세로선) 영역
     model = new THREE.Mesh(geo, material); model.renderOrder = 2;
     if (FRONT_FLIP) model.rotation.y = Math.PI;
     group.add(model); group.updateMatrixWorld(true);
@@ -194,8 +204,8 @@ if (cv) {
   // 다크모드 : 배경이 어두워지면 글씨 · 장치 · 차 선의 색을 밝게 바꾼다 (스위치처럼 한 번에)
   const applyDark = () => {
     const u = material.uniforms, d = devMat.uniforms;
-    u.uColA.value.set(dark ? '#EDEDF2' : '#D8D8D8'); u.uColB.value.set(dark ? '#9A9AA6' : '#8C8C8C'); u.uBase.value = dark ? .03 : .02; u.uRim.value = dark ? .6 : .36; u.uLine.value = dark ? .75 : .5;
-    d.uColA.value.set(dark ? '#F4F4FA' : '#6A6A72'); d.uColB.value.set(dark ? '#A9A9B6' : '#1A1A1E'); d.uBase.value = dark ? .12 : .16; d.uRim.value = dark ? .75 : .8; d.uLine.value = dark ? .9 : .85;
+    u.uColA.value.set(dark ? '#EAF0FF' : '#CFE0F5'); u.uColB.value.set(dark ? '#A9C0FF' : '#86A8FF'); u.uBodyA.value.set(dark ? '#C4D6E6' : '#DCE8F1'); u.uBodyB.value.set(dark ? '#8CA8C0' : '#A9BFD0'); u.uBase.value = dark ? .03 : .02; u.uRim.value = dark ? .6 : .36; u.uLine.value = dark ? .75 : .5;
+    d.uColA.value.set(dark ? '#F4F4FA' : '#A9BFD0'); d.uColB.value.set(dark ? '#A9A9B6' : '#5F7F9A'); d.uBase.value = dark ? .12 : .16; d.uRim.value = dark ? .75 : .8; d.uLine.value = dark ? .9 : .85;
     coneMat.uniforms.uCol.value.set(dark ? '#D8D8E4' : '#B9B9C0');
     drawStory(window.__story); drawDriver(window.__drv);
   };
@@ -207,5 +217,5 @@ if (cv) {
     setStory(lines) { window.__story = lines; drawStory(lines); render(); }
   };
   resize();
-  if (document.fonts) Promise.all([500, 600].map(w => document.fonts.load(`${w} 40px "Helvetica Neue"`))).then(() => { if (window.__story) drawStory(window.__story); if (window.__drv) drawDriver(window.__drv); render(); }).catch(() => {});
+  if (document.fonts) Promise.all([300, 500, 600].map(w => document.fonts.load(`${w} 40px "Hero"`))).then(() => { if (window.__story) drawStory(window.__story); if (window.__drv) drawDriver(window.__drv); render(); }).catch(() => {});
 }
