@@ -12,11 +12,11 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const NS = 'http://www.w3.org/2000/svg', HALF = Math.PI / 2;
 
 // 도입 : 파란 공이 나타나 가로선 위를 오가다가 가운데로 오고, 거기서 세로선이 뻗어 그리드가 생긴 뒤 첫 칸 위치로 자리 잡는다
-const T = { show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5], slide: [15.2, 16.8], vline: [16.9, 17.6], settle: [17.6, 18.6], text0: [18.9, 19.5], s: [18.6, 22.0, 25.4, 28.8, 32.2] };
+const T = { show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5], slide: [15.2, 16.8], vline: [16.9, 17.6], settle: [17.6, 18.6], text0: [18.9, 19.5], s: [18.6, 22.0, 25.4, 28.8, 32.2], out: [34.4, 42.4] };   // out : 끝 장면 뒤 퇴장 (점이 가운데로 와서 가로선이 줄고, 위로 살짝 떴다가 아래로 떨어지며 라이트 모드로)
 const N = 5;
 // 허브 위치(화면 비율) · 이미지 칸 · 글 칸 : 데스크톱 / 모바일
 const LAY = {
-  d: { hub: [[2, 2], [10, 6], [2, 2], [10, 6], [4, 2]], img: [null, null, 'BR', 'TL', 'BL'], txt: ['BR', 'TL', 'TR', 'BL', 'TR'] },
+  d: { hub: [[3, 2], [9, 6], [3, 2], [9, 6], [3, 2]], img: [null, null, 'BR', 'TL', 'BL'], txt: ['BR', 'TL', 'TR', 'BL', 'TR'] },
   m: { hub: [[1, 2], [3, 6], [1, 2], [3, 6], [1, 6]], img: [null, null, 'BR', 'TL', 'TR'], txt: ['BR', 'TL', 'TR', 'BL', 'BR'] }
 };
 const FALLBACK = { s1: ['I was born to bring', 'a little <em>human touch</em>', 'to driverless rides.'], s2a: ['Now, taxis can', 'drive themselves.'], s2b: ['But a driver did', '<em>more than</em> drive.'],
@@ -25,14 +25,14 @@ let TX = window.__ht || FALLBACK;
 
 /* ── DOM ── */
 const root = document.createElement('div'); root.id = 'ht';
-root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidden;height:0;width:var(--content);display:grid;column-gap:var(--gutter)"></div><div class="ht-bg"></div><div class="ht-cells"></div><svg class="ht-rail" aria-hidden="true"></svg>';
+root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidden;height:0;width:var(--content);display:grid;column-gap:var(--gutter)"></div><div class="ht-bg"></div><div class="ht-cells"></div><div class="ht-lt"></div><svg class="ht-rail" aria-hidden="true"></svg>';
 document.body.appendChild(root);
-const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells');
+const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells'), lt = root.querySelector('.ht-lt');
 const mk = (p, n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
 
 /* 허브 + 레일 */
 // grids03 (obys) 방식 : 화면을 4분할하는 가는 컬럼선이 늘 깔려 있고, 모든 글은 8pt 간격 위에 선다
-const gridLines = [1, 2, 3].map(() => mk(rail, 'line', { stroke: 'rgba(242,242,246,.08)', 'stroke-width': 1 }));
+const gridLines = [1, 2, 3, 1, 2, 3].map(() => mk(rail, 'line', { stroke: 'rgba(242,242,246,.08)', 'stroke-width': 1 }));   // 앞 셋 : 세로 · 뒤 셋 : 가로 (허브는 늘 이 선들의 교차점에 선다)
 const defs = mk(rail, 'defs', {});
 const grads = [0, 1, 2, 3].map(i => {
   const g = mk(defs, 'linearGradient', { id: 'htg' + i, gradientUnits: 'userSpaceOnUse' });
@@ -85,7 +85,8 @@ function metrics() {
   vw = innerWidth; vh = innerHeight; mob = vw < 640; mg = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin')) || 24; top = Math.round(Math.max(80, vh * .11) / 8) * 8; G = 16;   // 모든 간격은 8 의 배수 (grid.css --u) rail.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
   const cs = getComputedStyle(probe), content = parseFloat(cs.width) || vw - 2 * mg; ggap = parseFloat(cs.columnGap) || 16;
   gcols = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cols')) || 12; gcw = (content - (gcols - 1) * ggap) / gcols; gleft = (vw - content) / 2;
-  gridLines.forEach((l, i) => { const x = Math.round(gleft + (i + 1) * (gcols / 4) * (gcw + ggap) - ggap / 2) + .5; l.setAttribute('x1', x); l.setAttribute('x2', x); l.setAttribute('y1', 0); l.setAttribute('y2', vh); });
+  gridLines.slice(0, 3).forEach((l, i) => { const x = Math.round(gleft + (i + 1) * (gcols / 4) * (gcw + ggap) - ggap / 2) + .5; l.setAttribute('x1', x); l.setAttribute('x2', x); l.setAttribute('y1', 0); l.setAttribute('y2', vh); });
+  gridLines.slice(3).forEach((l, i) => { const y = Math.round((i + 1) * 2 * vh / 8 / 16) * 16 + .5; l.setAttribute('y1', y); l.setAttribute('y2', y); l.setAttribute('x1', 0); l.setAttribute('x2', vw); });
 }
 const LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh-head')) || 1.15;   // 제목 행간 : 토큰 배율을 4px 단위로 맞춘다
 // 허브는 늘 그리드 선 위에 선다 : x 는 컬럼 사이 거터의 한가운데, y 는 화면을 8등분한 선
@@ -105,6 +106,14 @@ document.addEventListener('pointerleave', () => { ptr.has = false; });
 /* ── 루프 ── */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ut = y => { let u = 0; for (let i = 1; i < N; i++) u += eio(seg(y, T.s[i] - .9, T.s[i] + .1)); return u; };
+// 모든 장면의 글은 같은 크기 · 같은 정렬 : 가장 좁은 칸에 맞는 크기 하나를 쓴다
+const uniFs = () => {
+  const L = mob ? LAY.m : LAY.d; let m = mob ? 22 : Math.min(vw * .02, vh * .036);
+  blocks.forEach((b, i) => { const h = hubPx(L.hub[i]), g = quad(h[0], h[1], L.txt[i]); m = Math.min(m, g[2] / (b.chars * b.fw), Math.max(g[3] - (i === 1 ? 70 : i >= 2 ? 36 : 0), 40) / (b.nl * LH)); });
+  return Math.max(mob ? 20 : 22, m);
+};
+const LTS = [[0, 92, 102, 142, 0], [.1, 98, 110, 152, .26], [.28, 128, 142, 186, .58], [.48, 166, 178, 212, .8], [.7, 208, 216, 236, .94], [.88, 241, 244, 251, 1], [1, 255, 255, 255, 1]];   // 표지 wipe 와 같은 색 : 다크 → 슬레이트 블루 → 연회청 → 화이트
+let fallT = 0;   // 떨어짐은 스크롤이 아니라 시간으로 : 한 번 시작되면 빠르게 쑤욱 떨어지고 곧바로 라이트로 넘어간다
 let u = 0, last = performance.now(), tm = 0, hx = 0, hy = 0, vx = 0, vy = 0, init = false, lastCnt = '', lastLbl = '';
 
 function setLines(els, a, dir) {
@@ -133,11 +142,18 @@ function tick(now) {
     const cx0 = p2 > 0 ? sx0 * vw : .16 * vw, cy0 = vh * .5;
     bx = lerp(cx0, pa[0], settle); by = lerp(cy0, pa[1], settle);
   }
+  const P = seg(y, T.out[0], T.out[1]), pIn = eio(seg(P, 0, .25)), pH = eio(seg(P, .25, .45));   // 퇴장 : 중앙으로 · 가로선 줄어듦
+  if (P > 0) { const c = hubPx(mob ? [2, 4] : [6, 4]); bx = lerp(bx, c[0], pIn); by = lerp(by, c[1], pIn); }
   if (!init || y < T.s[0]) { hx = bx; hy = by; vx = vy = 0; init = true; }
   else if (reduce) { hx = bx; hy = by; vx = vy = 0; } else {   // 임계 감쇠 스프링 : 튕기지 않고 부드럽게 도착한다. x 와 y 의 속도만 살짝 달라 두 레일이 엇박으로 미끄러진다
     vx += (30 * (bx - hx) - 10.95 * vx) * dt; hx += vx * dt; vy += (24 * (by - hy) - 9.8 * vy) * dt; hy += vy * dt;
   }
 
+  fallT = clamp(fallT + (P >= .66 ? dt / .5 : -dt / .6));
+  if (P > .45) {   // 점이 화면 맨 위까지 적당한 속도로 올라갔다가(스크롤), 시간이 되면 아래로 쑤욱 떨어진다
+    const top0 = Math.round(vh * .06) + .5, up = eo3(seg(P, .45, .62));
+    hx = bx; hy = lerp(lerp(by, top0, up), vh + 48, fallT * fallT); vx = vy = 0;
+  }
   // 공 : 처음엔 크게 나타나 움직이다가, 그리드가 자리 잡으면 작은 점이 된다. 레일은 공 둘레의 틈에서 시작해 끝으로 갈수록 옅어진다
   const hubIn = 1, grow = eo3(seg(y, T.ball[0], T.ball[1]));
   const sx = Math.round(hx) + .5, sy = Math.round(hy) + .5;   // 1px 선이 번지지 않도록 픽셀 중앙에 맞춘다
@@ -145,7 +161,8 @@ function tick(now) {
   hubDot.setAttribute('cx', sx.toFixed(1)); hubDot.setAttribute('cy', sy.toFixed(1)); hubDot.setAttribute('r', br.toFixed(2));
   const edges = [[vw, sy], [sx, vh], [0, sy], [sx, 0]];
   rails.forEach((l, i) => {
-    const dx = Math.cos(i * HALF), dy = Math.sin(i * HALF), s0 = [sx + dx * gap, sy + dy * gap], e = edges[i], k = oExp(i % 2 ? seg(y, T.vline[0], T.vline[1]) : seg(y, T.hline[0], T.hline[1]));
+    const dx = Math.cos(i * HALF), dy = Math.sin(i * HALF), s0 = [sx + dx * gap, sy + dy * gap], e = edges[i], k = oExp(i % 2 ? seg(y, T.vline[0], T.vline[1]) : seg(y, T.hline[0], T.hline[1])) * (i % 2 ? 1 : 1 - pH);
+    if (i === 1 && s0[1] >= vh) { e[0] = s0[0]; e[1] = s0[1]; }   // 점이 화면 아래로 빠지면 아래 레일은 사라진다
     l.setAttribute('x1', s0[0].toFixed(1)); l.setAttribute('y1', s0[1].toFixed(1)); l.setAttribute('x2', lerp(s0[0], e[0], k).toFixed(1)); l.setAttribute('y2', lerp(s0[1], e[1], k).toFixed(1));
     {   // 빔 : 허브에서 바깥으로 흘러가고, 한 번 지나가면 잠시 쉰다
       const ex = lerp(s0[0], e[0], k), ey = lerp(s0[1], e[1], k), len = Math.hypot(ex - s0[0], ey - s0[1]), BL = 460, SP = 68, cyc = (Math.max(len, 1) + BL) / SP + 9;
@@ -157,11 +174,18 @@ function tick(now) {
     const g = grads[i]; g.setAttribute('x1', s0[0].toFixed(1)); g.setAttribute('y1', s0[1].toFixed(1)); g.setAttribute('x2', e[0].toFixed(1)); g.setAttribute('y2', e[1].toFixed(1));
   });
 
+  // 라이트 모드 : 표지(다크 → 흰색) 전환과 같은 그라데이션이 아래에서부터 쏙 차오른다. 다 밝아지면 그리드 · 선 · 점은 없다
+  const wp = seg(fallT, .3, 1), BAND = 135, front = 100 - wp * (100 + BAND);
+  lt.style.display = wp > 0 ? 'block' : 'none';
+  if (wp > 0) lt.style.background = `linear-gradient(to bottom, rgba(255,255,255,0) ${front.toFixed(2)}%, ${LTS.map(([k, r, g, b2, al]) => `rgba(${r},${g},${b2},${al}) ${(front + k * BAND).toFixed(2)}%`).join(', ')})`;
+  rail.style.opacity = (1 - seg(fallT, .7, .95)).toFixed(3);
+  gridLines.forEach(l => { l.style.opacity = (+bg.style.opacity * (1 - seg(fallT, .1, .5))).toFixed(3); });
+
   // 네 칸 : 허브 위치에 맞춰 늘어나고, 이미지가 있는 장면에서는 허브 모서리에서부터 채워진다
   cells.forEach(c => {
     const r = cell(hx, hy, c.q, 1), w = Math.max(0, r[2]), h = Math.max(0, r[3]);
     let f = 0, bi = -1; for (let i = 0; i < N; i++) if (L.img[i] === c.q) { const v = clamp(1 - Math.abs(u - i) / .55); if (v > f) { f = v; bi = i; } }
-    f = eio(f) * hubIn;
+    f = eio(f) * hubIn * (1 - pIn);
     c.el.style.transform = `translate3d(${r[0].toFixed(1)}px,${r[1].toFixed(1)}px,0)`; c.el.style.width = w.toFixed(1) + 'px'; c.el.style.height = h.toFixed(1) + 'px';
     const hov = ptr.has && ptr.x >= r[0] && ptr.x <= r[0] + w && ptr.y >= r[1] && ptr.y <= r[1] + h; c.el.classList.toggle('on', hov);
     const showFill = f > .002; c.fill.style.visibility = showFill ? 'visible' : 'hidden';
@@ -173,15 +197,13 @@ function tick(now) {
   // 글 : 허브 모서리에 붙어서, 줄마다 마스크로 올라온다
   const ti = eo3(seg(y, T.text0[0], T.text0[1]));
   blocks.forEach((b, i) => {
-    const d = u - i; let a = clamp(1 - Math.abs(d) / .6); if (i === 0) a = Math.min(a, ti);
+    const d = u - i; let a = clamp(1 - Math.abs(d) / .6) * (1 - pIn); if (i === 0) a = Math.min(a, ti);
     if (a <= 0) { b.el.style.visibility = 'hidden'; return; }
-    const q = L.txt[i], g = quad(hx, hy, q), base = mob ? (i ? 22 : 26) : i < 2 ? Math.min(vw * (i ? .02 : .026), vh * (i ? .036 : .046)) : Math.min(vw * .018, vh * .032);
-    const lim = Math.max(g[3] - (i === 1 ? 70 : i >= 2 ? 36 : 0), 40) / (b.nl * LH);
-    const fs = Math.max(mob ? 20 : 22, Math.min(base, g[2] / (b.chars * b.fw), lim)), w = Math.max(120, g[2]);
+    const q = L.txt[i], g = quad(hx, hy, q), fs = uniFs(), w = Math.max(120, g[2]);
     if (Math.abs(fs - b.fs) > .5) { b.fs = fs; b.el.style.setProperty('--fs', fs.toFixed(1) + 'px'); b.el.style.setProperty('--lh', (Math.round(fs * LH / 4) * 4) + 'px'); }
-    const right = q === 'TL' || q === 'BL', up = q === 'TL' || q === 'TR', ax = right ? hx - G : hx + G, ay = up ? hy - G : hy + G;
-    b.el.style.visibility = 'visible'; b.el.style.width = w.toFixed(0) + 'px'; b.el.style.textAlign = right ? 'right' : 'left';
-    b.el.style.transform = `translate(${ax.toFixed(1)}px,${ay.toFixed(1)}px) translate(${right ? -100 : 0}%,${up ? -100 : 0}%)`;
+    const up = q === 'TL' || q === 'TR', ax = g[0], ay = up ? hy - G : hy + G;
+    b.el.style.visibility = 'visible'; b.el.style.width = w.toFixed(0) + 'px'; b.el.style.textAlign = 'left';
+    b.el.style.transform = `translate(${ax.toFixed(1)}px,${ay.toFixed(1)}px) translate(0,${up ? -100 : 0}%)`;
     const dir = (i === 0 && ti < 1) || d < 0 ? 1 : -1;
     setLines(b.hl, a, dir); setLines(b.pl, clamp(a * 1.4 - .4), dir);
     b.n.style.opacity = clamp(a * 1.6 - .6).toFixed(2);

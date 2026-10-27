@@ -23,7 +23,7 @@ if (cv) {
   const material = new THREE.ShaderMaterial({
     transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false,
     uniforms: { uOpacity: { value: 0 }, uRimPow: { value: 3.0 }, uBase: { value: .02 }, uRim: { value: .36 }, uLine: { value: .5 }, uCrease: { value: 5.5 },
-      uColA: { value: new THREE.Color('#CFE0F5') }, uColB: { value: new THREE.Color('#86A8FF') },
+      uColA: { value: new THREE.Color('#DCE8F1') }, uColB: { value: new THREE.Color('#A9BFD0') },
       uBodyA: { value: new THREE.Color('#DCE8F1') }, uBodyB: { value: new THREE.Color('#A9BFD0') }, uBodyOp: { value: .16 }, uDevMin: { value: new THREE.Vector3(9, 9, 9) }, uDevMax: { value: new THREE.Vector3(-9, -9, -9) }, uAll: { value: 0 } },   // LIEU 장치(uDev 상자 안)만 기존 회색, 차량은 더 투명한 하늘회색   // 그레이스케일   // 도트 그라데이션과 같은 하늘색 계열
     vertexShader: `
       varying vec3 vN; varying vec3 vV; varying vec3 vP;
@@ -64,9 +64,9 @@ if (cv) {
   dev.renderOrder = 4;   // 도넛 · 세로선은 뺀다 : 모델 안의 로봇이 LIEU 장치
    donut.renderOrder = 4; pole.renderOrder = 4;
   const coneMat = new THREE.ShaderMaterial({
-    transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false, uniforms: { uOp: { value: 0 }, uCol: { value: new THREE.Color('#B9B9C0') } },
+    transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false, uniforms: { uOp: { value: 0 }, uCol: { value: new THREE.Color('#FFFFFF') } },
     vertexShader: 'attribute float aH; varying float vH; void main(){ vH = aH; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: 'precision highp float; uniform float uOp; uniform vec3 uCol; varying float vH; void main(){ gl_FragColor = vec4(uCol, uOp * (0.42 * pow(1.0 - vH, 1.3) + 0.04)); }'
+    fragmentShader: 'precision highp float; uniform float uOp; uniform vec3 uCol; varying float vH; void main(){ gl_FragColor = vec4(uCol, uOp * (0.78 * pow(1.0 - vH, 1.3) + 0.06)); }'
   });
   const cone = new THREE.Mesh(new THREE.BufferGeometry(), coneMat); cone.renderOrder = 3; dev.add(cone);
   const textMat = new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, opacity: 0 });
@@ -204,9 +204,9 @@ if (cv) {
   // 다크모드 : 배경이 어두워지면 글씨 · 장치 · 차 선의 색을 밝게 바꾼다 (스위치처럼 한 번에)
   const applyDark = () => {
     const u = material.uniforms, d = devMat.uniforms;
-    u.uColA.value.set(dark ? '#EAF0FF' : '#CFE0F5'); u.uColB.value.set(dark ? '#A9C0FF' : '#86A8FF'); u.uBodyA.value.set(dark ? '#C4D6E6' : '#DCE8F1'); u.uBodyB.value.set(dark ? '#8CA8C0' : '#A9BFD0'); u.uBase.value = dark ? .03 : .02; u.uRim.value = dark ? .6 : .36; u.uLine.value = dark ? .75 : .5;
+    u.uColA.value.set(dark ? '#C4D6E6' : '#DCE8F1'); u.uColB.value.set(dark ? '#8CA8C0' : '#A9BFD0'); u.uBodyA.value.set(dark ? '#C4D6E6' : '#DCE8F1'); u.uBodyB.value.set(dark ? '#8CA8C0' : '#A9BFD0'); u.uBase.value = dark ? .03 : .02; u.uRim.value = dark ? .6 : .36; u.uLine.value = dark ? .75 : .5;
     d.uColA.value.set(dark ? '#F4F4FA' : '#A9BFD0'); d.uColB.value.set(dark ? '#A9A9B6' : '#5F7F9A'); d.uBase.value = dark ? .12 : .16; d.uRim.value = dark ? .75 : .8; d.uLine.value = dark ? .9 : .85;
-    coneMat.uniforms.uCol.value.set(dark ? '#D8D8E4' : '#B9B9C0');
+    coneMat.uniforms.uCol.value.set('#FFFFFF');
     drawStory(window.__story); drawDriver(window.__drv);
   };
   window.CarScene = {

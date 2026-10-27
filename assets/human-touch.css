@@ -1,7 +1,8 @@
 /* 휴먼 터치 장면 : 스토리(다크) 다음. 유기적인 허브와 십자 레일이 움직이며 화면 레이아웃을 바꾸고, 그 칸에 이미지와 글이 나온다. */
 #ht{--ht-ink:#F2F2F6;--ht-acc:#B4B7C8;position:fixed;inset:0;z-index:6;visibility:hidden;pointer-events:none;overflow:hidden;color:var(--ht-ink);font-family:var(--font-ui);-webkit-font-smoothing:antialiased}
 #ht .ht-bg{position:absolute;inset:0;background:#000;opacity:0}
-#ht .ht-rail{position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--ht-ink);shape-rendering:geometricPrecision}
+#ht .ht-lt{position:absolute;inset:0;background:#fff;display:none}
+#ht .ht-rail{mix-blend-mode:difference;position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--ht-ink);shape-rendering:geometricPrecision}
 
 /* 엘라스틱 그리드 : 레일이 나눈 네 칸. 이미지가 들어갈 칸은 회색 면으로 허브 모서리에서부터 화면 끝까지 채운다. */
 #ht .ht-cells{position:absolute;inset:0}
@@ -12,7 +13,8 @@
 /* 글 : H1 + 본문. 줄마다 마스크 안에서 올라온다 */
 #ht .tb{position:absolute;left:0;top:0;visibility:hidden;font-family:var(--font-ui)}
 #ht .tb .h{font-weight:var(--w-regular);font-size:var(--fs,40px);line-height:var(--lh,42px);letter-spacing:var(--track-title);word-break:keep-all}
-#ht .tb .p{margin-top:var(--s-4);font-weight:var(--w-light);font-size:12px;line-height:var(--s-4);letter-spacing:var(--track-body);color:rgba(242,242,246,.62);word-break:keep-all}
+#ht .tb .p{margin-top:var(--s-2);font-weight:var(--w-light);font-size:12px;line-height:var(--s-4);letter-spacing:var(--track-body);color:rgba(242,242,246,.62);word-break:keep-all}
+#ht .tb .p:empty,#ht .tb .n:empty{display:none}
 #ht .tb .n{margin-top:var(--s-3);font:var(--w-regular) 10px/var(--lh-label) var(--font-ui);letter-spacing:var(--track-label);color:rgba(242,242,246,.5)}
 #ht .ln{display:block;overflow:hidden;padding:.1em 0 .16em;margin:-.1em 0 -.16em}
 #ht .ln i{display:block;font-style:normal;will-change:transform;transform:translateY(110%)}
