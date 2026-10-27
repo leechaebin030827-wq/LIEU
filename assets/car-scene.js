@@ -20,11 +20,13 @@ if (cv) {
   const easeOut = t => 1 - Math.pow(1 - t, 3);
   const easeInOut = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
+  // 색 : 차체(body) · 지붕 장치(dev) 의 밝은 쪽(A) / 진한 쪽(B). 라이트 · 다크 따로. 화면에서 C 키로 바꿔 볼 수 있다 (assets/color-panel.js)
+  const COL = { light: { bodyA: '#EAF0FF', bodyB: '#B4C6F8', devA: '#B4C6F8', devB: '#86A8FF' }, dark: { bodyA: '#D5DEFA', bodyB: '#9DB2EE', devA: '#C9D6FF', devB: '#9DB5FF' } };
   const material = new THREE.ShaderMaterial({
     transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false,
     uniforms: { uOpacity: { value: 0 }, uRimPow: { value: 3.0 }, uBase: { value: .02 }, uRim: { value: .36 }, uLine: { value: .5 }, uCrease: { value: 5.5 },
-      uColA: { value: new THREE.Color('#DCE8F1') }, uColB: { value: new THREE.Color('#A9BFD0') },
-      uBodyA: { value: new THREE.Color('#DCE8F1') }, uBodyB: { value: new THREE.Color('#A9BFD0') }, uBodyOp: { value: .16 }, uDevMin: { value: new THREE.Vector3(9, 9, 9) }, uDevMax: { value: new THREE.Vector3(-9, -9, -9) }, uAll: { value: 0 } },   // LIEU 장치(uDev 상자 안)만 기존 회색, 차량은 더 투명한 하늘회색   // 그레이스케일   // 도트 그라데이션과 같은 하늘색 계열
+      uColA: { value: new THREE.Color(COL.light.devA) }, uColB: { value: new THREE.Color(COL.light.devB) },
+      uBodyA: { value: new THREE.Color(COL.light.bodyA) }, uBodyB: { value: new THREE.Color(COL.light.bodyB) }, uBodyOp: { value: .16 }, uDevMin: { value: new THREE.Vector3(9, 9, 9) }, uDevMax: { value: new THREE.Vector3(-9, -9, -9) }, uAll: { value: 0 } },   // LIEU 장치(uDev 상자 안)만 기존 회색, 차량은 더 투명한 하늘회색   // 그레이스케일   // 도트 그라데이션과 같은 하늘색 계열
     vertexShader: `
       varying vec3 vN; varying vec3 vV; varying vec3 vP;
       void main() { vP = position; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }`,
@@ -56,7 +58,7 @@ if (cv) {
   scene.add(new THREE.AmbientLight(0xffffff, 1.1)); const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(1.5, 3, 2); scene.add(sun);
   const dev = new THREE.Group(); group.add(dev);
   const devMat = material.clone();      // 자동차와 같은 고스트(프레넬 + 모서리선) 셰이더, 색과 농도만 더 진하게
-  Object.assign(devMat.uniforms, { uColA: { value: new THREE.Color('#A9BFD0') }, uColB: { value: new THREE.Color('#5F7F9A') } });
+  Object.assign(devMat.uniforms, { uColA: { value: new THREE.Color(COL.light.devA) }, uColB: { value: new THREE.Color(COL.light.devB) } });
   devMat.uniforms.uBase.value = .16; devMat.uniforms.uRim.value = .8; devMat.uniforms.uLine.value = .85; devMat.uniforms.uRimPow.value = 2.2;
   devMat.uniforms.uAll.value = 1; devMat.extensions = { derivatives: true };
   const donut = new THREE.Mesh(new THREE.TorusGeometry(.095, .036, 28, 56), devMat); donut.rotation.x = Math.PI / 2;
@@ -204,12 +206,14 @@ if (cv) {
   // 다크모드 : 배경이 어두워지면 글씨 · 장치 · 차 선의 색을 밝게 바꾼다 (스위치처럼 한 번에)
   const applyDark = () => {
     const u = material.uniforms, d = devMat.uniforms;
-    u.uColA.value.set(dark ? '#C4D6E6' : '#DCE8F1'); u.uColB.value.set(dark ? '#8CA8C0' : '#A9BFD0'); u.uBodyA.value.set(dark ? '#C4D6E6' : '#DCE8F1'); u.uBodyB.value.set(dark ? '#8CA8C0' : '#A9BFD0'); u.uBase.value = dark ? .03 : .02; u.uRim.value = dark ? .6 : .36; u.uLine.value = dark ? .75 : .5;
-    d.uColA.value.set(dark ? '#F4F4FA' : '#A9BFD0'); d.uColB.value.set(dark ? '#A9A9B6' : '#5F7F9A'); d.uBase.value = dark ? .12 : .16; d.uRim.value = dark ? .75 : .8; d.uLine.value = dark ? .9 : .85;
+    const cl = dark ? COL.dark : COL.light; u.uColA.value.set(cl.devA); u.uColB.value.set(cl.devB); u.uBodyA.value.set(cl.bodyA); u.uBodyB.value.set(cl.bodyB); u.uBase.value = dark ? .03 : .02; u.uRim.value = dark ? .6 : .36; u.uLine.value = dark ? .75 : .5;
+    d.uColA.value.set(cl.devA); d.uColB.value.set(cl.devB); d.uBase.value = dark ? .12 : .16; d.uRim.value = dark ? .75 : .8; d.uLine.value = dark ? .9 : .85;
     coneMat.uniforms.uCol.value.set('#FFFFFF');
     drawStory(window.__story); drawDriver(window.__drv);
   };
   window.CarScene = {
+    getColors() { return COL; },
+    setColors(o) { for (const m in o) Object.assign(COL[m], o[m]); applyDark(); render(); },
     setDark(v) { v = !!v; if (v === dark) return; dark = v; applyDark(); render(); },
     set(c) { P.c = clamp(c); render(); },
     update(c, z2, z3, d) { P.c = clamp(c); P.z2 = clamp(z2); P.z3 = clamp(z3); P.d = clamp(d || 0); render(); },

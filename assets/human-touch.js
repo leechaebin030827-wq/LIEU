@@ -33,12 +33,18 @@ const mk = (p, n, a) => { const e = document.createElementNS(NS, n); for (const 
 /* 허브 + 레일 */
 // grids03 (obys) 방식 : 화면을 4분할하는 가는 컬럼선이 늘 깔려 있고, 모든 글은 8pt 간격 위에 선다
 const gridLines = [1, 2, 3, 1, 2, 3].map(() => mk(rail, 'line', { stroke: 'rgba(242,242,246,.08)', 'stroke-width': 1 }));   // 앞 셋 : 세로 · 뒤 셋 : 가로 (허브는 늘 이 선들의 교차점에 선다)
+gridLines.forEach(l => { l.style.display = 'none'; });   // 화면 전체에 깔리던 미세한 그리드 선은 숨긴다 (허브 위치는 여전히 그 교차점 기준)
 const defs = mk(rail, 'defs', {});
 const grads = [0, 1, 2, 3].map(i => {
   const g = mk(defs, 'linearGradient', { id: 'htg' + i, gradientUnits: 'userSpaceOnUse' });
   [[0, 'rgba(252,252,255,.95)'], [.4, 'rgba(180,183,200,.62)'], [1, 'rgba(126,135,173,0)']].forEach(([o, c]) => mk(g, 'stop', { offset: o, 'stop-color': c }));
   return g;
 });
+// 광선의 번짐 : 선 아래에 좁은 글로우와 넓은 블룸을 깔아, 선이 또렷하게 잘린 느낌 대신 빛이 번지는 느낌으로 만든다
+const bloomF = [['htbl1', 6], ['htbl2', 20]].map(([id, sd]) => { const f = mk(defs, 'filter', { id, filterUnits: 'userSpaceOnUse', x: -80, y: -80, width: 4200, height: 3200 }); mk(f, 'feGaussianBlur', { stdDeviation: sd }); return id; });
+const haloA = mk(rail, 'circle', { fill: '#C9D2F2', filter: 'url(#htbl2)', opacity: .16 }), haloB = mk(rail, 'circle', { fill: '#F2F4FF', filter: 'url(#htbl1)', opacity: .28 });
+const glowB = [0, 1, 2, 3].map(i => mk(rail, 'line', { stroke: 'url(#htg' + i + ')', 'stroke-width': 10, filter: 'url(#htbl2)', opacity: .09 }));
+const glowA = [0, 1, 2, 3].map(i => mk(rail, 'line', { stroke: 'url(#htg' + i + ')', 'stroke-width': 3, filter: 'url(#htbl1)', opacity: .26 }));
 const rails = [0, 1, 2, 3].map(i => mk(rail, 'line', { stroke: 'url(#htg' + i + ')', 'stroke-width': 1, 'stroke-linecap': 'butt' }));
 // 빔 : 레일 위를 지나가는 빛. 꼬리는 사라지고 머리는 밝다 (색은 Luminous Type 과 같은 슬레이트 화이트 그라데이션)
 const blur = mk(defs, 'filter', { id: 'htblur', filterUnits: 'userSpaceOnUse', x: -60, y: -60, width: 4000, height: 3000 }); mk(blur, 'feGaussianBlur', { stdDeviation: 5 });
@@ -159,11 +165,13 @@ function tick(now) {
   const sx = Math.round(hx) + .5, sy = Math.round(hy) + .5;   // 1px 선이 번지지 않도록 픽셀 중앙에 맞춘다
   const gap = lerp(7, 5, settle) * grow, br = lerp(2.2, 1.5, settle) * grow;   // 점은 선 굵기(1px)에 가까운 크기
   hubDot.setAttribute('cx', sx.toFixed(1)); hubDot.setAttribute('cy', sy.toFixed(1)); hubDot.setAttribute('r', br.toFixed(2));
+  [[haloA, 5], [haloB, 2.4]].forEach(([h, m]) => { h.setAttribute('cx', sx.toFixed(1)); h.setAttribute('cy', sy.toFixed(1)); h.setAttribute('r', (br * m).toFixed(2)); });
   const edges = [[vw, sy], [sx, vh], [0, sy], [sx, 0]];
   rails.forEach((l, i) => {
     const dx = Math.cos(i * HALF), dy = Math.sin(i * HALF), s0 = [sx + dx * gap, sy + dy * gap], e = edges[i], k = oExp(i % 2 ? seg(y, T.vline[0], T.vline[1]) : seg(y, T.hline[0], T.hline[1])) * (i % 2 ? 1 : 1 - pH);
     if (i === 1 && s0[1] >= vh) { e[0] = s0[0]; e[1] = s0[1]; }   // 점이 화면 아래로 빠지면 아래 레일은 사라진다
     l.setAttribute('x1', s0[0].toFixed(1)); l.setAttribute('y1', s0[1].toFixed(1)); l.setAttribute('x2', lerp(s0[0], e[0], k).toFixed(1)); l.setAttribute('y2', lerp(s0[1], e[1], k).toFixed(1));
+    [glowA[i], glowB[i]].forEach(gl => ['x1', 'y1', 'x2', 'y2'].forEach(a => gl.setAttribute(a, l.getAttribute(a))));
     {   // 빔 : 허브에서 바깥으로 흘러가고, 한 번 지나가면 잠시 쉰다
       const ex = lerp(s0[0], e[0], k), ey = lerp(s0[1], e[1], k), len = Math.hypot(ex - s0[0], ey - s0[1]), BL = 460, SP = 68, cyc = (Math.max(len, 1) + BL) / SP + 9;
       const tt = (tm + i * cyc * .29) % cyc, head = tt * SP, tail = head - BL, on = k > .98 && len > 20 ? 1 : 0, pr = clamp(head / (len + BL)), env = Math.pow(Math.sin(Math.PI * pr), 1.4);   // 시작과 끝에서 서서히 나타나고 사라진다
