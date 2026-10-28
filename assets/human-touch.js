@@ -204,18 +204,19 @@ function tick(now) {
     et = clamp(et + (y >= T.end[0] + .12 ? dt : -dt * 1.5), 0, 3.2);
     const eo4 = t => 1 - Math.pow(1 - t, 4), eioc = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, pr = (t0, d, f) => f(clamp((et - t0) / d));
     const mx = pr(0, .8, eioc), mh = pr(.7, .8, eioc);   // 먼저 옆으로 쏙 왼쪽으로, 이어서 위로 쏙 붙는다
+    const vwF = vw - 2 * gleft, Hv = mob ? vwF * 9 / 21 : Math.min(vwF * 9 / 21, vh * .54), Wv = Hv * 21 / 9, M = (vw - Wv) / 2;   // 한 개의 마진 : 영상 폭이 기준 — 제목 왼쪽 · 문단 오른쪽 · 영상 가장자리가 모두 같은 선에 맞는다
     const sy = Math.max(0, y - T.end[1]) * vh, sT = sy * 1.7;   // 더 스크롤하면 글자가 먼저 (1.7배 빠르게) 위로 올라가 사라지고, 영상 자리가 뒤따라 올라가 사라진다
     const hw = ehEl.offsetWidth, hh = ehEl.offsetHeight, sc = lerp(1, .72, mh);
-    const cx = (vw - hw) / 2, cy = (vh - hh) / 2, tx = gleft, ty = top + 24;
+    const cx = (vw - hw) / 2, cy = (vh - hh) / 2, tx = M, ty = top + 24;
     ehEl.style.transform = `translate(${lerp(cx, tx, mx).toFixed(1)}px,${(lerp(cy, ty, mh) + (1 - e) * 18 - sT).toFixed(1)}px) scale(${sc.toFixed(3)})`;
     ehEl.style.opacity = e.toFixed(3); ehEl.style.filter = e < 1 ? `blur(${((1 - e) * 10).toFixed(1)}px)` : 'none';
-    const py = ty + (mob ? 80 : 3), cg = ggap * 1.25, ax = mob ? gleft : vw - gleft - (2 * cw + cg), bx = mob ? gleft : ax + cw + cg, by2 = mob ? py + epA.offsetHeight + 32 : py;
+    const py = ty + (mob ? 80 : 3), cg = ggap * 1.25, ax = mob ? M : vw - M - (2 * cw + cg), bx = mob ? M : ax + cw + cg, by2 = mob ? py + epA.offsetHeight + 32 : py;
     epA.style.transform = `translate(${ax.toFixed(1)}px,${(py - sT).toFixed(1)}px)`; epB.style.transform = `translate(${bx.toFixed(1)}px,${(by2 - sT).toFixed(1)}px)`;
     epA.firstChild.style.transform = `scaleX(${pr(1.2, .9, eo3).toFixed(3)})`; epB.firstChild.style.transform = `scaleX(${pr(1.3, .9, eo3).toFixed(3)})`;
     const eoE = t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);   // expo out : 처음에 빠르게 솟았다가 끝에서 길게 가라앉는다
     const rl = (els, t0) => els.forEach((l, k) => { const r = pr(t0 + k * .09, 1.35, eoE), o = clamp(r * 2.2); l.style.transform = `translateY(${((1 - r) * 108).toFixed(2)}%)`; l.style.opacity = o.toFixed(3); l.style.filter = r < 1 ? `blur(${((1 - r) * 5).toFixed(1)}px)` : 'none'; });   // 줄마다 마스크 + 블러 + 페이드가 겹쳐 떠오른다
     rl(aL, 1.3); rl(bL, 1.45);
-    { const vt = ty + Math.max(epA.offsetHeight, epB.offsetHeight) + (mob ? 120 : 56), vwF = vw - 2 * gleft, vh2 = Math.max(120, Math.min(vwF * 9 / 21, vh - vt - gleft)), vw2 = vh2 * 21 / 9, vx = gleft + (vwF - vw2) / 2, r = pr(2.1, 1.3, eoE);   // 21:9 : 남는 높이에 안 들어가면 비율을 지키며 줄이고 가운데 정렬   // 프로모션 영상 자리 (회색)
+    { const vt = ty + Math.max(epA.offsetHeight, epB.offsetHeight) + (mob ? 120 : 56), vh2 = Hv, vw2 = Wv, vx = M, r = pr(2.1, 1.3, eoE);   // 21:9 : 남는 높이에 안 들어가면 비율을 지키며 줄이고 가운데 정렬   // 프로모션 영상 자리 (회색)
       vidEl.style.width = vw2.toFixed(0) + 'px'; vidEl.style.height = vh2.toFixed(0) + 'px'; vidEl.style.opacity = (clamp(r * 2) * (1 - eio(seg(sy, vh * .7, vh * 1.15)))).toFixed(3);
       vidEl.style.transform = `translate(${vx.toFixed(1)}px,${(vt + (1 - r) * 48 - sy).toFixed(1)}px)`; }
   }
