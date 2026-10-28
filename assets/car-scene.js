@@ -21,7 +21,7 @@ if (cv) {
   const easeInOut = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
   // 색 : 차체(body) · 지붕 장치(dev) 의 밝은 쪽(A) / 진한 쪽(B). 라이트 · 다크 따로. 화면에서 C 키로 바꿔 볼 수 있다 (assets/color-panel.js)
-  const COL = { light: { bodyA: '#D4D9E8', bodyB: '#D8DCE8', devA: '#F0F4FF', devB: '#E6EAF4' }, dark: { bodyA: '#F0F2F9', bodyB: '#E2E6F3', devA: '#F0F4FF', devB: '#D9DEEC' } };
+  const COL = { light: { bodyA: '#9CA6C4', bodyB: '#BFC5D9', devA: '#F0F4FF', devB: '#D8DDE9' }, dark: { bodyA: '#D6DBEA', bodyB: '#D6DBEA', devA: '#F0F4FF', devB: '#D9DEEC' } };
   const material = new THREE.ShaderMaterial({
     transparent: true, side: THREE.DoubleSide, depthWrite: false, depthTest: false,
     uniforms: { uOpacity: { value: 0 }, uRimPow: { value: 3.0 }, uBase: { value: .02 }, uRim: { value: .36 }, uLine: { value: .5 }, uCrease: { value: 5.5 },
@@ -221,5 +221,5 @@ if (cv) {
     setStory(lines) { window.__story = lines; drawStory(lines); render(); }
   };
   resize();
-  if (document.fonts) Promise.all([300, 500, 600].map(w => document.fonts.load(`${w} 40px "Hero"`))).then(() => { if (window.__story) drawStory(window.__story); if (window.__drv) drawDriver(window.__drv); render(); }).catch(() => {});
+  if (document.fonts) Promise.all([300, 500, 600].map(w => document.fonts.load(`${w} 40px "Hero"`)).concat(document.fonts.load('400 40px "SM3JGothic"', '가'))).then(() => { if (window.__story) drawStory(window.__story); if (window.__drv) drawDriver(window.__drv); render(); }).catch(() => {});
 }

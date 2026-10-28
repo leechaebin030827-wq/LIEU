@@ -2,7 +2,7 @@
 #ht{--ht-ink:#F2F2F6;--ht-acc:#B4B7C8;position:fixed;inset:0;z-index:6;visibility:hidden;pointer-events:none;overflow:hidden;color:var(--ht-ink);font-family:var(--font-ui);-webkit-font-smoothing:antialiased}
 #ht .ht-bg{position:absolute;inset:0;background:#000;opacity:0}
 #ht .ht-lt{position:absolute;inset:0;background:#fff;display:none}
-#ht .ht-rail{mix-blend-mode:difference;position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--ht-ink);shape-rendering:geometricPrecision}
+#ht .ht-rail{position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--ht-ink);shape-rendering:geometricPrecision}
 
 /* 엘라스틱 그리드 : 레일이 나눈 네 칸. 이미지가 들어갈 칸은 회색 면으로 허브 모서리에서부터 화면 끝까지 채운다. */
 #ht .ht-cells{position:absolute;inset:0}
@@ -12,6 +12,7 @@
 
 /* 글 : H1 + 본문. 줄마다 마스크 안에서 올라온다 */
 #ht .tb{position:absolute;left:0;top:0;visibility:hidden;font-family:var(--font-ui)}
+#ht .tb .h,#ht .tb .p{display:flex;flex-direction:column}   /* 줄 상자의 음수 마진이 서로 겹쳐(collapse) 줄 사이가 행간보다 벌어지지 않게 */
 #ht .tb .h{font-weight:var(--w-regular);font-size:var(--fs,40px);line-height:var(--lh,42px);letter-spacing:var(--track-title);word-break:keep-all}
 #ht .tb .p{margin-top:var(--s-2);font-weight:var(--w-light);font-size:12px;line-height:var(--s-4);letter-spacing:var(--track-body);color:rgba(242,242,246,.62);word-break:keep-all}
 #ht .tb .p:empty,#ht .tb .n:empty{display:none}
@@ -22,3 +23,14 @@
 
 #ht .ht-ct{position:absolute;right:var(--margin);bottom:calc(var(--margin) * .8);font:var(--w-regular) 11px/var(--lh-label) var(--font-ui);letter-spacing:var(--track-label);color:rgba(242,242,246,.55);font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){ #ht .ht-frame{transition:none} }
+
+#ht .ht-end{position:absolute;inset:0;pointer-events:none;font-family:var(--font-ui);color:var(--ink);overflow:hidden}
+#ht .ht-eh{position:absolute;left:0;top:0;transform-origin:0 0;white-space:nowrap;font-weight:var(--w-regular);font-size:clamp(24px,2.5vw,40px);line-height:var(--lh-head);letter-spacing:var(--track-head);word-break:keep-all}
+#ht .ht-ep{position:absolute;left:0;top:0}
+#ht .ht-ep .hr{display:none;height:1px;background:var(--ink);opacity:.9;transform:scaleX(0);transform-origin:0 50%;margin-bottom:18px}
+#ht .ht-ep .tx{font-weight:var(--w-regular);font-size:clamp(13px,.95vw,15px);line-height:1.42;letter-spacing:var(--track-body);color:rgba(23,26,24,.82);word-break:keep-all}
+:root:lang(ko) #ht .ht-ep .tx{line-height:1.52}
+#ht .ht-eh .ch{display:inline-block;overflow:hidden;vertical-align:top;padding:.1em 0 .16em;margin:-.1em 0 -.16em}
+#ht .ht-eh .ch i{display:block;font-style:normal;will-change:transform;transform:translateY(100%)}
+#ht .ht-eh .ch.sp{width:.26em}
+#ht .ht-ep .tx>span{white-space:nowrap}

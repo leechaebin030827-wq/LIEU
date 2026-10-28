@@ -12,7 +12,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const NS = 'http://www.w3.org/2000/svg', HALF = Math.PI / 2;
 
 // 도입 : 파란 공이 나타나 가로선 위를 오가다가 가운데로 오고, 거기서 세로선이 뻗어 그리드가 생긴 뒤 첫 칸 위치로 자리 잡는다
-const T = { show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5], slide: [15.2, 16.8], vline: [16.9, 17.6], settle: [17.6, 18.6], text0: [18.9, 19.5], s: [18.6, 22.0, 25.4, 28.8, 32.2], out: [34.4, 42.4] };   // out : 끝 장면 뒤 퇴장 (점이 가운데로 와서 가로선이 줄고, 위로 살짝 떴다가 아래로 떨어지며 라이트 모드로)
+const T = { end: [42.5, 44.0], show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5], slide: [15.2, 16.8], vline: [16.9, 17.6], settle: [17.6, 18.6], text0: [18.9, 19.5], s: [18.6, 22.0, 25.4, 28.8, 32.2], out: [34.4, 42.4] };   // out : 끝 장면 뒤 퇴장 (점이 가운데로 와서 가로선이 줄고, 위로 살짝 떴다가 아래로 떨어지며 라이트 모드로)
 const N = 5;
 // 허브 위치(화면 비율) · 이미지 칸 · 글 칸 : 데스크톱 / 모바일
 const LAY = {
@@ -25,9 +25,9 @@ let TX = window.__ht || FALLBACK;
 
 /* ── DOM ── */
 const root = document.createElement('div'); root.id = 'ht';
-root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidden;height:0;width:var(--content);display:grid;column-gap:var(--gutter)"></div><div class="ht-bg"></div><div class="ht-cells"></div><div class="ht-lt"></div><svg class="ht-rail" aria-hidden="true"></svg>';
+root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidden;height:0;width:var(--content);display:grid;column-gap:var(--gutter)"></div><div class="ht-bg"></div><div class="ht-cells"></div><svg class="ht-rail" aria-hidden="true"></svg><div class="ht-lt"></div><div class="ht-end"><div class="ht-eh"></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div></div>';
 document.body.appendChild(root);
-const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells'), lt = root.querySelector('.ht-lt');
+const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells'), lt = root.querySelector('.ht-lt'), endEl = root.querySelector('.ht-end'), ehEl = endEl.children[0], epA = endEl.children[1], epB = endEl.children[2]; let endKey = '', ehL = [], aL = [], bL = [], et = 0, endIn = 0;   // et : 끝 장면의 시간 (초). 스크롤은 방아쇠일 뿐, 모션은 시간으로 흐른다 (obys 처럼 stagger + power3.out)
 const mk = (p, n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
 
 /* 허브 + 레일 */
@@ -94,7 +94,7 @@ function metrics() {
   gridLines.slice(0, 3).forEach((l, i) => { const x = Math.round(gleft + (i + 1) * (gcols / 4) * (gcw + ggap) - ggap / 2) + .5; l.setAttribute('x1', x); l.setAttribute('x2', x); l.setAttribute('y1', 0); l.setAttribute('y2', vh); });
   gridLines.slice(3).forEach((l, i) => { const y = Math.round((i + 1) * 2 * vh / 8 / 16) * 16 + .5; l.setAttribute('y1', y); l.setAttribute('y2', y); l.setAttribute('x1', 0); l.setAttribute('x2', vw); });
 }
-const LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh-head')) || 1.15;   // 제목 행간 : 토큰 배율을 4px 단위로 맞춘다
+let LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh-head')) || 1.15, LHlang = document.documentElement.lang;   // 제목 행간 : 토큰 배율을 4px 단위로 맞춘다
 // 허브는 늘 그리드 선 위에 선다 : x 는 컬럼 사이 거터의 한가운데, y 는 화면을 8등분한 선
 const hubPx = h => { const k = mob ? h[0] : Math.round(h[0] * gcols / 12); return [gleft + k * (gcw + ggap) - ggap / 2, Math.round(h[1] * vh / 8 / 16) * 16]; };
 metrics(); addEventListener('resize', metrics);
@@ -130,6 +130,7 @@ function setLines(els, a, dir) {
 function tick(now) {
   requestAnimationFrame(tick);
   const dt = Math.min(.05, (now - last) / 1000); last = now; tm += dt;
+  if (document.documentElement.lang !== LHlang) { LHlang = document.documentElement.lang; LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh-head')) || 1.15; blocks.forEach(b => { b.fs = 0; }); }   // 언어가 바뀌면 행간 토큰(한글 130%)을 다시 읽는다
   const y = scrollY / (vh || 1);
   if (y < T.show) { if (root.style.visibility !== 'hidden') root.style.visibility = 'hidden'; init = false; return; }
   root.style.visibility = 'visible';
@@ -186,6 +187,34 @@ function tick(now) {
   const wp = seg(fallT, .3, 1), BAND = 135, front = 100 - wp * (100 + BAND);
   lt.style.display = wp > 0 ? 'block' : 'none';
   if (wp > 0) lt.style.background = `linear-gradient(to bottom, rgba(255,255,255,0) ${front.toFixed(2)}%, ${LTS.map(([k, r, g, b2, al]) => `rgba(${r},${g},${b2},${al}) ${(front + k * BAND).toFixed(2)}%`).join(', ')})`;
+  {
+    const E = window.__end, cw = mob ? vw - 2 * gleft : 2.6 * gcw + 1.6 * ggap;
+    if (E && endKey !== E.h + vw + vh + cw) {   // 문단을 실제 줄바꿈 단위로 쪼개 줄마다 마스크 리빌
+      endKey = E.h + vw + vh + cw; epA.style.width = epB.style.width = cw.toFixed(0) + 'px';
+      ehEl.textContent = E.h;
+      [[epA, E.a], [epB, E.b]].forEach(([el, t]) => {
+        const tx = el.querySelector('.tx'), cj = wide(t), w = cj ? Array.from(t) : t.split(' ');
+        const meas = width => { tx.style.width = width.toFixed(0) + 'px'; tx.innerHTML = w.map(x => `<span>${x}</span>`).join(cj ? '' : ' '); const g = []; let ly = -1; [...tx.children].forEach(c => { if (c.offsetTop !== ly) { ly = c.offsetTop; g.push(''); } g[g.length - 1] += c.textContent + (cj ? '' : ' '); }); return g.map(x => x.trim()); };
+        const n = meas(cw).length; let lo = cw * .55, hi = cw; for (let i = 0; i < 9; i++) { const mid = (lo + hi) / 2; if (meas(mid).length <= n) hi = mid; else lo = mid; }   // 줄 수는 그대로, 폭만 좁혀 줄 길이를 고르게 (들쭉날쭉 · 고아 줄 방지)
+        tx.innerHTML = lines(meas(hi));
+      });
+      aL = [...epA.querySelectorAll('.ln i')]; bL = [...epB.querySelectorAll('.ln i')];
+    }
+    endIn = clamp(endIn + (fallT >= .98 ? dt / .8 : -dt / .4)); const e = eo3(endIn);   // Hey, I'm LIEU 와 같은 등장 : 블러 + 살짝 아래에서 떠오르며 선명해진다 (0.8초, 시간 기반)
+    et = clamp(et + (y >= T.end[0] + .12 ? dt : -dt * 1.5), 0, 3.2);
+    const eo4 = t => 1 - Math.pow(1 - t, 4), eioc = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, pr = (t0, d, f) => f(clamp((et - t0) / d));
+    const mx = pr(0, .8, eioc), mh = pr(.7, .8, eioc);   // 먼저 옆으로 쏙 왼쪽으로, 이어서 위로 쏙 붙는다
+    const hw = ehEl.offsetWidth, hh = ehEl.offsetHeight, sc = lerp(1, .72, mh);
+    const cx = (vw - hw) / 2, cy = (vh - hh) / 2, tx = gleft, ty = top + 24;
+    ehEl.style.transform = `translate(${lerp(cx, tx, mx).toFixed(1)}px,${(lerp(cy, ty, mh) + (1 - e) * 18).toFixed(1)}px) scale(${sc.toFixed(3)})`;
+    ehEl.style.opacity = e.toFixed(3); ehEl.style.filter = e < 1 ? `blur(${((1 - e) * 10).toFixed(1)}px)` : 'none';
+    const py = ty + (mob ? 80 : 3), cg = ggap * 1.25, ax = mob ? gleft : vw - gleft - (2 * cw + cg), bx = mob ? gleft : ax + cw + cg, by2 = mob ? py + epA.offsetHeight + 32 : py;
+    epA.style.transform = `translate(${ax.toFixed(1)}px,${py.toFixed(1)}px)`; epB.style.transform = `translate(${bx.toFixed(1)}px,${by2.toFixed(1)}px)`;
+    epA.firstChild.style.transform = `scaleX(${pr(1.2, .9, eo3).toFixed(3)})`; epB.firstChild.style.transform = `scaleX(${pr(1.3, .9, eo3).toFixed(3)})`;
+    const eoE = t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);   // expo out : 처음에 빠르게 솟았다가 끝에서 길게 가라앉는다
+    const rl = (els, t0) => els.forEach((l, k) => { const r = pr(t0 + k * .09, 1.35, eoE), o = clamp(r * 2.2); l.style.transform = `translateY(${((1 - r) * 108).toFixed(2)}%)`; l.style.opacity = o.toFixed(3); l.style.filter = r < 1 ? `blur(${((1 - r) * 5).toFixed(1)}px)` : 'none'; });   // 줄마다 마스크 + 블러 + 페이드가 겹쳐 떠오른다
+    rl(aL, 1.3); rl(bL, 1.45);
+  }
   rail.style.opacity = (1 - seg(fallT, .7, .95)).toFixed(3);
   gridLines.forEach(l => { l.style.opacity = (+bg.style.opacity * (1 - seg(fallT, .1, .5))).toFixed(3); });
 
@@ -208,7 +237,7 @@ function tick(now) {
     const d = u - i; let a = clamp(1 - Math.abs(d) / .6) * (1 - pIn); if (i === 0) a = Math.min(a, ti);
     if (a <= 0) { b.el.style.visibility = 'hidden'; return; }
     const q = L.txt[i], g = quad(hx, hy, q), fs = uniFs(), w = Math.max(120, g[2]);
-    if (Math.abs(fs - b.fs) > .5) { b.fs = fs; b.el.style.setProperty('--fs', fs.toFixed(1) + 'px'); b.el.style.setProperty('--lh', (Math.round(fs * LH / 4) * 4) + 'px'); }
+    if (Math.abs(fs - b.fs) > .5) { b.fs = fs; b.el.style.setProperty('--fs', fs.toFixed(1) + 'px'); b.el.style.setProperty('--lh', (LHlang === 'ko' ? Math.round(fs * LH) : Math.round(fs * LH / 4) * 4) + 'px'); }
     const up = q === 'TL' || q === 'TR', ax = g[0], ay = up ? hy - G : hy + G;
     b.el.style.visibility = 'visible'; b.el.style.width = w.toFixed(0) + 'px'; b.el.style.textAlign = 'left';
     b.el.style.transform = `translate(${ax.toFixed(1)}px,${ay.toFixed(1)}px) translate(0,${up ? -100 : 0}%)`;

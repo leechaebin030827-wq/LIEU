@@ -6,6 +6,8 @@
 
  @font-face { font-family: "Hero"; src: url(fonts/Hero-Light.woff2) format("woff2"); font-weight: 100 300; font-display: swap; }
 @font-face { font-family: "Hero"; src: url(fonts/Hero-Regular.woff2) format("woff2"); font-weight: 400 900; font-display: swap; }
+/* 한글 : SM3 중고딕 03 (Hero 에는 한글이 없으므로 한글 글자만 이 글꼴로 내려온다) */
+@font-face { font-family: "SM3JGothic"; src: url(fonts/SM3JGothic-03.woff) format("woff"); font-weight: 100 900; font-display: swap; size-adjust: 80%; unicode-range: U+1100-11FF, U+3130-318F, U+AC00-D7A3; }
 
 :root {
   /* 1. 단위 ---------------------------------------------------- */
@@ -35,7 +37,7 @@
   --t-caption: clamp(11px, .8vw, 13px);
 
   /* 4-1. 글꼴 · 굵기 : Hero 는 Light / Regular 두 굵기만 있다 (파란 강조는 굵기가 아니라 색으로) */
-  --font-ui: "Hero", "Helvetica Neue", Helvetica, Arial, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-ui: "Hero", "SM3JGothic", "Helvetica Neue", Helvetica, Arial, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   --w-light: 300; --w-regular: 400;
 
   /* 4-2. 행간 (글자 크기 대비 배율) */
@@ -46,8 +48,8 @@
   --lh-label: 1;      /* 라벨 · 한 줄 UI */
 
   /* 4-3. 자간 (em) : 글자가 클수록 더 조인다 */
-  --track-display: -.04em; --track-head: -.03em; --track-title: -.02em;
-  --track-body: -.01em; --track-caption: .08em; --track-label: .14em;
+  --track-display: -.05em; --track-head: -.0375em; --track-title: -.025em;
+  --track-body: -.0125em; --track-caption: .064em; --track-label: .112em;
 
   /* 4-4. 역할 : 크기 · 굵기 · 행간 · 자간을 한 묶음으로 */
   --type-story-size: clamp(30px, 4.6vw, 68px);   --type-story-w: var(--w-regular); --type-story-lh: var(--lh-head);  --type-story-track: var(--track-head);
@@ -80,6 +82,9 @@
   --hair: 1px;              /* 구분선 */
   --label: 12px;            /* UI 라벨 크기 · 자간 .06–.14em · 대문자 */
 }
+
+/* 한글 : 행간 · 자간 -2% (글자를 80% 로 줄였으므로 행간 값은 1.12 → 화면에선 글자 크기의 약 130%) (SM3 중고딕은 자간을 조이지 않는다) */
+:root:lang(ko) { --lh-head: 1.09; --lh-title: 1.09; --lh-body: 1.25; --track-display: -.03em; --track-head: -.02em; --track-title: -.02em; --track-body: -.01em; }
 
 /* 브레이크포인트 ──────────────────────────────────────────────
    sm  <  640   : 4 컬럼

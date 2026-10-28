@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LIEU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link rel="stylesheet" href="assets/grid.css">
-<link rel="stylesheet" href="assets/human-touch.css?v=15">
+<link rel="stylesheet" href="assets/grid.css?v=8">
+<link rel="stylesheet" href="assets/human-touch.css?v=27">
 <style>
   /* 스크롤바는 숨기되 스크롤은 그대로 된다 (크롬 · 사파리 · 파이어폭스) */
   html{scrollbar-width:none;-ms-overflow-style:none}
@@ -29,7 +29,7 @@
   #hero{position:absolute;left:50%;top:0;height:min(92vh,76vw);height:min(92dvh,76vw);width:auto;max-width:98vw;object-fit:contain;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform-origin:50% 0}
 
   body{font-family:var(--font-ui);-webkit-font-smoothing:antialiased;color:var(--ink)}
-  #scrollspace{height:4350vh}
+  #scrollspace{height:4500vh}
   /* ── 흰 화면 장면 : 도트가 중앙에서 쫙 퍼지고 'Hey,' → 왼쪽으로 → 'I'm LIEU' ── */
   #hey{position:fixed;inset:0;z-index:4;pointer-events:none;visibility:hidden}
   #heyDots{position:absolute;inset:0}
@@ -289,7 +289,7 @@ document.querySelectorAll('[data-sw]').forEach(el => {
     window.dispatchEvent(new CustomEvent('lieu:lang', { detail: it.dataset.lang }));
   };
   let saved = null; try { saved = localStorage.getItem('lieu-lang'); } catch (e) {}
-  set(saved || (navigator.language || 'ko').slice(0, 2), false);
+  set(saved || 'en', false);
   const open = (v, focus = true) => { pop.classList.toggle('open', v); box.classList.toggle('open', v); btn.setAttribute('aria-expanded', String(v)); if (v && focus) (menu.querySelector('[aria-checked="true"]') || items[0]).focus(); };
   btn.addEventListener('click', e => { if (e.detail > 0 && matchMedia('(hover:hover) and (pointer:fine)').matches) { open(true, false); return; } open(!pop.classList.contains('open')); });   // 마우스는 호버로 열리므로 클릭해도 닫히지 않는다
   // 호버만 해도 내려온다 (마우스일 때) — 벗어나면 잠시 뒤 닫힌다
@@ -394,17 +394,17 @@ const smooth01 = t => t * t * (3 - 2 * t);
 const heyEase = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, heyOut = t => 1 - Math.pow(1 - t, 3), heySeg = (x, a, b) => clamp((x - a) / (b - a));
 /* ── 다국어 : 언어를 고르면 문구 전체가 바뀐다 (ko · en · ja · zh · es) ── */
 const I18N = {
-  ko: { drv: ["저는 로보택시를 위한", "새로운 종류의 <b>'운전자'</b>예요"], story: ['제가 어떻게 만들어졌는지', '이야기해 드릴게요'], ht: { s1: ['저는 자율주행 택시에', '<em>사람의 온기</em>를 더하려고', '태어났어요.'], s2a: ['이제 택시는', '스스로 달려요.'], s2b: ['하지만 기사님은', '<em>운전 그 이상</em>을 했어요.'], b: [['따뜻한', '환영 인사.'], ['가벼운', '귀띔.'], ['다정한', '알림.']] }, hey: '안녕하세요,', im: '저는 <b>루</b>예요', home: 'LIEU — 처음으로', lang: '언어 선택' },
-  en: { drv: ["I'm a new kind of", "<b>'Driver'</b> for robotaxis"], story: ['Here\'s how', 'I came to be.'], ht: { s1: ['I was born to bring', 'a little <em>human touch</em>', 'to driverless rides.'], s2a: ['Now, taxis can', 'drive themselves.'], s2b: ['But a driver did', '<em>more than</em> drive.'], b: [['A warm', 'welcome.'], ['A quick', 'heads-up.'], ['A gentle', 'reminder.']] }, hey: 'Hey,', im: "I'm <b>LIEU</b>", home: 'LIEU — back to top', lang: 'Language' },
-  ja: { drv: ['私はロボタクシーのための', '新しい種類の<b>「ドライバー」</b>です'], story: ['私がどう作られたか、', 'そのお話です'], ht: { s1: ['私は、無人の乗車に', 'ほんの少しの<em>人の温もり</em>を', '届けるために生まれました。'], s2a: ['いま、タクシーは', '自分で走れます。'], s2b: ['でも、ドライバーは', '<em>運転以上</em>のことをしていました。'], b: [['あたたかい', 'お出迎え。'], ['さりげない', 'ひとこと。'], ['やさしい', 'リマインド。']] }, hey: 'やあ、', im: '<b>LIEU</b>です', home: 'LIEU — トップへ', lang: '言語を選択' },
-  zh: { drv: ['我是为自动驾驶出租车打造的', '全新<b>「司机」</b>'], story: ['这是我是如何', '被创造的故事'], ht: { s1: ['我生来就是为了', '给无人驾驶出行', '带来一点<em>人情味</em>。'], s2a: ['如今，出租车', '可以自己开了。'], s2b: ['但司机做的', '<em>远不止开车</em>。'], b: [['一句温暖的', '欢迎。'], ['一次简短的', '提醒。'], ['一声轻柔的', '叮嘱。']] }, hey: '嗨，', im: '我是 <b>LIEU</b>', home: 'LIEU — 回到顶部', lang: '选择语言' },
-  es: { drv: ['Soy un nuevo tipo de', "<b>'conductor'</b> para robotaxis"], story: ['Esta es la historia', 'de cómo fui creado'], ht: { s1: ['Nací para dar un toque', '<em>humano</em> a los viajes', 'sin conductor.'], s2a: ['Ahora, los taxis', 'pueden conducir solos.'], s2b: ['Pero un conductor hacía', '<em>mucho más</em> que conducir.'], b: [['Una cálida', 'bienvenida.'], ['Un aviso', 'rápido.'], ['Un recordatorio', 'amable.']] }, hey: 'Hola,', im: 'soy <b>LIEU</b>', home: 'LIEU — volver al inicio', lang: 'Idioma' }
+  ko: { end: { h: '그래서 저는, 움직이려고 만들어졌어요.', a: 'LIEU는 완전 자율주행 로보택시에 사람의 온기를 되돌려주기 위해 만들어진 천장형 서비스 로봇이에요. 움직임과 빛, 투사, 소리로', b: '승객을 맞이하고, 알맞은 때에 안내하고, 다정한 알림을 건네요. 필요할 땐 가까이 다가가고 그렇지 않을 땐 한 걸음 물러서며, 무인 주행에 세심한 사람 중심의 배려를 더해요.' }, drv: ["저는 로보택시를 위한", "새로운 종류의 <b>'운전자'</b>예요"], story: ['제가 어떻게 태어났는지', '들려드릴게요.'], ht: { s1: ['운전자 없는 이동에', '<em>사람의 온기</em>를 조금 보태려고', '제가 태어났어요.'], s2a: ['이제 택시는', '스스로 달릴 수 있어요.'], s2b: ['하지만 기사님은', '<em>운전 그 이상</em>을 해 주셨죠.'], b: [['따뜻한', '환영 인사.'], ['미리 건네는', '짧은 귀띔.'], ['다정한', '한마디 알림.']] }, hey: '안녕하세요,', im: '저는 <b>루</b>예요', home: 'LIEU — 처음으로', lang: '언어 선택' },
+  en: { end: { h: 'So, I was made to move.', a: 'LIEU is a ceiling-mounted service robot designed to bring the human touch back to fully autonomous robotaxis. Through movement, light, projection, and sound,', b: 'LIEU welcomes passengers, provides timely guidance, and offers gentle reminders. It moves closer when needed and steps back when not, bringing thoughtful, human-centered care to driverless rides.' }, drv: ["I'm a new kind of", "<b>'Driver'</b> for robotaxis"], story: ['Here\'s how', 'I came to be.'], ht: { s1: ['I was born to bring', 'a little <em>human touch</em>', 'to driverless rides.'], s2a: ['Now, taxis can', 'drive themselves.'], s2b: ['But a driver did', '<em>more than</em> drive.'], b: [['A warm', 'welcome.'], ['A quick', 'heads-up.'], ['A gentle', 'reminder.']] }, hey: 'Hey,', im: "I'm <b>LIEU</b>", home: 'LIEU — back to top', lang: 'Language' },
+  ja: { end: { h: 'だから私は、動くために生まれました。', a: 'LIEUは、完全自動運転のロボタクシーに人のぬくもりを取り戻すために生まれた、天井設置型のサービスロボットです。動き、光、投影、そして音で、', b: '乗客を迎え、ちょうどよいタイミングで案内し、やさしくお知らせします。必要なときは近づき、そうでないときは一歩下がって、無人の移動に思いやりのある人中心のケアを届けます。' }, drv: ['私は、ロボタクシーのための', '新しいかたちの<b>「ドライバー」</b>です'], story: ['私がどんなふうに', '生まれたのか、お話しします'], ht: { s1: ['私は、運転手のいない移動に', 'ほんの少しの<em>人のぬくもり</em>を', '添えるために生まれました。'], s2a: ['いまでは、タクシーも', '自分で走れます。'], s2b: ['でも、ドライバーさんは', '<em>運転だけじゃない</em>ことをしていました。'], b: [['あたたかな', 'お出迎え。'], ['ちょっとした', 'お知らせ。'], ['やさしい', 'ひとこと。']] }, hey: 'こんにちは、', im: '<b>LIEU</b>です', home: 'LIEU — トップへ', lang: '言語を選択' },
+  zh: { end: { h: '所以，我生来就是为了前行。', a: 'LIEU 是一款吸顶式服务机器人，旨在为完全自动驾驶的无人出租车找回人情味。它通过动作、光线、投影和声音，', b: '迎接乘客，适时提供指引，并给予温柔的提醒。需要时靠近，不需要时退后，为无人驾驶的出行带来细心、以人为本的关怀。' }, drv: ['我是专为自动驾驶出租车而生的', '一种全新的<b>「司机」</b>'], story: ['来听听', '我是怎么诞生的吧。'], ht: { s1: ['我的诞生，是为了给', '无人驾驶的出行', '添一点<em>人情味</em>。'], s2a: ['如今，出租车', '已经能自己开了。'], s2b: ['可司机做的，', '<em>远不止开车</em>。'], b: [['一句温暖的', '欢迎。'], ['提前打个', '招呼。'], ['轻声的', '叮嘱。']] }, hey: '嗨，', im: '我是 <b>LIEU</b>', home: 'LIEU — 回到顶部', lang: '选择语言' },
+  es: { end: { h: 'Así que nací para moverme.', a: 'LIEU es un robot de servicio de techo diseñado para devolver el toque humano a los robotaxis totalmente autónomos. A través del movimiento, la luz, la proyección y el sonido,', b: 'da la bienvenida a los pasajeros, ofrece orientación a tiempo y deja recordatorios amables. Se acerca cuando hace falta y se aparta cuando no, llevando un cuidado atento y centrado en las personas a los viajes sin conductor.' }, drv: ['Soy un nuevo tipo de', "<b>'conductor'</b> para robotaxis"], story: ['Así fue como', 'llegué al mundo.'], ht: { s1: ['Nací para llevar un poco', 'de <em>calidez humana</em>', 'a los viajes sin conductor.'], s2a: ['Ahora, los taxis', 'se conducen solos.'], s2b: ['Pero un conductor hacía', '<em>mucho más</em> que conducir.'], b: [['Una cálida', 'bienvenida.'], ['Un aviso', 'a tiempo.'], ['Un recordatorio', 'amable.']] }, hey: 'Hola,', im: 'soy <b>LIEU</b>', home: 'LIEU — volver al inicio', lang: 'Idioma' }
 };
 function applyLang(code) {
   const T = I18N[code] || I18N.en;
   heyA.textContent = T.hey; heyB.innerHTML = T.im;
   document.getElementById('driverText').innerHTML = T.drv.join('<br>'); document.getElementById('storyText').innerHTML = T.story.join('<br>');
-  window.__story = T.story; window.__drv = T.drv; window.__ht = T.ht; if (window.HumanTouch) window.HumanTouch.setText(T.ht); if (window.CarScene) { window.CarScene.setStory(T.story); window.CarScene.setDriver(T.drv); }
+  window.__end = T.end; window.__story = T.story; window.__drv = T.drv; window.__ht = T.ht; if (window.HumanTouch) window.HumanTouch.setText(T.ht); if (window.CarScene) { window.CarScene.setStory(T.story); window.CarScene.setDriver(T.drv); }
   const home = document.getElementById('symLink'), lb = document.getElementById('langBtn');
   if (home) home.setAttribute('aria-label', T.home); if (lb) lb.setAttribute('aria-label', T.lang);
   heyKey = '';                                                                              // 글자 폭을 다시 잰다
@@ -412,7 +412,7 @@ function applyLang(code) {
 window.addEventListener('lieu:lang', e => applyLang(e.detail));
 let heyW = [0, 0], heyKey = '', heyT0 = null, heyEr = 0, heyLast = performance.now(), heyDt = 0;
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { heyKey = ''; });   // 폰트가 로드되면 글자 폭을 다시 잰다
-{ let saved = null; try { saved = localStorage.getItem('lieu-lang'); } catch (e) {} applyLang(saved || document.documentElement.lang || 'ko'); }   // 처음 로드된 언어 반영
+{ let saved = null; try { saved = localStorage.getItem('lieu-lang'); } catch (e) {} applyLang(saved || 'en'); }   // 처음 로드된 언어 반영
 function drawHey() {
   const nowH = performance.now(); heyDt = Math.min(.1, (nowH - heyLast) / 1000); heyLast = nowH;
   const vh = innerHeight, q = clamp((scrollY - 2.5 * vh) / (2 * vh));
@@ -1414,28 +1414,53 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   addEventListener('wheel', abort, { passive: true }); addEventListener('touchstart', abort, { passive: true });
   addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) abort(); });
 })();
-/* 약한 스냅 : 스크롤을 멈추면 가까운 '장면이 완성된 지점'으로 살짝 끌려가 자리 잡는다 (멀리 있으면 그대로 두고, 휠·터치·키보드 입력이 오면 즉시 멈춘다) */
+/* 스냅 : 스크롤을 멈추면 '장면이 완성된 지점'으로 부드럽게 자리 잡는다.
+   - 휠 · 트랙패드 관성이 완전히 끝난 뒤에 움직인다 (관성 중에는 건드리지 않는다)
+   - 스크롤하던 방향을 본다 : 다음 장면 쪽으로 조금만 넘겨도 그쪽으로 넘어가고, 되돌리면 이전 장면으로 돌아온다
+   - 장면 사이가 짧은 구간(휴먼 터치 등)은 어디서 멈춰도 가장 가까운 장면으로, 긴 자유 구간은 점 근처에서만
+   - 거리가 멀수록 조금 더 오래, 끝은 느리게 잦아든다 (easeOutQuart) · 휠 · 터치 · 키보드 입력이 오면 즉시 멈춘다 */
 (() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const POINTS = [0, 4.2, 5.4, 7.9, 9.5, 11.2, 11.75, 12.6, 15.9, 17.4, 20.2, 23.6, 27.0, 30.4, 33.8, 42.9];       // 화면 높이 배수 : 첫 화면 · Hey · 문구 · 차 도착 · 줌인 · 스토리 · 다크 스토리 · 끝
-  const RADIUS = .32, IDLE = 170, DUR = 520;
-  let timer = 0, raf = 0, touching = false;
+  const POINTS = [0, 4.2, 5.4, 7.9, 9.5, 11.2, 11.75, 12.6, 15.9, 17.4, 20.2, 23.6, 27.0, 30.4, 33.8, 42.5, 44.5];       // 화면 높이 배수 : 첫 화면 · Hey · 문구 · 차 도착 · 줌인 · 스토리 · 다크 스토리 · 휴먼 터치 5장면 · 끝
+  const NEAR = .45, LONG = 5, FLICK = .18, IDLE = 90, WHEEL_QUIET = 110;
+  let timer = 0, raf = 0, touching = false, lastWheel = 0, gestureY = null, lastMove = 0, lastY = scrollY;
   const maxY = () => document.documentElement.scrollHeight - innerHeight;
-  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const ease = t => 1 - Math.pow(1 - t, 4);
   const cancel = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } };
+  const pick = () => {
+    const vh = innerHeight, y = scrollY / vh, mx = maxY() / vh, pts = POINTS.map(k => Math.min(k, mx));
+    const dir = gestureY == null ? 0 : Math.sign(y - gestureY / vh) * (Math.abs(y - gestureY / vh) > .02 ? 1 : 0);
+    let prev = null, next = null;
+    for (const k of pts) { if (k <= y + .001) prev = k; if (k >= y - .001 && next == null) next = k; }
+    if (prev == null) prev = next; if (next == null) next = prev;
+    if (Math.abs(next - prev) < .001) return Math.abs(prev - y) > .001 ? prev : null;
+    const gap = next - prev, f = (y - prev) / gap;
+    if (gap > LONG) {   // 긴 자유 구간 : 가고 있는 방향의 점이 가까울 때만 끌어당긴다
+      if (dir >= 0 && next - y < NEAR * (dir > 0 ? 1 : .4)) return next;
+      if (dir <= 0 && y - prev < NEAR * (dir < 0 ? 1 : .4)) return prev;
+      return null;
+    }
+    if (dir > 0) return f > FLICK ? next : prev;
+    if (dir < 0) return f < 1 - FLICK ? prev : next;
+    return f < .5 ? prev : next;
+  };
   const settle = () => {
     if (touching || raf || !document.body.classList.contains('ready') || (window.__autoBusy && window.__autoBusy())) return;
-    const vh = innerHeight, y = scrollY; let best = null, bd = RADIUS * vh;
-    for (const k of POINTS) { const t = Math.min(k * vh, maxY()), d = Math.abs(t - y); if (d < bd && d > 1) { bd = d; best = t; } }
-    if (best == null) return;
-    const y0 = y, t0 = performance.now();
-    const go = now => { const p = Math.min(1, (now - t0) / DUR); scrollTo(0, y0 + (best - y0) * ease(p)); if (p < 1) raf = requestAnimationFrame(go); else raf = 0; };
+    if (performance.now() - lastWheel < WHEEL_QUIET) { arm(); return; }   // 관성이 아직 이어지는 중
+    const t = pick(); gestureY = null; if (t == null) return;
+    const vh = innerHeight, y0 = scrollY, y1 = Math.min(t * vh, maxY()), d = Math.abs(y1 - y0); if (d < 1.5) return;
+    const DUR = 380 + 420 * Math.min(1, d / (1.4 * vh)), t0 = performance.now();
+    const go = now => { const p = Math.min(1, (now - t0) / DUR); scrollTo(0, y0 + (y1 - y0) * ease(p)); lastY = scrollY; if (p < 1) raf = requestAnimationFrame(go); else raf = 0; };
     raf = requestAnimationFrame(go);
   };
   const arm = () => { clearTimeout(timer); timer = setTimeout(settle, IDLE); };
-  addEventListener('scroll', () => { if (!raf) arm(); }, { passive: true });
+  addEventListener('scroll', () => {
+    if (raf) return;
+    const now = performance.now(); if (now - lastMove > 260 || gestureY == null) gestureY = lastY;   // 새 스크롤이 시작된 지점
+    lastMove = now; lastY = scrollY; arm();
+  }, { passive: true });
   const stop = () => { cancel(); clearTimeout(timer); };
-  addEventListener('wheel', stop, { passive: true });
+  addEventListener('wheel', () => { lastWheel = performance.now(); stop(); }, { passive: true });
   addEventListener('touchstart', () => { touching = true; stop(); }, { passive: true });
   addEventListener('touchend', () => { touching = false; arm(); }, { passive: true });
   addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', 'Space'].includes(e.key) || e.code === 'Space') stop(); });
@@ -1459,9 +1484,9 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   })();
 })();
 </script>
-<script src="assets/human-touch.js?v=33"></script>
+<script src="assets/human-touch.js?v=50"></script>
 <script src="assets/luminous.js?v=1"></script>
 <script src="assets/color-panel.js?v=2"></script>
-<script type="module" src="assets/car-scene.js?v=57"></script>
+<script type="module" src="assets/car-scene.js?v=59"></script>
 </body>
 </html>
