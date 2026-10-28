@@ -25,9 +25,9 @@ let TX = window.__ht || FALLBACK;
 
 /* ── DOM ── */
 const root = document.createElement('div'); root.id = 'ht';
-root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidden;height:0;width:var(--content);display:grid;column-gap:var(--gutter)"></div><div class="ht-bg"></div><div class="ht-cells"></div><svg class="ht-rail" aria-hidden="true"></svg><div class="ht-lt"></div><div class="ht-end"><div class="ht-eh"></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div></div>';
+root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidden;height:0;width:var(--content);display:grid;column-gap:var(--gutter)"></div><div class="ht-bg"></div><div class="ht-cells"></div><svg class="ht-rail" aria-hidden="true"></svg><div class="ht-lt"></div><div class="ht-end"><div class="ht-eh"></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div><div class="ht-vid"></div></div>';
 document.body.appendChild(root);
-const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells'), lt = root.querySelector('.ht-lt'), endEl = root.querySelector('.ht-end'), ehEl = endEl.children[0], epA = endEl.children[1], epB = endEl.children[2]; let endKey = '', ehL = [], aL = [], bL = [], et = 0, endIn = 0;   // et : 끝 장면의 시간 (초). 스크롤은 방아쇠일 뿐, 모션은 시간으로 흐른다 (obys 처럼 stagger + power3.out)
+const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells'), lt = root.querySelector('.ht-lt'), endEl = root.querySelector('.ht-end'), ehEl = endEl.children[0], epA = endEl.children[1], epB = endEl.children[2], vidEl = endEl.children[3]; let endKey = '', ehL = [], aL = [], bL = [], et = 0, endIn = 0;   // et : 끝 장면의 시간 (초). 스크롤은 방아쇠일 뿐, 모션은 시간으로 흐른다 (obys 처럼 stagger + power3.out)
 const mk = (p, n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
 
 /* 허브 + 레일 */
@@ -213,7 +213,11 @@ function tick(now) {
     epA.firstChild.style.transform = `scaleX(${pr(1.2, .9, eo3).toFixed(3)})`; epB.firstChild.style.transform = `scaleX(${pr(1.3, .9, eo3).toFixed(3)})`;
     const eoE = t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);   // expo out : 처음에 빠르게 솟았다가 끝에서 길게 가라앉는다
     const rl = (els, t0) => els.forEach((l, k) => { const r = pr(t0 + k * .09, 1.35, eoE), o = clamp(r * 2.2); l.style.transform = `translateY(${((1 - r) * 108).toFixed(2)}%)`; l.style.opacity = o.toFixed(3); l.style.filter = r < 1 ? `blur(${((1 - r) * 5).toFixed(1)}px)` : 'none'; });   // 줄마다 마스크 + 블러 + 페이드가 겹쳐 떠오른다
+    { const xo = eio(seg(y, T.end[1] + .3, T.end[1] + 1.2)); endEl.style.opacity = (1 - xo).toFixed(3); endEl.style.transform = `translateY(${(-28 * xo).toFixed(1)}px)`; }   // 더 스크롤하면 모두 위로 흐려지며 흰 화면만 남는다
     rl(aL, 1.3); rl(bL, 1.45);
+    { const vt = ty + Math.max(epA.offsetHeight, epB.offsetHeight) + (mob ? 120 : 56), vw2 = vw - 2 * gleft, vh2 = Math.max(120, vh - vt - gleft), r = pr(2.1, 1.3, eoE);   // 프로모션 영상 자리 (회색)
+      vidEl.style.width = vw2.toFixed(0) + 'px'; vidEl.style.height = vh2.toFixed(0) + 'px'; vidEl.style.opacity = clamp(r * 2).toFixed(3);
+      vidEl.style.transform = `translate(${gleft.toFixed(1)}px,${(vt + (1 - r) * 48).toFixed(1)}px)`; }
   }
   rail.style.opacity = (1 - seg(fallT, .7, .95)).toFixed(3);
   gridLines.forEach(l => { l.style.opacity = (+bg.style.opacity * (1 - seg(fallT, .1, .5))).toFixed(3); });

@@ -34,3 +34,4 @@
 #ht .ht-eh .ch i{display:block;font-style:normal;will-change:transform;transform:translateY(100%)}
 #ht .ht-eh .ch.sp{width:.26em}
 #ht .ht-ep .tx>span{white-space:nowrap}
+#ht .ht-vid{position:absolute;left:0;top:0;background:#E4E5E8;border-radius:6px;opacity:0}
