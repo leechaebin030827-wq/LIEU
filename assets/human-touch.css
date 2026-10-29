@@ -8,6 +8,18 @@
 #ht .ht-cells{position:absolute;inset:0}
 #ht .ht-cell{position:absolute;left:0;top:0;overflow:hidden;background:#000}
 #ht .ht-fill{position:absolute;inset:0;visibility:hidden;background:#2b2b30}
+/* 빔프로젝터로 쏜 듯한 사진 : 밝기가 아주 미세하게 불규칙적으로 깜빡이고, 옅은 밝은 띠가 천천히 위로 흐른다 */
+#ht .ht-proj{animation:ht-flick 2.3s steps(1,end) infinite}
+@keyframes ht-flick{0%{opacity:.97}6%{opacity:.945}11%{opacity:.985}17%{opacity:.955}24%{opacity:.975}31%{opacity:.94}37%{opacity:.98}46%{opacity:.96}52%{opacity:.985}61%{opacity:.95}69%{opacity:.975}77%{opacity:.945}84%{opacity:.98}92%{opacity:.96}100%{opacity:.97}}
+#ht .ht-fill:has(.ht-proj)::after{content:"";position:absolute;left:0;right:0;top:0;height:60%;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.035) 50%,transparent);animation:ht-band 7s linear infinite;mix-blend-mode:screen}
+@keyframes ht-band{from{transform:translateY(160%)}to{transform:translateY(-110%)}}
+@media (prefers-reduced-motion:reduce){ #ht .ht-proj,#ht .ht-fill:has(.ht-proj)::after{animation:none} }
+/* 사진 위 그라디언트 (Figma 6064:309) : 허브 점 쪽 모서리가 밝고(원본 그대로), 가장 먼 모서리로 갈수록 검정으로 사라진다 */
+#ht .ht-fill:has(.ht-proj){--gm:linear-gradient(var(--gd),#000 0%,rgba(0,0,0,.74) 25%,rgba(0,0,0,.41) 50%,rgba(0,0,0,.14) 75%,rgba(0,0,0,0) 92%);-webkit-mask-image:var(--gm);mask-image:var(--gm)}
+#ht .ht-fill[data-q=TL]{--gd:to top left}
+#ht .ht-fill[data-q=TR]{--gd:to top right}
+#ht .ht-fill[data-q=BL]{--gd:to bottom left}
+#ht .ht-fill[data-q=BR]{--gd:to bottom right}
 #ht .ht-fl{position:absolute;left:18px;bottom:16px;font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:#96969e;white-space:nowrap}
 
 /* 글 : H1 + 본문. 줄마다 마스크 안에서 올라온다 */

@@ -12,7 +12,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const NS = 'http://www.w3.org/2000/svg', HALF = Math.PI / 2;
 
 // 도입 : 파란 공이 나타나 가로선 위를 오가다가 가운데로 오고, 거기서 세로선이 뻗어 그리드가 생긴 뒤 첫 칸 위치로 자리 잡는다
-const T = { end: [42.5, 44.0], show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5], slide: [15.2, 16.8], vline: [16.9, 17.6], settle: [17.6, 18.6], text0: [18.9, 19.5], s: [18.6, 22.0, 25.4, 28.8, 32.2], out: [34.4, 42.4] };   // out : 끝 장면 뒤 퇴장 (점이 가운데로 와서 가로선이 줄고, 위로 살짝 떴다가 아래로 떨어지며 라이트 모드로)
+const T = { end: [42.5, 46.6], show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5], slide: [15.2, 16.8], vline: [16.9, 17.6], settle: [17.6, 18.6], text0: [18.9, 19.5], s: [18.6, 22.0, 25.4, 28.8, 32.2], out: [34.4, 42.4] };   // out : 끝 장면 뒤 퇴장 (점이 가운데로 와서 가로선이 줄고, 위로 살짝 떴다가 아래로 떨어지며 라이트 모드로)
 const N = 5;
 // 허브 위치(화면 비율) · 이미지 칸 · 글 칸 : 데스크톱 / 모바일
 const LAY = {
@@ -61,6 +61,7 @@ const hubDot = mk(rail, 'circle', { fill: '#EEF0F8' });
 const QS = ['TL', 'TR', 'BL', 'BR'];
 const cells = QS.map(q => {
   const el = document.createElement('div'); el.className = 'ht-cell'; el.innerHTML = '<div class="ht-fill"><span class="ht-fl"></span></div>'; cellsEl.appendChild(el);
+  el.firstChild.dataset.q = q;
   return { q, el, fill: el.querySelector('.ht-fill'), lbl: el.querySelector('.ht-fl'), lastLbl: '' };
 });
 // 칸이 채워질 때 허브 모서리에서 퍼져 나가는 방향
@@ -104,6 +105,32 @@ const quad = (hx, hy, q) => {
   return q === 'TL' ? [l, top, hx - G - l, hy - G - top] : q === 'TR' ? [hx + G, top, r - hx - G, hy - G - top] : q === 'BL' ? [l, hy + G, hx - G - l, b - hy - G] : [hx + G, hy + G, r - hx - G, b - hy - G];
 };
 
+/* 이미지 칸의 사진 : 점자(braille) ASCII 텍스처. 장면 번호 → 사진. 칸 크기에 맞춰 한 번만 그리고, 칸이 늘고 줄 때는 cover 로 따라간다. */
+const BRAILLE = false;   // true : 점자 ASCII 텍스처로 그린다
+const ASC = { 2: { src: 'assets/driver.webp?v=2', cv: null, key: '' }, 3: { src: 'assets/driver.webp?v=2', cv: null, key: '' }, 4: { src: 'assets/driver.webp?v=2', cv: null, key: '' } };
+Object.values(ASC).forEach(a => { a.img = new Image(); a.img.onload = () => { a.key = ''; asciiAll(); }; a.img.src = a.src; a.cv = document.createElement('canvas'); a.cv.className = 'ht-proj'; a.cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block'; });
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+function ascii(a, i) {
+  const img = a.img; if (!img.complete || !img.naturalWidth) return;
+  const L = mob ? LAY.m : LAY.d, hp = hubPx(L.hub[i]), r = cell(hp[0], hp[1], L.img[i], 1), W = Math.max(8, Math.round(r[2])), H = Math.max(8, Math.round(r[3])), dpr = Math.min(devicePixelRatio || 1, 2), key = W + 'x' + H + '@' + dpr;
+  if (key === a.key) return; a.key = key;
+  if (!BRAILLE) { const cv = a.cv, c = cv.getContext('2d'), k = Math.max(W * dpr / img.naturalWidth, H * dpr / img.naturalHeight), iw = img.naturalWidth * k, ih = img.naturalHeight * k; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); c.drawImage(img, (cv.width - iw) / 2, (cv.height - ih) / 2, iw, ih); return; }   // 효과 없이 사진 그대로 (cover)
+  const P = 2, gw = Math.floor(W / (2 * P)) * 2, gh = Math.floor(H / (4 * P)) * 4, off = document.createElement('canvas'); off.width = gw; off.height = gh;
+  const o = off.getContext('2d', { willReadFrequently: true }), k = Math.max(gw / img.naturalWidth, gh / img.naturalHeight), iw = img.naturalWidth * k, ih = img.naturalHeight * k;
+  o.drawImage(img, (gw - iw) / 2, (gh - ih) / 2, iw, ih);   // cover
+  const d = o.getImageData(0, 0, gw, gh).data, cv = a.cv; cv.width = Math.round(gw * P * dpr); cv.height = Math.round(gh * P * dpr);
+  const c = cv.getContext('2d'); c.scale(dpr, dpr); c.fillStyle = '#111014'; c.fillRect(0, 0, gw * P, gh * P);
+  const ink = '#BDBCC5', path = new Path2D();
+  for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+    const q = (y * gw + x) * 4, v = clamp(((.299 * d[q] + .587 * d[q + 1] + .114 * d[q + 2]) / 255 - .5) * 1.05 + .5);   // contrast
+    if (v > (BAYER[(y & 3) * 4 + (x & 3)] + .5) / 16) path.arc((x + .5) * P, (y + .5) * P, P * (.22 + .14 * v), 0, 6.2832);
+    else continue; path.closePath();
+  }
+  c.fillStyle = ink; c.shadowColor = 'rgba(230,229,236,.08)'; c.shadowBlur = 3; c.fill(path); c.shadowBlur = 0; c.fill(path);   // glow
+}
+function asciiAll() { for (const i in ASC) ascii(ASC[i], +i); }
+addEventListener('resize', () => { for (const i in ASC) ASC[i].key = ''; clearTimeout(asciiAll.t); asciiAll.t = setTimeout(asciiAll, 200); });
+
 /* ── 입력 ── */
 const ptr = { x: 0, y: 0, has: false };
 addEventListener('pointermove', e => { ptr.x = e.clientX; ptr.y = e.clientY; ptr.has = true; }, { passive: true });
@@ -131,6 +158,7 @@ function tick(now) {
   requestAnimationFrame(tick);
   const dt = Math.min(.05, (now - last) / 1000); last = now; tm += dt;
   if (document.documentElement.lang !== LHlang) { LHlang = document.documentElement.lang; LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh-head')) || 1.15; blocks.forEach(b => { b.fs = 0; }); }   // 언어가 바뀌면 행간 토큰(한글 130%)을 다시 읽는다
+  if (vw !== innerWidth || vh !== innerHeight) metrics();   // 창 크기가 바뀌었는데 resize 이벤트가 오지 않는 경우도 따라간다
   const y = scrollY / (vh || 1);
   if (y < T.show) { if (root.style.visibility !== 'hidden') root.style.visibility = 'hidden'; init = false; return; }
   root.style.visibility = 'visible';
@@ -188,7 +216,12 @@ function tick(now) {
   lt.style.display = wp > 0 ? 'block' : 'none';
   if (wp > 0) lt.style.background = `linear-gradient(to bottom, rgba(255,255,255,0) ${front.toFixed(2)}%, ${LTS.map(([k, r, g, b2, al]) => `rgba(${r},${g},${b2},${al}) ${(front + k * BAND).toFixed(2)}%`).join(', ')})`;
   {
-    const E = window.__end, cw = mob ? vw - 2 * gleft : 2.6 * gcw + 1.6 * ggap;
+    // 끝 장면의 한 개의 마진 : 영상 폭이 기준. 낮고 넓은 창에서는 영상이 높이에 눌려 좁아지므로, 제목 + 두 문단이 겹치지 않는 최소 폭을 먼저 확보하고 문단 폭을 그 안에 맞춘다
+    const vwF = vw - 2 * gleft, cg = ggap * 1.25, hwS = ehEl.offsetWidth * .72, lhE = Math.max(13, Math.min(15, vw * .0095)) * (LHlang === 'ko' ? 1.52 : 1.42), cwDef = mob ? vwF : 2.6 * gcw + 1.6 * ggap;
+    const Hav = vh - (top + 24 + Math.max(epA.offsetHeight, epB.offsetHeight, 6 * lhE) + 56) - gleft, Hv = (mob ? vwF : Math.min(vwF, 1400)) * 9 / 16;   // 영상은 늘 16:9. 폭은 기본 마진 그대로 (높이가 화면보다 커도 스크롤로 올라가므로 괜찮다)
+    const Wv = mob ? Hv * 16 / 9 : Math.min(vwF, 1400), M = (vw - Wv) / 2;   // 데스크톱은 콘텐츠 폭 전체 (최대 1400px, 그보다 넓은 화면은 가운데 정렬), 마진은 그리드 기본 마진
+    const cw = mob ? cwDef : Math.min(cwDef, Math.max(200, (Wv - hwS - 56 - cg) / 2));
+    const E = window.__end;
     if (E && endKey !== E.h + vw + vh + cw) {   // 문단을 실제 줄바꿈 단위로 쪼개 줄마다 마스크 리빌
       endKey = E.h + vw + vh + cw; epA.style.width = epB.style.width = cw.toFixed(0) + 'px';
       ehEl.textContent = E.h;
@@ -201,24 +234,24 @@ function tick(now) {
       aL = [...epA.querySelectorAll('.ln i')]; bL = [...epB.querySelectorAll('.ln i')];
     }
     endIn = clamp(endIn + (fallT >= .98 ? dt / .8 : -dt / .4)); const e = eo3(endIn);   // Hey, I'm LIEU 와 같은 등장 : 블러 + 살짝 아래에서 떠오르며 선명해진다 (0.8초, 시간 기반)
-    et = clamp(et + (y >= T.end[0] + .12 ? dt : -dt * 1.5), 0, 3.2);
+    et = y < T.end[0] + 2.3 ? 1.1 + 1.0 * seg(y, T.end[0] + 1.35, T.end[0] + 2.3) : 2.1 + 1.3 * seg(y, T.end[0] + 2.3, T.end[0] + 3.8);   // 제목이 자리를 잡은 뒤 스크롤로 선 · 문단이 (43.85~44.8), 다시 스크롤하면 영상 자리가 (44.8~46.3) 차례로 뜬다
     const eo4 = t => 1 - Math.pow(1 - t, 4), eioc = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, pr = (t0, d, f) => f(clamp((et - t0) / d));
-    const mx = pr(0, .8, eioc), mh = pr(.7, .8, eioc);   // 먼저 옆으로 쏙 왼쪽으로, 이어서 위로 쏙 붙는다
-    const vwF = vw - 2 * gleft, Hv = mob ? vwF * 9 / 21 : Math.min(vwF * 9 / 21, vh * .54), Wv = Hv * 21 / 9, M = (vw - Wv) / 2;   // 한 개의 마진 : 영상 폭이 기준 — 제목 왼쪽 · 문단 오른쪽 · 영상 가장자리가 모두 같은 선에 맞는다
-    const sy = Math.max(0, y - T.end[1]) * vh, sT = sy * 1.7;   // 더 스크롤하면 글자가 먼저 (1.7배 빠르게) 위로 올라가 사라지고, 영상 자리가 뒤따라 올라가 사라진다
+    const mx = eioc(seg(y, T.end[0] + .1, T.end[0] + .7)), mh = eioc(seg(y, T.end[0] + .65, T.end[0] + 1.3));   // 스크롤을 따라 먼저 옆으로 왼쪽으로, 이어서 위로 올라가 붙는다
+    const sy = Math.max(0, y - T.end[1]) * vh, sT = sy * 1.25;   // 더 스크롤하면 글자가 먼저 (1.7배 빠르게) 위로 올라가 사라지고, 영상 자리가 뒤따라 올라가 사라진다
     const hw = ehEl.offsetWidth, hh = ehEl.offsetHeight, sc = lerp(1, .72, mh);
     const cx = (vw - hw) / 2, cy = (vh - hh) / 2, tx = M, ty = top + 24;
     ehEl.style.transform = `translate(${lerp(cx, tx, mx).toFixed(1)}px,${(lerp(cy, ty, mh) + (1 - e) * 18 - sT).toFixed(1)}px) scale(${sc.toFixed(3)})`;
     ehEl.style.opacity = e.toFixed(3); ehEl.style.filter = e < 1 ? `blur(${((1 - e) * 10).toFixed(1)}px)` : 'none';
-    const py = ty + (mob ? 80 : 3), cg = ggap * 1.25, ax = mob ? M : vw - M - (2 * cw + cg), bx = mob ? M : ax + cw + cg, by2 = mob ? py + epA.offsetHeight + 32 : py;
+    const py = ty + (mob ? 80 : 3), ax = mob ? M : vw - M - (2 * cw + cg), bx = mob ? M : ax + cw + cg, by2 = mob ? py + epA.offsetHeight + 32 : py;
     epA.style.transform = `translate(${ax.toFixed(1)}px,${(py - sT).toFixed(1)}px)`; epB.style.transform = `translate(${bx.toFixed(1)}px,${(by2 - sT).toFixed(1)}px)`;
     epA.firstChild.style.transform = `scaleX(${pr(1.2, .9, eo3).toFixed(3)})`; epB.firstChild.style.transform = `scaleX(${pr(1.3, .9, eo3).toFixed(3)})`;
     const eoE = t => t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);   // expo out : 처음에 빠르게 솟았다가 끝에서 길게 가라앉는다
     const rl = (els, t0) => els.forEach((l, k) => { const r = pr(t0 + k * .09, 1.35, eoE), o = clamp(r * 2.2); l.style.transform = `translateY(${((1 - r) * 108).toFixed(2)}%)`; l.style.opacity = o.toFixed(3); l.style.filter = r < 1 ? `blur(${((1 - r) * 5).toFixed(1)}px)` : 'none'; });   // 줄마다 마스크 + 블러 + 페이드가 겹쳐 떠오른다
     rl(aL, 1.3); rl(bL, 1.45);
-    { const vt = ty + Math.max(epA.offsetHeight, epB.offsetHeight) + (mob ? 120 : 56), vh2 = Hv, vw2 = Wv, vx = M, r = pr(2.1, 1.3, eoE);   // 21:9 : 남는 높이에 안 들어가면 비율을 지키며 줄이고 가운데 정렬   // 프로모션 영상 자리 (회색)
+    { const vt = mob ? by2 + epB.offsetHeight + 40 : ty + Math.max(epA.offsetHeight, epB.offsetHeight) + 56, vh2 = Hv, vw2 = Wv, vx = M, r = pr(2.1, 1.3, eioc);   // 16:9 : 남는 높이에 안 들어가면 비율을 지키며 줄이고 가운데 정렬   // 프로모션 영상 자리 (회색)
       vidEl.style.width = vw2.toFixed(0) + 'px'; vidEl.style.height = vh2.toFixed(0) + 'px'; vidEl.style.opacity = (clamp(r * 2) * (1 - eio(seg(sy, vh * .7, vh * 1.15)))).toFixed(3);
-      vidEl.style.transform = `translate(${vx.toFixed(1)}px,${(vt + (1 - r) * 48 - sy).toFixed(1)}px)`; }
+      vidEl.style.transform = `translate(${vx.toFixed(1)}px,${(vt + (1 - r) * 48 - sy).toFixed(1)}px)`;
+      window.__endVid = { x: vx, y: vt, w: vw2, h: vh2 }; }   // 영상 자리의 (스크롤 전) 위치와 크기 : 다음 장면(렌더 이미지 틀)이 이 자리에 이어 붙는다
   }
   rail.style.opacity = (1 - seg(fallT, .7, .95)).toFixed(3);
   gridLines.forEach(l => { l.style.opacity = (+bg.style.opacity * (1 - seg(fallT, .1, .5))).toFixed(3); });
@@ -232,6 +265,8 @@ function tick(now) {
     const hov = ptr.has && ptr.x >= r[0] && ptr.x <= r[0] + w && ptr.y >= r[1] && ptr.y <= r[1] + h; c.el.classList.toggle('on', hov);
     const showFill = f > .002; c.fill.style.visibility = showFill ? 'visible' : 'hidden';
     if (!showFill) return;
+    const as = ASC[bi]; if (c.cv && c.cv !== (as && as.cv)) c.cv.style.display = 'none';
+    if (as) { if (!as.key) ascii(as, bi); if (c.cv !== as.cv) { c.fill.prepend(as.cv); c.cv = as.cv; } as.cv.style.display = 'block'; c.fill.style.background = '#111014'; } else c.fill.style.background = '';
     c.fill.style.clipPath = CLIP[c.q]((1 - f) * 100);
     const lbl = ''; if (lbl !== c.lastLbl) { c.lbl.textContent = lbl; c.lastLbl = lbl; }
   });

@@ -7,7 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link rel="stylesheet" href="assets/grid.css?v=8">
-<link rel="stylesheet" href="assets/human-touch.css?v=28">
+<link rel="stylesheet" href="assets/human-touch.css?v=31">
+<link rel="stylesheet" href="assets/anatomy.css?v=19">
 <style>
   /* 스크롤바는 숨기되 스크롤은 그대로 된다 (크롬 · 사파리 · 파이어폭스) */
   html{scrollbar-width:none;-ms-overflow-style:none}
@@ -29,7 +30,7 @@
   #hero{position:absolute;left:50%;top:0;height:min(92vh,76vw);height:min(92dvh,76vw);width:auto;max-width:98vw;object-fit:contain;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform-origin:50% 0}
 
   body{font-family:var(--font-ui);-webkit-font-smoothing:antialiased;color:var(--ink)}
-  #scrollspace{height:4650vh}
+  #scrollspace{height:8790vh}
   /* ── 흰 화면 장면 : 도트가 중앙에서 쫙 퍼지고 'Hey,' → 왼쪽으로 → 'I'm LIEU' ── */
   #hey{position:fixed;inset:0;z-index:4;pointer-events:none;visibility:hidden}
   #heyDots{position:absolute;inset:0}
@@ -156,6 +157,10 @@
 <img id="hero" src="assets/product.webp" alt="" draggable="false">
 <div id="topShade" aria-hidden="true"></div>
 <canvas id="carCv" aria-hidden="true"></canvas>
+<div id="anatBg" aria-hidden="true"><div class="an-gr"></div></div>
+<canvas id="anatCv" aria-hidden="true"></canvas>
+<div id="bento" aria-hidden="true"></div>
+<div id="anat" aria-hidden="true"><div class="an-cap"></div><div class="an-box"><div class="an-n"></div><h3 class="an-h"></h3><p class="an-p"></p></div></div>
 <div id="hey" aria-hidden="true"><div id="darkWipe"></div><div id="driverText" class="sbText"></div><div id="storyText" class="sbText"></div><div id="heyDots"></div><div id="heyText"><span class="hey">Hey,</span><span class="im">I'm <b>LIEU</b></span></div></div>
 <div id="scrollspace"></div>
 
@@ -1421,7 +1426,7 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
    - 거리가 멀수록 조금 더 오래, 끝은 느리게 잦아든다 (easeOutQuart) · 휠 · 터치 · 키보드 입력이 오면 즉시 멈춘다 */
 (() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const POINTS = [0, 4.2, 5.4, 7.9, 9.5, 11.2, 11.75, 12.6, 15.9, 17.4, 20.2, 23.6, 27.0, 30.4, 33.8, 42.5, 44.0, 45.5];       // 화면 높이 배수 : 첫 화면 · Hey · 문구 · 차 도착 · 줌인 · 스토리 · 다크 스토리 · 휴먼 터치 5장면 · 끝
+  const POINTS = [0, 4.2, 5.4, 7.9, 9.5, 11.2, 11.75, 12.6, 15.9, 17.4, 20.2, 23.6, 27.0, 30.4, 33.8, 42.5];       // 화면 높이 배수 : 첫 화면 · Hey · 문구 · 차 도착 · 줌인 · 스토리 · 다크 스토리 · 휴먼 터치 5장면 · 끝
   const NEAR = .45, LONG = 5, FLICK = .18, IDLE = 90, WHEEL_QUIET = 110;
   let timer = 0, raf = 0, touching = false, lastWheel = 0, gestureY = null, lastMove = 0, lastY = scrollY;
   const maxY = () => document.documentElement.scrollHeight - innerHeight;
@@ -1429,6 +1434,7 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   const cancel = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } };
   const pick = () => {
     const vh = innerHeight, y = scrollY / vh, mx = maxY() / vh, pts = POINTS.map(k => Math.min(k, mx));
+    if (y > pts[pts.length - 1] + .001) return null;   // 마지막 장면 뒤 퇴장 구간은 스냅 없이 손으로 스크롤하는 만큼만 움직인다
     const dir = gestureY == null ? 0 : Math.sign(y - gestureY / vh) * (Math.abs(y - gestureY / vh) > .02 ? 1 : 0);
     let prev = null, next = null;
     for (const k of pts) { if (k <= y + .001) prev = k; if (k >= y - .001 && next == null) next = k; }
@@ -1484,9 +1490,11 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   })();
 })();
 </script>
-<script src="assets/human-touch.js?v=57"></script>
+<script src="assets/human-touch.js?v=78"></script>
 <script src="assets/luminous.js?v=1"></script>
 <script src="assets/color-panel.js?v=2"></script>
 <script type="module" src="assets/car-scene.js?v=59"></script>
+<script type="module" src="assets/anatomy-scene.js?v=52"></script>
+<script type="module" src="assets/bento.js?v=27"></script>
 </body>
 </html>
