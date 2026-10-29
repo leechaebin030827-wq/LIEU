@@ -281,7 +281,7 @@ if (cv && ui) {
     if (ev) AN = (bn ? bn.SCROLL0 : 46.6) + (ev.y + ev.h + innerHeight * .1) / innerHeight + (bn ? bn.HOLD : 10) + .6;
     const y = scrollY / (innerHeight || 1), t = typeof window.__anatTS === 'number' ? window.__anatTS : y - AN;   // __anatTS : 디버그용으로 장면 진행값을 고정한다
     if ((y > AN - 8 || typeof window.__anatTS === 'number') && !loading) load();
-    const on = t > -3.6 && ready;   // 끝 장면의 영상 자리가 올라가기 시작할 때부터 렌더 이미지 틀이 아래에서 올라온다
+    const on = t > -4.6 && ready;   // 끝 장면의 영상 자리가 올라가기 시작할 때부터 렌더 이미지 틀이 아래에서 올라온다
     if (on !== activeNow) { activeNow = on; cv.style.visibility = ui.style.visibility = on ? 'visible' : 'hidden'; if (!on && bgEl) { bgEl.style.visibility = 'hidden'; if (grain) grain.setVisible(false); } }
     if (!on) return;
     tS = tS < -8 ? t : tS + (t - tS) * (1 - Math.exp(-dt * 9));   // 스크롤이 급해도 한 박자 부드럽게 따라간다
@@ -310,7 +310,7 @@ if (cv && ui) {
     // 회전 : 링이 ±30° 로 왔다 갔다 하고, 피니언은 기어비만큼 더 많이 돌아 그 움직임을 만든다 (원인 → 결과). 눈이 정면을 볼 때(p = 4) 가운데에서 좌우로 훑는다
     const amp = 30 * sm(seg(p, -.6, -.2)) * (1 - sm(seg(p, 5.0, 5.5))), thd = amp * Math.sin(2.2 * (p - 4)), th = THREE.MathUtils.degToRad(thd), pin = -thd * MOCK_NR / MOCK_NP, Y = new THREE.Vector3(0, 1, 0);
     // 도입 : 스크롤을 내리면 도넛 부분만(기둥 · 빛 · 투사는 그대로) 위아래 축으로 두 바퀴 빙글 돈다. 끝에서 처음 각도와 같아져 엑스레이 구도와 맞는다
-    const dTilt = THREE.MathUtils.degToRad(11 * Math.sin(Math.PI * sm(seg(ts, -3, .45)))), dSpin = THREE.MathUtils.degToRad(720 * sm(seg(ts, -3, .45))),   // 돌면서 살짝 기울어지는 세차 운동(시작과 끝은 0) : 검은 실루엣의 외곽선이 변해서 도는 것이 보인다
+    const dTilt = THREE.MathUtils.degToRad(11 * Math.sin(Math.PI * sm(seg(ts, -3.4, .45)))), dSpin = THREE.MathUtils.degToRad(720 * sm(seg(ts, -3.4, .45))),   // 돌면서 살짝 기울어지는 세차 운동(시작과 끝은 0) : 검은 실루엣의 외곽선이 변해서 도는 것이 보인다
       DONUT = new Set(['shellTop', 'shellLow', 'ring', 'eyes', 'bearing', 'drive']);
     for (const [n, g] of Object.entries(G)) {
       const ee = ex * (1 - rw[n]), turns = n === 'ring' || n === 'shellLow' || n === 'eyes';
@@ -349,7 +349,9 @@ if (cv && ui) {
     const fx = bf ? bf.x : 0, fy = bf ? bf.y : 0, fw = bf ? bf.w : 0, fh = bf ? bf.h : 0, full = !!bf && fw >= vw - 1 && fh >= vh - 1;
     const clip = !bf ? 'inset(100% 0 0 0)' : full ? 'none' : `inset(${fy.toFixed(1)}px ${(vw - fx - fw).toFixed(1)}px ${(vh - fy - fh).toFixed(1)}px ${fx.toFixed(1)}px)`;
     // 제품은 칸의 윗면(천장)에 매달려 칸의 가운데에서 따라간다 (칸이 화면을 채우면 0)
-    if (bf && !full) camera.setViewOffset(vw, vh, -(fx + fw / 2 - vw / 2), -fy, vw, vh); else camera.clearViewOffset();
+    // 제품은 틀이 아래에서 올라오는 동안 천장(틀의 윗변)에서 아래로 내려온다 : 틀의 높이가 커지는 만큼 내려와 자리를 잡는다
+    const drop = bf ? sm(seg(fh / vh, .06, .625)) : 0;
+    if (bf && (!full || drop < 1)) camera.setViewOffset(vw, vh, -(fx + fw / 2 - vw / 2), -fy + (1 - drop) * vh * .85, vw, vh); else camera.clearViewOffset();
     const sil = sp < .5 && sMix < .01;
     if (sil !== silOn) { silOn = sil; silMeshes.forEach(m => { m.visible = sil; }); }
     cv.style.clipPath = clip; cv.style.filter = 'none';   // 실루엣 둘레의 부드러운 글로우 (스캔이 시작되면 끈다)
