@@ -244,7 +244,8 @@ if (cv && ui) {
     const r = heroRect(), viewH = HERO.donutW * vh / (r.w * .98) / k, dist = viewH / (2 * Math.tan(THREE.MathUtils.degToRad(15)));
     return { c: new THREE.Vector3(0, HERO.cy, 0), dist, az: HERO.az, el: HERO.el, side: 'left', shift: 0, shiftY: (k * (r.y + HERO.donutY * r.h) / vh - .5) * viewH };
   };
-  let fillK = 0, spT = 0;   // spT : 엑스레이 · 라이트 모드 전환 (한 번에 스냅된다)
+  let fillK = 0, spT = 0, dropT = 0, spinT = 0;   // dropT : 모델이 내려오는 정도, spinT : 도넛이 도는 정도 (둘 다 시간으로 재생된다)
+     // spT : 엑스레이 · 라이트 모드 전환 (한 번에 스냅된다)
      // 틀이 화면을 채운 정도 (0 ~ 1)
   const zoomK = () => lerp(HERO.zoom0, 1, sm(seg(fillK, .5, 1)));   // 틀이 커지는 만큼 제품도 자연스럽게 커진다
 
@@ -278,7 +279,7 @@ if (cv && ui) {
     const dt = Math.min(.05, (now - last) / 1000); last = now;
     if (innerWidth !== vw || innerHeight !== vh) { resize(); fitScanTop(); }   // 창 크기가 바뀌었는데 resize 이벤트가 오지 않는 경우도 따라간다
     const ev = window.__endVid, bn = window.Bento;   // 그리드가 끝나는 지점에서 장면의 기준점을 잡는다 : 끝 장면 영상 자리 + HOLD + 여유
-    if (ev) AN = (bn ? bn.SCROLL0 : 46.6) + (ev.y + ev.h + innerHeight * .1) / innerHeight + (bn ? bn.HOLD : 10) + .6;
+    if (ev) AN = (bn ? bn.SCROLL0 : 43.9) + (ev.y + ev.h + innerHeight * .1) / innerHeight + (bn ? bn.HOLD : 10) + .6;
     const y = scrollY / (innerHeight || 1), t = typeof window.__anatTS === 'number' ? window.__anatTS : y - AN;   // __anatTS : 디버그용으로 장면 진행값을 고정한다
     if ((y > AN - 8 || typeof window.__anatTS === 'number') && !loading) load();
     const on = t > -4.6 && ready;   // 끝 장면의 영상 자리가 올라가기 시작할 때부터 렌더 이미지 틀이 아래에서 올라온다
@@ -287,6 +288,11 @@ if (cv && ui) {
     tS = tS < -8 ? t : tS + (t - tS) * (1 - Math.exp(-dt * 9));   // 스크롤이 급해도 한 박자 부드럽게 따라간다
     const ts = tS, bf = window.__bentoFrame;   // bf : 그리드의 마지막 칸(실루엣 틀)의 위치와 크기
     fillK = bf ? clamp(bf.w * bf.h / (vw * vh)) : 0;
+    // 순서 : 틀이 딱 스냅되어 자리를 잡으면 → 이미 반쯤 내려와 있던 모델이 마저 내려오고, 그동안 도넛이 돈다 (내려오는 것이 끝난 뒤에도 돌다가 멈춘다). 틀이 다시 줄어들면 처음으로 돌아간다
+    { const settled = bf && bf.h / vh > .6, gone = !bf || bf.h / vh < .3;
+      if (ts > TL.scan[0]) { dropT = spinT = 1; }
+      else if (settled) { dropT = Math.min(1, dropT + dt / .95); spinT = Math.min(1, spinT + dt / 2.8); }
+      else if (gone) { dropT = spinT = 0; } }
     spT += ((ts > TL.scan[0] ? 1 : 0) - spT) * (1 - Math.exp(-dt * 34));   // 틀이 꽉 차는 순간 스캔선이 훑는 대신 배경이 라이트로 바뀌며 곧바로 엑스레이가 된다 (약 0.1초)
     const N = PARTS.length, ap = 1, sp = spT, ex = eio(seg(ts, TL.explode[0], TL.explode[1]));
     const p = (ts - TL.parts) / TL.len - .5;   // 부품 i 의 한가운데가 p = i
@@ -310,7 +316,7 @@ if (cv && ui) {
     // 회전 : 링이 ±30° 로 왔다 갔다 하고, 피니언은 기어비만큼 더 많이 돌아 그 움직임을 만든다 (원인 → 결과). 눈이 정면을 볼 때(p = 4) 가운데에서 좌우로 훑는다
     const amp = 30 * sm(seg(p, -.6, -.2)) * (1 - sm(seg(p, 5.0, 5.5))), thd = amp * Math.sin(2.2 * (p - 4)), th = THREE.MathUtils.degToRad(thd), pin = -thd * MOCK_NR / MOCK_NP, Y = new THREE.Vector3(0, 1, 0);
     // 도입 : 스크롤을 내리면 도넛 부분만(기둥 · 빛 · 투사는 그대로) 위아래 축으로 두 바퀴 빙글 돈다. 끝에서 처음 각도와 같아져 엑스레이 구도와 맞는다
-    const dTilt = THREE.MathUtils.degToRad(11 * Math.sin(Math.PI * sm(seg(ts, -3.4, .45)))), dSpin = THREE.MathUtils.degToRad(720 * sm(seg(ts, -3.4, .45))),   // 돌면서 살짝 기울어지는 세차 운동(시작과 끝은 0) : 검은 실루엣의 외곽선이 변해서 도는 것이 보인다
+    const dTilt = THREE.MathUtils.degToRad(11 * Math.sin(Math.PI * (1 - Math.pow(1 - spinT, 3)))), dSpin = THREE.MathUtils.degToRad(720 * (1 - Math.pow(1 - spinT, 3))),   // 돌면서 살짝 기울어지는 세차 운동(시작과 끝은 0) : 검은 실루엣의 외곽선이 변해서 도는 것이 보인다
       DONUT = new Set(['shellTop', 'shellLow', 'ring', 'eyes', 'bearing', 'drive']);
     for (const [n, g] of Object.entries(G)) {
       const ee = ex * (1 - rw[n]), turns = n === 'ring' || n === 'shellLow' || n === 'eyes';
@@ -350,7 +356,7 @@ if (cv && ui) {
     const clip = !bf ? 'inset(100% 0 0 0)' : full ? 'none' : `inset(${fy.toFixed(1)}px ${(vw - fx - fw).toFixed(1)}px ${(vh - fy - fh).toFixed(1)}px ${fx.toFixed(1)}px)`;
     // 제품은 칸의 윗면(천장)에 매달려 칸의 가운데에서 따라간다 (칸이 화면을 채우면 0)
     // 제품은 틀이 아래에서 올라오는 동안 천장(틀의 윗변)에서 아래로 내려온다 : 틀의 높이가 커지는 만큼 내려와 자리를 잡는다
-    const drop = bf ? sm(seg(fh / vh, .06, .625)) : 0;
+    const drop = .5 + .5 * (1 - Math.pow(1 - dropT, 3));   // 틀이 자리를 잡을 때 이미 반쯤 내려와 있고, 마저 부드럽게 내려와 멈춘다
     if (bf && (!full || drop < 1)) camera.setViewOffset(vw, vh, -(fx + fw / 2 - vw / 2), -fy + (1 - drop) * vh * .85, vw, vh); else camera.clearViewOffset();
     const sil = sp < .5 && sMix < .01;
     if (sil !== silOn) { silOn = sil; silMeshes.forEach(m => { m.visible = sil; }); }
@@ -373,5 +379,5 @@ if (cv && ui) {
     box.style.opacity = a.toFixed(3); box.style.transform = `translateY(calc(-50% + ${((1 - a) * 22).toFixed(1)}px))`; box.style.filter = a < 1 ? `blur(${((1 - a) * 6).toFixed(1)}px)` : 'none';
   };
   requestAnimationFrame(frame);
-  window.Anatomy = { get AN() { return AN; }, TL, HERO, look, get ready() { return ready; } };
+  window.Anatomy = { get AN() { return AN; }, get seq() { return { dropT, spinT }; }, TL, HERO, look, get ready() { return ready; } };
 }

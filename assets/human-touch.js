@@ -12,12 +12,13 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const NS = 'http://www.w3.org/2000/svg', HALF = Math.PI / 2;
 
 // 도입 : 파란 공이 나타나 가로선 위를 오가다가 가운데로 오고, 거기서 세로선이 뻗어 그리드가 생긴 뒤 첫 칸 위치로 자리 잡는다
-const T = { end: [42.5, 46.6], show: 13.9, bg: [14.1, 14.5], ball: [14.4, 15.0], hline: [14.7, 15.5], slide: [15.2, 16.8], vline: [16.9, 17.6], settle: [17.6, 18.6], text0: [18.9, 19.5], s: [18.6, 22.0, 25.4, 28.8, 32.2], out: [34.4, 42.4] };   // out : 끝 장면 뒤 퇴장 (점이 가운데로 와서 가로선이 줄고, 위로 살짝 떴다가 아래로 떨어지며 라이트 모드로)
-const N = 5;
+const PRO = { in: [14.6, 15.8], hold: [15.8, 17.4], out: [17.4, 18.5] };   // 프로모션 영상 자리 : 아래에서 올라와(스크롤과 1:1) 가운데에 머물다가 위로 올라가 사라진다. 그 뒤에 휴먼 터치 장면이 이어진다
+const T = { end: [39.8, 43.9], show: 13.9, bg: [14.1, 14.5], ball: [18.5, 19.1], hline: [18.8, 19.6], slide: [19.3, 20.9], vline: [21.0, 21.7], settle: [21.7, 22.7], text0: [23.0, 23.6], s: [22.7, 26.1, 29.5], out: [31.7, 39.7] };   // 장면 3개 : I was born… / But a driver… / A warm welcome. · A quick heads-up. · A gentle reminder. (세 문장이 한 장면에 함께). out : 끝 장면 뒤 퇴장 (점이 가운데로 와서 가로선이 줄고, 위로 살짝 떴다가 아래로 떨어지며 라이트 모드로)
+const N = 3;
 // 허브 위치(화면 비율) · 이미지 칸 · 글 칸 : 데스크톱 / 모바일
 const LAY = {
-  d: { hub: [[3, 2], [9, 6], [3, 2], [9, 6], [3, 2]], img: [null, null, 'BR', 'TL', 'BL'], txt: ['BR', 'TL', 'TR', 'BL', 'TR'] },
-  m: { hub: [[1, 2], [3, 6], [1, 2], [3, 6], [1, 6]], img: [null, null, 'BR', 'TL', 'TR'], txt: ['BR', 'TL', 'TR', 'BL', 'BR'] }
+  d: { hub: [[3, 2], [9, 6], [3, 2]], img: [null, null, null], txt: ['BR', 'TL', 'BR'] },
+  m: { hub: [[1, 2], [3, 6], [1, 2]], img: [null, null, null], txt: ['BR', 'TL', 'BR'] }
 };
 const FALLBACK = { s1: ['I was born to bring', 'a little <em>human touch</em>', 'to driverless rides.'], s2a: ['Now, taxis can', 'drive themselves.'], s2b: ['But a driver did', '<em>more than</em> drive.'],
   b: [['A warm', 'welcome.'], ['A quick', 'heads-up.'], ['A gentle', 'reminder.']] };
@@ -28,6 +29,7 @@ const root = document.createElement('div'); root.id = 'ht';
 root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidden;height:0;width:var(--content);display:grid;column-gap:var(--gutter)"></div><div class="ht-bg"></div><div class="ht-cells"></div><svg class="ht-rail" aria-hidden="true"></svg><div class="ht-lt"></div><div class="ht-end"><div class="ht-eh"></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div><div class="ht-ep"><i class="hr"></i><div class="tx"></div></div><div class="ht-vid"></div></div>';
 document.body.appendChild(root);
 const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells'), lt = root.querySelector('.ht-lt'), endEl = root.querySelector('.ht-end'), ehEl = endEl.children[0], epA = endEl.children[1], epB = endEl.children[2], vidEl = endEl.children[3]; let endKey = '', ehL = [], aL = [], bL = [], et = 0, endIn = 0;   // et : 끝 장면의 시간 (초). 스크롤은 방아쇠일 뿐, 모션은 시간으로 흐른다 (obys 처럼 stagger + power3.out)
+const promo = document.createElement('div'); promo.className = 'ht-promo'; cellsEl.after(promo);   // 16:9 프로모션 영상 자리 (검정)
 const mk = (p, n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
 
 /* 허브 + 레일 */
@@ -72,10 +74,10 @@ CLIP.TR = a => `inset(${a}% ${a}% 0 0)`;
 const lines = arr => arr.map(l => `<span class="ln"><i>${l}</i></span>`).join('');
 const strip = arr => arr.join(' ').replace(/<[^>]+>/g, '');
 const wide = s => /[　-鿿가-힯]/.test(s);
-const blocks = [0, 1, 2, 3, 4].map(() => { const el = document.createElement('div'); el.className = 'tb'; el.innerHTML = '<div class="h"></div><div class="p"></div><div class="n"></div>'; root.appendChild(el); return { el, h: el.querySelector('.h'), p: el.querySelector('.p'), n: el.querySelector('.n'), fs: 0, w: 0 }; });
+const blocks = [0, 1, 2].map(() => { const el = document.createElement('div'); el.className = 'tb'; el.innerHTML = '<div class="h"></div><div class="p"></div><div class="n"></div>'; root.appendChild(el); return { el, h: el.querySelector('.h'), p: el.querySelector('.p'), n: el.querySelector('.n'), fs: 0, w: 0 }; });
 function setText(t) {
   TX = t || FALLBACK;
-  const H = [TX.s1, TX.s2b, ...TX.b.map(a => [a.join(' ')])], P = [null, [strip(TX.s2a)], null, null, null];
+  const H = [TX.s1, TX.s2b, TX.b.map(a => a.join(' '))], P = [null, [strip(TX.s2a)], null];   // 마지막 장면 : 세 문장이 한 블록의 세 줄로 위에서 아래로 함께 뜬다
   blocks.forEach((b, i) => {
     b.h.innerHTML = lines(H[i]); b.p.innerHTML = P[i] ? lines(P[i]) : ''; b.n.textContent = '';
     b.hl = [...b.h.querySelectorAll('.ln i')]; b.pl = [...b.p.querySelectorAll('.ln i')]; b.nl = H[i].length;
@@ -107,7 +109,7 @@ const quad = (hx, hy, q) => {
 
 /* 이미지 칸의 사진 : 점자(braille) ASCII 텍스처. 장면 번호 → 사진. 칸 크기에 맞춰 한 번만 그리고, 칸이 늘고 줄 때는 cover 로 따라간다. */
 const BRAILLE = false;   // true : 점자 ASCII 텍스처로 그린다
-const ASC = { 2: { src: 'assets/driver.webp?v=2', cv: null, key: '' }, 3: { src: 'assets/driver.webp?v=2', cv: null, key: '' }, 4: { src: 'assets/driver.webp?v=2', cv: null, key: '' } };
+const ASC = {};   // 장면에 이미지는 넣지 않는다 (글만)
 Object.values(ASC).forEach(a => { a.img = new Image(); a.img.onload = () => { a.key = ''; asciiAll(); }; a.img.src = a.src; a.cv = document.createElement('canvas'); a.cv.className = 'ht-proj'; a.cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block'; });
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 function ascii(a, i) {
@@ -163,6 +165,12 @@ function tick(now) {
   if (y < T.show) { if (root.style.visibility !== 'hidden') root.style.visibility = 'hidden'; init = false; return; }
   root.style.visibility = 'visible';
   bg.style.opacity = eio(seg(y, T.bg[0], T.bg[1])).toFixed(3);
+  {   // 프로모션 영상 자리 : 16:9, 화면 높이의 74% 안에 들어오는 크기, 가운데 정렬
+    const pw = Math.min(vw - 2 * mg, 1400, vh * .74 * 16 / 9), ph = pw * 9 / 16, yc = (vh - ph) / 2, ein = eio(seg(y, PRO.in[0], PRO.in[1])), eout = eio(seg(y, PRO.out[0], PRO.out[1]));
+    const py = eout > 0 ? lerp(yc, -ph - 24, eout) : lerp(vh + 24, yc, ein), on = y > PRO.in[0] - .25 && y < PRO.out[1] + .25;
+    promo.style.visibility = on ? 'visible' : 'hidden';
+    if (on) { promo.style.width = pw.toFixed(1) + 'px'; promo.style.height = ph.toFixed(1) + 'px'; promo.style.transform = `translate3d(${((vw - pw) / 2).toFixed(1)}px,${py.toFixed(1)}px,0)`; }
+  }
   rail.style.setProperty('--gl', bg.style.opacity); gridLines.forEach(l => { l.style.opacity = bg.style.opacity; });
 
   // 장면 위치 u (가볍게 따라감). 탄성은 아래 허브 스프링이 맡는다
@@ -288,5 +296,5 @@ function tick(now) {
 }
 requestAnimationFrame(tick);
 
-window.HumanTouch = { setText };
+window.HumanTouch = { setText, T };
 })();
