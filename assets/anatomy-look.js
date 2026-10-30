@@ -57,28 +57,31 @@ export function createLook(renderer, scene, camera) {
 
   /* ── 재질 규칙 (이름 기반) ── */
   const mats = [];   // after 재질 (조절 대상)
-  const reg = (m, r, mt) => { m.userData.base = { r: r ?? m.roughness, m: mt ?? m.metalness }; mats.push(m); return m; };
+  const reg = (m, r, mt, k) => { m.userData.base = { r: r ?? m.roughness, m: mt ?? m.metalness }; m.userData.envK = k ?? 1; mats.push(m); return m; };   // k : 환경 반사의 세기 배율 (금속은 낮춰야 하얗게 날아가지 않고 음영이 산다)
   const phys = o => new THREE.MeshPhysicalMaterial(o);
   const AFTER = {};
   const afterFor = (g, o, hooks = {}) => {
     const chain = []; for (let q = o; q && q !== g.pivot; q = q.parent) chain.push(q.name); const c = chain.join('|'), has = (...k) => k.some(x => c.includes(x));
     let key2, make;
-    const body = () => reg(phys({ color: params.bodyColor, roughness: .44, metalness: 0, specularIntensity: .55, side: THREE.DoubleSide }));   // 뉴트럴 화이트 새틴 : 푸르지도 따뜻하지도 않다
-    const plastic = (c, r = .5) => () => reg(phys({ color: c, roughness: r, metalness: 0, specularIntensity: .5 }));
-    const metal = (c, r, m = 1) => () => reg(phys({ color: c, roughness: r, metalness: m }));
+    // 소재는 "깔끔한 제품 렌더" 기준 : 흰 외피는 얇은 클리어코트가 있는 새틴, 어두운 기계 부품은 새틴 아노다이징 알루미늄(모서리에 또렷한 하이라이트), 금속은 매끈한 광택
+    const body = () => reg(phys({ color: params.bodyColor, roughness: .3, metalness: 1, clearcoat: .22, clearcoatRoughness: .18, side: THREE.DoubleSide }), undefined, undefined, .72);   // 외피 : 흰색 아노다이징 알루미늄 (색은 밝게, 반사는 금속)   // 뉴트럴 화이트 새틴 : 푸르지도 따뜻하지도 않다
+    const plastic = (c, r = .5) => () => reg(phys({ color: c, roughness: r, metalness: 0, specularIntensity: .55 }));
+    const metal = (c, r, m = 1, k = .64) => () => reg(phys({ color: c, roughness: r, metalness: m }), undefined, undefined, k);
+    const dark = (c = '#585C63') => () => reg(phys({ color: c, roughness: .24, metalness: 1, clearcoat: .6, clearcoatRoughness: .08 }), undefined, undefined, .55);   // 다크 기계 부품 : 검게 뭉개지지 않게 밝기를 두고, 코팅이 만드는 선명한 반사로 모서리를 살린다
+    const alu = (c, r, m = .6) => () => reg(phys({ color: c, roughness: r, metalness: m, clearcoat: .15, clearcoatRoughness: .3 }));   // 가공한 알루미늄
     if (g.name === 'shellTop' || g.name === 'shellLow') { key2 = 'body'; make = body; }
     else if (g.name === 'eyes') { key2 = 'body'; make = body; }
     else if (g.name === 'pillar') {
-      if (has('기둥')) { key2 = 'pillar'; make = () => { const m = reg(phys({ color: '#DDDDDD', roughness: .36, metalness: .55, transparent: true })); hooks.addFade && hooks.addFade(m); return m; }; }
-      else if (has('샤프트', '브라켓')) { key2 = 'steel'; make = metal('#CACACA', .3); }
-      else { key2 = 'dark'; make = metal('#575757', .5, .2); }   // 다크 기계 부품 : 검게 뭉개지지 않게 밝기를 올려 구조가 보이게
+      if (has('기둥')) { key2 = 'pillar'; make = () => { const m = reg(phys({ color: '#E2E2E4', roughness: .3, metalness: .6, clearcoat: .3, clearcoatRoughness: .2, transparent: true })); hooks.addFade && hooks.addFade(m); return m; }; }
+      else if (has('샤프트', '브라켓')) { key2 = 'steel'; make = metal('#E0E2E6', .18); }
+      else { key2 = 'dark'; make = dark(); }
     }
-    else if (g.name === 'light') { if (has('LED_부착부')) { key2 = 'flange'; make = metal('#D5D5D5', .3, .9); } else { key2 = 'cup'; make = metal('#C3C3C3', .36, .9); } }
-    else if (g.name === 'projector') { key2 = 'proj'; make = metal('#515151', .42, .35); }
-    else if (g.name === 'drive') { if (has('베어링_기어', 'HORN', 'PHS', 'BTS2', 'IDLE')) { key2 = 'steel'; make = metal('#CACACA', .3); } else { key2 = 'dark'; make = metal('#575757', .5, .2); } }
-    else if (g.name === 'ring') { key2 = 'ring'; make = plastic('#E2E2E2', .5); }
-    else if (g.name === 'bearing') { if (has('베어링_중부')) { key2 = 'cage'; make = plastic('#C8C8C8', .55); } else { key2 = 'bearing'; make = plastic('#E0E0E0', .52); } }
-    else { key2 = 'other'; make = plastic('#CFCFCF'); }
+    else if (g.name === 'light') { if (has('LED_부착부')) { key2 = 'flange'; make = metal('#E0E2E6', .2, 1); } else { key2 = 'cup'; make = metal('#CDD0D5', .24, 1); } }
+    else if (g.name === 'projector') { key2 = 'proj'; make = dark('#575A61'); }
+    else if (g.name === 'drive') { if (has('베어링_기어', 'HORN', 'PHS', 'BTS2', 'IDLE')) { key2 = 'steel'; make = metal('#E0E2E6', .18); } else { key2 = 'dark'; make = dark(); } }
+    else if (g.name === 'ring') { key2 = 'ring'; make = metal('#D7DAE0', .27); }   // 링 기어 : 가공한 금속 (이빨마다 하이라이트가 걸린다)
+    else if (g.name === 'bearing') { if (has('베어링_중부')) { key2 = 'cage'; make = metal('#9EA3AC', .34); } else { key2 = 'bearing'; make = metal('#DADDE2', .26); } }
+    else { key2 = 'other'; make = metal('#C9CCD3', .32); }
     const kk = g.name + ':' + key2;   // 투명도를 부품(묶음)마다 다르게 쓰므로 재질은 묶음별
     return AFTER[kk] || (AFTER[kk] = make());
   };
@@ -93,7 +96,7 @@ export function createLook(renderer, scene, camera) {
     scene.environment = after ? studioEnv : roomEnv;
     hemi.visible = sun.visible = !after; key.visible = fill.visible = after;
     key.intensity = params.keyIntensity; fill.intensity = params.fillIntensity;
-    mats.forEach(m => { m.envMapIntensity = params.envIntensity; m.roughness = THREE.MathUtils.clamp(m.userData.base.r * params.roughnessScale, .03, 1); m.metalness = THREE.MathUtils.clamp(m.userData.base.m * params.metalnessScale, 0, 1); });
+    mats.forEach(m => { m.envMapIntensity = params.envIntensity * (m.userData.envK ?? 1); m.roughness = THREE.MathUtils.clamp(m.userData.base.r * params.roughnessScale, .03, 1); m.metalness = THREE.MathUtils.clamp(m.userData.base.m * params.metalnessScale, 0, 1); });
     bodyMats().forEach(m => m.color.set(params.bodyColor));
     listeners.forEach(f => f(params.mode));
   };

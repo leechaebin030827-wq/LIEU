@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { createGrainient } from './grainient.js?v=1';   // React Bits Grainient 를 바닐라로 옮긴 것 : 틀의 배경 그라데이션
-import { createLook } from './anatomy-look.js?v=4';   // 조명 · 환경 · 재질 값 · 톤매핑 · AO · 디버그 패널 (형상과 분해 연출은 건드리지 않는다)
+import { createLook } from './anatomy-look.js?v=11';   // 조명 · 환경 · 재질 값 · 톤매핑 · AO · 디버그 패널 (형상과 분해 연출은 건드리지 않는다)
 
 const cv = document.getElementById('anatCv'), ui = document.getElementById('anat');
 if (cv && ui) {
@@ -120,7 +120,7 @@ if (cv && ui) {
   });
 
   /* ── 솔리드 재질 : 렌더 사진에서 뽑은 색. 외장은 위(윗 테두리)가 짙고 옆 · 아래가 연한 라벤더, 기둥 · 렌즈는 금속. 부품마다 실제 재질에 가깝게 ── */
-  const SOLID = true;   // false : 분해 이후에도 엑스레이로만 보인다
+  const SOLID = true;   // false : 분해 이후에도 엑스레이로만 보인다. true : 부품을 하나씩 소개하는 장면부터 솔리드 렌더로 바뀐다 (한꺼번에 펼쳐진 분해도는 고스트 뷰)
   const shellMat = (top, side, under) => {
     const m = new THREE.MeshPhysicalMaterial({ color: side, roughness: .52, metalness: 0, clearcoat: .3, clearcoatRoughness: .45, side: THREE.DoubleSide });
     m.onBeforeCompile = sh => {
@@ -255,8 +255,8 @@ if (cv && ui) {
   const setCopy = (i, L) => { const c = COPY[L][PARTS[i].id]; nEl.textContent = `${String(i + 1).padStart(2, '0')} / ${String(PARTS.length).padStart(2, '0')}`; hEl.textContent = c[0]; pEl.textContent = c[1]; shownPart = i; shownLang = L; };
 
   /* ── 크기 ── */
-  let vw = 0, vh = 0, mob = false, mg = 24;
-  const resize = () => { vw = innerWidth; vh = innerHeight; mob = vw < 640; mg = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin')) || 24; renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); renderer.setSize(vw, vh, false); look.resize(vw, vh, Math.min(devicePixelRatio || 1, 2)); camera.aspect = vw / vh; camera.updateProjectionMatrix(); };
+  let vw = 0, vh = 0, mob = false, mg = 24, modelCx = 0, modelW = 0;   // modelCx : 부품 장면에서 모델 가운데가 놓일 가로 위치 (글이 서는 컬럼의 왼쪽 컬럼들의 가운데)
+  const resize = () => { vw = innerWidth; vh = innerHeight; mob = vw < 640; mg = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin')) || 24; { const cs = getComputedStyle(document.documentElement), cols = parseInt(cs.getPropertyValue('--cols')) || 12, gut = parseFloat(cs.getPropertyValue('--gutter')) || 16, maxw = parseFloat(cs.getPropertyValue('--maxw')) || 1680, content = Math.min(vw - 2 * mg, maxw), left = (vw - content) / 2, col = (content - (cols - 1) * gut) / cols, n = cols >= 12 ? 7 : 4; modelW = n * col + (n - 1) * gut; modelCx = left + modelW / 2; } renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); renderer.setSize(vw, vh, false); look.resize(vw, vh, Math.min(devicePixelRatio || 1, 2)); camera.aspect = vw / vh; camera.updateProjectionMatrix(); };
   addEventListener('resize', () => { resize(); fitScanTop(); }); resize();
 
   /* ── 카메라 ── */
@@ -306,7 +306,7 @@ if (cv && ui) {
     scanDisc.visible = scanRing.visible = scanning && SCAN_GLOW; scanDisc.position.y = scanRing.position.y = uScan.value;
 
     // 부품별 가중치 · 위치 · 재질
-    const sMix = SOLID ? sm(seg(ts, TL.explode[0] - .2, TL.explode[0] + 1.0)) : 0;   // 엑스레이 구조 → 솔리드 : 분해가 시작될 때 바뀐다
+    const sMix = SOLID ? sm(seg(ts, TL.parts - .6, TL.parts + .6)) : 0;   // 엑스레이(고스트) → 솔리드 : 분해도가 다 펼쳐진 뒤, 첫 부품(Motor) 소개가 시작될 때 바뀐다
     const gw = {}, rw = {}; Object.keys(G).forEach(n => { gw[n] = 0; rw[n] = 0; });
     PARTS.forEach((pt, i) => {
       const w = 1 - sm(seg(Math.abs(p - i), .25, .6)), wr = 1 - sm(seg(Math.abs(p - i), .15, .5));
@@ -341,7 +341,7 @@ if (cv && ui) {
     if (p > -.5) {
       const idx = clamp(Math.floor(p), -1, N), fr = p - Math.floor(p), bt = sm(seg(fr, .25, .75));
       const from = idx < 0 ? poses.exp : idx >= N ? poses.exp : poses.parts[idx], to = idx + 1 >= N ? poses.exp : poses.parts[idx + 1];
-      const pe = q => ({ ...q, shift: -(q.b || 1), ms: 1 });   // 부품 자세 : 왼쪽으로 밀려서 가장자리에서 잘린다
+      const pe = q => ({ ...q, shift: 0, ms: 1 });   // 부품 자세 : 가운데 구도 (가로 위치는 아래의 뷰 오프셋이 컬럼에 맞춘다)
       const a0 = idx < 0 ? { ...poses.exp, shift: 0 } : pe(from);
       const a1 = idx + 1 >= N ? { ...poses.exp, shift: 0 } : pe(to);
       if (idx < 0) P = mixPose({ ...poses.exp, shift: 0 }, { ...a1, ms: 1 }, sm(seg(p, -.5, 0)));
@@ -349,6 +349,7 @@ if (cv && ui) {
       else P = mixPose(a0, a1, bt);
       if (p > -.4 && p < N - .6) P.az += (p - Math.round(p)) * 22;   // 머무는 동안에도 천천히 돌아간다
     }
+    if (!mob && modelW) P.dist *= lerp(1, clamp(.88 / (modelW / vh), 1, 1.5), fm);   // 부품 장면 : 모델 영역(왼쪽 컬럼들)이 좁은 화면에서는 모델이 마진 밖으로 잘리지 않게 조금 멀리서 본다 (넓은 화면에서는 그대로)
     place(P);
     camera.updateMatrixWorld(true);
     // 실루엣 틀 : 그리드의 마지막 칸이다. 배경과 제품은 이 칸 안에만 그려지고, 칸이 화면 전체로 커지면 그대로 꽉 찬다
@@ -357,7 +358,8 @@ if (cv && ui) {
     // 제품은 칸의 윗면(천장)에 매달려 칸의 가운데에서 따라간다 (칸이 화면을 채우면 0)
     // 제품은 틀이 아래에서 올라오는 동안 천장(틀의 윗변)에서 아래로 내려온다 : 틀의 높이가 커지는 만큼 내려와 자리를 잡는다
     const drop = .5 + .5 * (1 - Math.pow(1 - dropT, 3));   // 틀이 자리를 잡을 때 이미 반쯤 내려와 있고, 마저 부드럽게 내려와 멈춘다
-    if (bf && (!full || drop < 1)) camera.setViewOffset(vw, vh, -(fx + fw / 2 - vw / 2), -fy + (1 - drop) * vh * .85, vw, vh); else camera.clearViewOffset();
+    if (bf && (!full || drop < 1)) camera.setViewOffset(vw, vh, -(fx + fw / 2 - vw / 2), -fy + (1 - drop) * vh * .85, vw, vh); else if (!mob && fm > .002) camera.setViewOffset(vw, vh, -(modelCx - vw / 2) * fm, 0, vw, vh);   // 부품 장면 : 모델을 글 왼쪽 컬럼들의 가운데로
+    else camera.clearViewOffset();
     const sil = sp < .5 && sMix < .01;
     if (sil !== silOn) { silOn = sil; silMeshes.forEach(m => { m.visible = sil; }); }
     cv.style.clipPath = clip; cv.style.filter = 'none';   // 실루엣 둘레의 부드러운 글로우 (스캔이 시작되면 끈다)

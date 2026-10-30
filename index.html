@@ -8,7 +8,7 @@
 
 <link rel="stylesheet" href="assets/grid.css?v=8">
 <link rel="stylesheet" href="assets/human-touch.css?v=33">
-<link rel="stylesheet" href="assets/anatomy.css?v=19">
+<link rel="stylesheet" href="assets/anatomy.css?v=20">
 <style>
   /* 스크롤바는 숨기되 스크롤은 그대로 된다 (크롬 · 사파리 · 파이어폭스) */
   html{scrollbar-width:none;-ms-overflow-style:none}
@@ -456,9 +456,11 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { he
   ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(ev => addEventListener(ev, e => { if (anim && !(e.target.closest && e.target.closest('#gnav'))) stop(); }, { passive: true }));
   const goTo = k => {
     stop();
+    dispatchEvent(new WheelEvent('wheel'));   // 스페이스바 자동 스크롤이 켜져 있으면 먼저 끈다 (둘이 부딪히지 않도록)
     const y0 = scrollY, y1 = Math.min(target[k]() * vhs(), document.documentElement.scrollHeight - vhs()), d = Math.abs(y1 - y0); if (d < 4) return;
     const dur = Math.min(2600, 900 + d / vhs() * 55), t0 = performance.now(), ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    const step = now => { const p = Math.min(1, (now - t0) / dur); scrollTo(0, y0 + (y1 - y0) * ease(p)); if (p < 1) anim = requestAnimationFrame(step); else { anim = 0; doneAt = performance.now(); } };
+    const step = now => { const p = Math.min(1, (now - t0) / dur), yt = Math.min(target[k]() * vhs(), document.documentElement.scrollHeight - vhs());   // 도착 위치는 매 프레임 다시 잰다 (뒤 장면의 기준점은 끝 장면을 지나야 정확해진다)
+      scrollTo(0, y0 + (yt - y0) * ease(p)); if (p < 1) anim = requestAnimationFrame(step); else { anim = 0; doneAt = performance.now(); } };
     anim = requestAnimationFrame(step);
   };
   links.forEach(a => a.addEventListener('click', e => { e.preventDefault(); goTo(a.dataset.go); }));
@@ -1548,7 +1550,7 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
 <script src="assets/luminous.js?v=1"></script>
 <script src="assets/color-panel.js?v=2"></script>
 <script type="module" src="assets/car-scene.js?v=59"></script>
-<script type="module" src="assets/anatomy-scene.js?v=58"></script>
+<script type="module" src="assets/anatomy-scene.js?v=69"></script>
 <script type="module" src="assets/bento.js?v=31"></script>
 </body>
 </html>

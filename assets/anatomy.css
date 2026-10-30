@@ -13,7 +13,9 @@
 #anat .an-cap b{font-weight:inherit;color:rgba(23,26,24,.55)}
 
 /* 글 : 지금 부품 하나. 번호, 제목, 두 줄 안팎의 설명. 오른쪽 */
-#anat .an-box{position:absolute;top:50%;right:var(--margin);width:min(340px,30vw);opacity:0;will-change:transform,opacity,filter}
+/* 글 : 사이트 그리드에 맞춘다. 12컬럼은 9~12번 컬럼(오른쪽 4개), 8컬럼은 6~8번(오른쪽 3개). 모델은 그 왼쪽 컬럼들의 가운데에 놓인다 */
+#anat .an-box{position:absolute;top:50%;left:calc((100% - var(--content)) / 2 + 8 * (var(--col) + var(--gutter)));width:calc(4 * var(--col) + 3 * var(--gutter));opacity:0;will-change:transform,opacity,filter}
+@media (min-width:640px) and (max-width:1023px){#anat .an-box{left:calc((100% - var(--content)) / 2 + 5 * (var(--col) + var(--gutter)));width:calc(3 * var(--col) + 2 * var(--gutter))}}
 #anat .an-n{margin-bottom:var(--s-3,16px);font:var(--w-regular) 11px/var(--lh-label) var(--font-ui);letter-spacing:var(--track-label);font-variant-numeric:tabular-nums;color:rgba(23,26,24,.5)}
 #anat .an-h{margin:0;font-weight:var(--w-regular);font-size:var(--type-title-size);line-height:var(--lh-title);letter-spacing:var(--track-title);word-break:keep-all}
 #anat .an-p{margin:var(--s-3,16px) 0 0;font-weight:var(--w-regular);font-size:clamp(13px,.95vw,15px);line-height:1.5;letter-spacing:var(--track-body);color:rgba(23,26,24,.7);word-break:keep-all}
