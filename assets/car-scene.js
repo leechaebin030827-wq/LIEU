@@ -5,6 +5,7 @@
    흰 배경 위에서 보이도록 '가산' 대신 일반 알파 블렌딩 + 양면 렌더링으로 겹침을 쌓는다. */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 const cv = document.getElementById('carCv');
 if (cv) {
@@ -116,7 +117,8 @@ if (cv) {
   };
   drawDriver(window.__drv);
 
-  new GLTFLoader().load('assets/car-nui.glb?v=8', gltf => {
+  const draco = new DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');   // 새 차량 모델은 Draco 로 압축되어 있다
+  new GLTFLoader().setDRACOLoader(draco).load('assets/car-nui.glb?v=11', gltf => {
     // 어떤 모델이 와도 같은 크기·방향으로 맞춘다 : 노드 변환을 굽고 → 긴 축을 X 로 → 길이 1.9 → 가운데 정렬
     gltf.scene.updateMatrixWorld(true);
     const src = gltf.scene.getObjectByProperty('isMesh', true);
@@ -127,7 +129,7 @@ if (cv) {
     geo.translate(-ctr.x, -ctr.y, -ctr.z); geo.scale(k, k, k);
     if (!geo.attributes.normal) geo.computeVertexNormals();
     geo.computeBoundingBox(); const H = geo.boundingBox.max.y - geo.boundingBox.min.y, kk = H / .6;     // kk : 장치 · 빛의 크기 보정
-    { const y0 = geo.boundingBox.min.y; material.uniforms.uDevMin.value.set(-.08, y0 + H * .80, -9); material.uniforms.uDevMax.value.set(.08, y0 + H * .93, 9); }   // 지붕 중앙에 매달린 LIEU 장치(도넛 + 세로선) 영역
+    { const y0 = geo.boundingBox.min.y; material.uniforms.uDevMin.value.set(-.14, y0 + H * .69, -.14); material.uniforms.uDevMax.value.set(.14, y0 + H * .93, .14); }   // 지붕 중앙에 매달린 LIEU 장치(도넛 + 세로선) 영역
     model = new THREE.Mesh(geo, material); model.renderOrder = 2;
     if (FRONT_FLIP) model.rotation.y = Math.PI;
     group.add(model); group.updateMatrixWorld(true);
