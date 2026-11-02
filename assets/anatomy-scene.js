@@ -87,6 +87,7 @@ if (cv && ui) {
   const SCAN_GLOW = false;   // true : 스캔선에 파란 원판 · 테두리 · 둘레 빛을 보인다 (지금은 끔)
   const uScan = { value: 1 };                                      // 스캔선의 월드 높이(m). 아래 solid · 위 엑스레이
   const scanPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1);   // y < 스캔선 만 남긴다
+  const CONTEXT_INK = new THREE.Color('#737d88');
   const SLATE = new THREE.Color('#888888'), INK = new THREE.Color('#191919'), ACCENT = new THREE.Color('#262626'), BAND = new THREE.Color('#606060');
   const vert = `varying vec3 vN; varying vec3 vV; varying float vWy;
     void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; vWy = (modelMatrix * vec4(position, 1.0)).y; gl_Position = projectionMatrix * mv; }`;
@@ -203,7 +204,7 @@ if (cv && ui) {
     const boxOf = (names, ex) => { const b = new THREE.Box3(); names.forEach(n => { G[n].pivot.position.copy(G[n].off).multiplyScalar(ex); }); scene.updateMatrixWorld(true); names.forEach(n => b.union(new THREE.Box3().setFromObject(G[n].pivot))); return b; };
     const all = Object.keys(G);
     const bAssembled = boxOf(all.filter(n => n !== 'pillar'), 0), bExploded = (() => { all.forEach(n => G[n].pivot.position.copy(G[n].off)); scene.updateMatrixWorld(true); const b = new THREE.Box3(); all.forEach(n => { if (n !== 'pillar') b.union(new THREE.Box3().setFromObject(G[n].pivot)); }); return b; })();
-    const pose = (box, az, el, k, side) => { const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3()); return { c, dist: clamp(Math.max(s.x, s.y, s.z) * k, .26, 1.5), az, el, side }; };
+    const pose = (box, az, el, k, side) => { const c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3()); const W = Math.hypot(s.x, s.z), Hh = s.y * Math.cos(THREE.MathUtils.degToRad(el)) + W * Math.abs(Math.sin(THREE.MathUtils.degToRad(el))); return { c, dist: clamp(Math.max(s.x, s.y, s.z) * k, .26, 1.5), az, el, side, W, Hh }; };   // W, Hh : 화면에 보이는 가로 · 세로 크기(m). 마진 안에 맞추는 데 쓴다
     poses = { asm: pose(bAssembled, 32, 17, 2.7), exp: pose(bExploded, 38, 14, 2.6), parts: PARTS.map(p => {
       const re = p.re || [], names = [...new Set([...p.groups, ...re])];
       all.forEach(n => G[n].pivot.position.copy(G[n].off).multiplyScalar(1)); names.forEach(n => G[n].pivot.position.copy(G[n].off).multiplyScalar(re.includes(n) ? 0 : 1));
@@ -261,7 +262,7 @@ if (cv && ui) {
 
   /* ── 카메라 ── */
   const angLerp = (a, b, t) => a + (((b - a + 540) % 360) - 180) * t;
-  const mixPose = (A, B, t) => ({ c: A.c.clone().lerp(B.c, t), dist: lerp(A.dist, B.dist, t), az: angLerp(A.az, B.az, t), el: lerp(A.el, B.el, t), side: t < .5 ? A.side : B.side, shift: lerp(A.shift || 0, B.shift || 0, t), shiftY: lerp(A.shiftY || 0, B.shiftY || 0, t), ms: lerp(A.ms || 0, B.ms || 0, t) });
+  const mixPose = (A, B, t) => ({ c: A.c.clone().lerp(B.c, t), dist: lerp(A.dist, B.dist, t), az: angLerp(A.az, B.az, t), el: lerp(A.el, B.el, t), side: t < .5 ? A.side : B.side, shift: lerp(A.shift || 0, B.shift || 0, t), shiftY: lerp(A.shiftY || 0, B.shiftY || 0, t), ms: lerp(A.ms || 0, B.ms || 0, t), W: lerp(A.W || 0, B.W || 0, t), Hh: lerp(A.Hh || 0, B.Hh || 0, t) });
   const place = P => {
     const az = THREE.MathUtils.degToRad(P.az), el = THREE.MathUtils.degToRad(P.el);
     const dir = new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
@@ -321,13 +322,20 @@ if (cv && ui) {
     for (const [n, g] of Object.entries(G)) {
       const ee = ex * (1 - rw[n]), turns = n === 'ring' || n === 'shellLow' || n === 'eyes';
       g.pivot.position.copy(g.off).multiplyScalar(ee); if (turns) g.pivot.position.applyAxisAngle(Y, th); g.pivot.rotation.y = (turns ? th : 0) + (DONUT.has(n) ? dSpin : 0); g.pivot.rotation.z = DONUT.has(n) ? dTilt : 0;
-      const op = lerp(1, lerp(.42, 1, gw[n]), fm), emph = fm * gw[n];
+      const op = lerp(1, lerp(.15, 1, gw[n]), fm), emph = fm * gw[n];
       if (n === 'pillar') { const pk = sm(seg(ts, TL.rot[0] + .4, TL.rot[1] + .6)); g.ghost.uniforms.uF0.value = lerp(lerp(.32, .05, pk), .2, emph); g.ghost.uniforms.uF1.value = lerp(lerp(.42, .13, pk), .3, emph);   // 도입에서는 기둥이 끝까지 보이고, 돌아온 뒤 위로 갈수록 사라진다
        pillarFade.f0.value = g.ghost.uniforms.uF0.value; pillarFade.f1.value = g.ghost.uniforms.uF1.value; }   // 기둥을 소개할 때는 더 위까지 보인다
-      const so = sMix * lerp(1, lerp(.5, 1, gw[n]), fm), dk = fm * (1 - gw[n]) * .45;   // 흐려진 부품도 흰 바탕에서 보이도록 투명도를 높이고 살짝 어둡게 물들인다   // 솔리드 투명도 : 지금 부품이 아니면 흐려진다
+      const so = sMix * gw[n], dk = fm * (1 - gw[n]) * .45;   // 흐려진 부품도 흰 바탕에서 보이도록 투명도를 높이고 살짝 어둡게 물들인다   // 솔리드 투명도 : 지금 부품이 아니면 흐려진다
       const focus = gw[n] > .5 || fm < .05;   // 지금 부품 : 가장 나중에 그려서 흐린 부품들에 가려지지 않는다
       g.solidMats.forEach(mm => { if (mm.color) { (mm.userData.c0 ||= mm.color.clone()); mm.color.copy(mm.userData.c0).lerp(DIMC, dk); } mm.opacity = so; mm.transparent = true; mm.depthWrite = focus; }); g.solidMeshes.forEach(mm => { mm.visible = so > .01; mm.renderOrder = focus ? 10 : 1; });
-      g.ghost.uniforms.uOpacity.value = op * ap * (1 - sMix) * sm(seg(sp, .4, 1)); g.ghost.uniforms.uEmph.value = emph; g.ghost.uniforms.uCol.value.copy(SLATE).lerp(ACCENT, Math.min(1, emph * 1.15));
+      // Ghost opacity has its own context floor. Multiplying the old .15
+      // dimming by the shader's .02 face alpha made neighboring parts vanish.
+      const context = fm * (1 - gw[n]);
+      const ghostOpacity = lerp(1, .68, context);
+      g.ghost.uniforms.uBase.value = lerp(n === 'pillar' ? .015 : .02, .08, context);
+      g.ghost.uniforms.uRim.value = lerp(n === 'pillar' ? .3 : .4, .48, context);
+      g.ghost.uniforms.uLine.value = lerp(n === 'pillar' ? .45 : .55, .6, context);
+      g.ghost.uniforms.uOpacity.value = ghostOpacity * ap * (1 - so) * sm(seg(sp, .4, 1)); g.ghost.uniforms.uEmph.value = emph; g.ghost.uniforms.uCol.value.copy(SLATE).lerp(CONTEXT_INK, context).lerp(ACCENT, Math.min(1, emph * 1.15));
       g.solids.forEach(m => { m.opacity = op * ap; });
     }
     if (G.drive.pinion) G.drive.pinion.rotation.y = THREE.MathUtils.degToRad(pin);
@@ -349,7 +357,10 @@ if (cv && ui) {
       else P = mixPose(a0, a1, bt);
       if (p > -.4 && p < N - .6) P.az += (p - Math.round(p)) * 22;   // 머무는 동안에도 천천히 돌아간다
     }
-    if (!mob && modelW) P.dist *= lerp(1, clamp(.88 / (modelW / vh), 1, 1.5), fm);   // 부품 장면 : 모델 영역(왼쪽 컬럼들)이 좁은 화면에서는 모델이 마진 밖으로 잘리지 않게 조금 멀리서 본다 (넓은 화면에서는 그대로)
+    if (!mob && modelW && fm > .002 && P.W) {   // 부품 장면 : 부품이 왼쪽 컬럼 영역(좌우 여유 5%)과 화면 높이의 82% 안에 들어오는 거리까지는 물러선다. 가까이서 보여 주는 부품(모터 등)도 마진 밖으로 잘리지 않는다
+      const tn = Math.tan(THREE.MathUtils.degToRad(15)), dMin = Math.max(vh * P.W / (2 * tn * modelW * .9), vh * P.Hh / (2 * tn * vh * .82));
+      P.dist = lerp(P.dist, Math.max(P.dist, dMin), fm);
+    }
     place(P);
     camera.updateMatrixWorld(true);
     // 실루엣 틀 : 그리드의 마지막 칸이다. 배경과 제품은 이 칸 안에만 그려지고, 칸이 화면 전체로 커지면 그대로 꽉 찬다
@@ -362,6 +373,7 @@ if (cv && ui) {
     else camera.clearViewOffset();
     const sil = sp < .5 && sMix < .01;
     if (sil !== silOn) { silOn = sil; silMeshes.forEach(m => { m.visible = sil; }); }
+    { const mk = !mob && fm > .002 ? `linear-gradient(to right, transparent ${(mg * .4 * fm).toFixed(1)}px, #000 ${(mg * 2.4 * fm).toFixed(1)}px)` : 'none'; cv.style.webkitMaskImage = cv.style.maskImage = mk; }   // 부품 장면 : 뒤의 큰 반투명 부품이 왼쪽 가장자리에서 뚝 잘리지 않고 마진 앞에서 부드럽게 옅어진다
     cv.style.clipPath = clip; cv.style.filter = 'none';   // 실루엣 둘레의 부드러운 글로우 (스캔이 시작되면 끈다)
     if (bgEl) { const go = 1 - sm(seg(sp, .4, 1)); if (grain) grain.setVisible(go > .003); gr.style.opacity = go.toFixed(3); bgEl.style.clipPath = clip; bgEl.style.visibility = go > .003 ? 'visible' : 'hidden'; }   // 파란 그라데이션은 스캔이 시작되면 흰색으로 풀린다   // 엑스레이가 시작되면 파란 바탕이 곧바로(딱) 빠지고 흰 라이트 모드가 된다
     let hid = [];   // AO 계산에서 뺄 것 : 흐려진(비선택) 부품은 부모(고스트 메시)째로 숨긴다

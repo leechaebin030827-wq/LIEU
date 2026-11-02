@@ -4,17 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LIEU</title>
+<link rel="preload" as="image" href="assets/eye-sequence/0001.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/eye-sequence/0061.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link rel="stylesheet" href="assets/grid.css?v=8">
-<link rel="stylesheet" href="assets/human-touch.css?v=33">
+<link rel="stylesheet" href="assets/human-touch.css?v=34">
 <link rel="stylesheet" href="assets/anatomy.css?v=20">
+<link rel="stylesheet" href="assets/bento.css?v=5">
 <style>
   /* 스크롤바는 숨기되 스크롤은 그대로 된다 (크롬 · 사파리 · 파이어폭스) */
   html{scrollbar-width:none;-ms-overflow-style:none}
   html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   :root{--ink:#0b0b10;}
-  html,body{margin:0;min-height:100%;background:#06060a;-webkit-user-select:none;user-select:none}
+  html,body{margin:0;min-height:100%;overflow-x:clip;background:#06060a;-webkit-user-select:none;user-select:none}
   canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;}
 
   #wipe{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1}
@@ -27,7 +30,7 @@
   #bgWord svg{display:block;width:100%;height:auto;aspect-ratio:100/13.49;overflow:visible}
   #bgWord path{fill:rgba(160,190,250,.11);stroke:none}   /* 윤곽선 없이 솔리드 색 면으로만 */
   @media (max-width:640px){ #bgWord{left:2vw;width:96vw} }
-  #hero{position:absolute;left:50%;top:0;height:min(92vh,76vw);height:min(92dvh,76vw);width:auto;max-width:98vw;object-fit:contain;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform-origin:50% 0}
+  #hero{position:fixed;left:50%;top:0;width:min(112vw,164vh,1600px);width:min(112vw,164dvh,1600px);height:auto;aspect-ratio:16/9;pointer-events:none;z-index:2;opacity:0;will-change:transform,opacity;transform:translateX(-50%);transform-origin:50% 0}
 
   body{font-family:var(--font-ui);-webkit-font-smoothing:antialiased;color:var(--ink)}
   #scrollspace{height:8730vh}
@@ -151,7 +154,7 @@
     <a href="#story" data-go="story" data-sw><span class="gl">Story</span></a>
     <a href="#design" data-go="design" data-sw><span class="gl">Design</span></a>
     <a href="#mechanism" data-go="mechanism" data-sw><span class="gl">Mechanism</span></a>
-    <a href="#scenario" data-go="scenario" data-sw><span class="gl">Scenario</span></a>
+    <a data-go="scenario" data-sw role="link" aria-disabled="true" tabindex="-1"><span class="gl">Scenario</span></a>
   </nav>
 <div class="langpop" id="langPop">
 <ul id="langMenu" role="menu" aria-label="Language">
@@ -169,7 +172,521 @@
   <svg id="lsText" viewBox="0 0 100 13.49" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path fill="#171A18" d="M21.653 13.458L7.123 13.456C4.943 13.314 3.071 12.47 1.642 10.864C0.681 9.782 0.17 8.493 0.001 7.023L0.037 1.446C0.043 0.592 0.958 0.051 1.682 0.032C2.464 0.012 3.396 0.505 3.41 1.374L3.501 6.987C3.699 9.168 5.47 10.688 7.618 10.941L21.756 10.971C22.448 10.973 22.852 11.708 22.856 12.251C22.859 12.824 22.408 13.458 21.653 13.458"/><path fill="#171A18" d="M31.876 12.004C31.874 12.913 31.069 13.443 30.307 13.466C29.631 13.485 28.646 13.012 28.645 12.177L28.633 1.333C28.632 0.568 29.467 0.1 30.092 0.046C30.651 -0.003 31.095 0.176 31.427 0.493C31.8 0.848 31.9 1.333 31.899 1.88Z"/><path fill="#171A18" d="M66.88 10.958C67.599 10.958 68.05 11.611 68.063 12.167C68.076 12.72 67.612 13.452 66.909 13.452L44.849 13.466C42.372 13.173 40.253 11.821 39.145 9.626C37.783 6.782 38.519 3.448 41.033 1.527C42.131 0.688 43.43 0.069 44.879 0.068L65.845 0.059C66.526 0.059 67.011 0.818 66.99 1.325C66.963 1.936 66.507 2.574 65.799 2.572L45.841 2.54C43.454 2.536 41.457 3.973 41.239 6.383C41.07 8.66 42.68 10.678 45.095 10.935Z"/><path fill="#171A18" d="M64.014 7.944L45.468 7.968C44.673 7.969 44.076 7.447 44.065 6.753C44.052 5.943 44.624 5.404 45.458 5.404L63.738 5.405C64.499 5.405 65.044 5.777 65.155 6.493C65.244 7.072 64.836 7.943 64.014 7.944"/><path fill="#171A18" d="M96.719 1.348C96.728 0.473 97.677 0.018 98.41 0.038C99.108 0.056 100.002 0.585 100.002 1.405L100.002 6.996C100.001 10.362 96.458 13.426 93.073 13.424L80.336 13.414C77.019 13.411 73.668 10.534 73.679 6.803L73.696 1.425C73.698 0.602 74.477 0.079 75.203 0.038C75.889 0 76.844 0.419 76.864 1.219L76.937 4.128L76.91 6.327C76.896 7.424 77.035 8.523 77.758 9.4C78.513 10.318 79.688 10.933 80.922 10.935L92.004 10.954C92.706 10.955 93.32 10.801 93.937 10.555C95.77 9.826 96.646 8.074 96.667 6.134Z"/></svg>
 </div>
 <div id="bgWord" aria-hidden="true"><svg viewBox="0 0 100 13.49" preserveAspectRatio="xMidYMid meet"><path d="M21.653 13.458L7.123 13.456C4.943 13.314 3.071 12.47 1.642 10.864C0.681 9.782 0.17 8.493 0.001 7.023L0.037 1.446C0.043 0.592 0.958 0.051 1.682 0.032C2.464 0.012 3.396 0.505 3.41 1.374L3.501 6.987C3.699 9.168 5.47 10.688 7.618 10.941L21.756 10.971C22.448 10.973 22.852 11.708 22.856 12.251C22.859 12.824 22.408 13.458 21.653 13.458"/><path d="M31.876 12.004C31.874 12.913 31.069 13.443 30.307 13.466C29.631 13.485 28.646 13.012 28.645 12.177L28.633 1.333C28.632 0.568 29.467 0.1 30.092 0.046C30.651 -0.003 31.095 0.176 31.427 0.493C31.8 0.848 31.9 1.333 31.899 1.88Z"/><path d="M66.88 10.958C67.599 10.958 68.05 11.611 68.063 12.167C68.076 12.72 67.612 13.452 66.909 13.452L44.849 13.466C42.372 13.173 40.253 11.821 39.145 9.626C37.783 6.782 38.519 3.448 41.033 1.527C42.131 0.688 43.43 0.069 44.879 0.068L65.845 0.059C66.526 0.059 67.011 0.818 66.99 1.325C66.963 1.936 66.507 2.574 65.799 2.572L45.841 2.54C43.454 2.536 41.457 3.973 41.239 6.383C41.07 8.66 42.68 10.678 45.095 10.935Z"/><path d="M64.014 7.944L45.468 7.968C44.673 7.969 44.076 7.447 44.065 6.753C44.052 5.943 44.624 5.404 45.458 5.404L63.738 5.405C64.499 5.405 65.044 5.777 65.155 6.493C65.244 7.072 64.836 7.943 64.014 7.944"/><path d="M96.719 1.348C96.728 0.473 97.677 0.018 98.41 0.038C99.108 0.056 100.002 0.585 100.002 1.405L100.002 6.996C100.001 10.362 96.458 13.426 93.073 13.424L80.336 13.414C77.019 13.411 73.668 10.534 73.679 6.803L73.696 1.425C73.698 0.602 74.477 0.079 75.203 0.038C75.889 0 76.844 0.419 76.864 1.219L76.937 4.128L76.91 6.327C76.896 7.424 77.035 8.523 77.758 9.4C78.513 10.318 79.688 10.933 80.922 10.935L92.004 10.954C92.706 10.955 93.32 10.801 93.937 10.555C95.77 9.826 96.646 8.074 96.667 6.134Z"/></svg></div>
-<img id="hero" src="assets/product.webp" alt="" draggable="false">
+<canvas id="hero" width="1280" height="720" role="img" aria-label="LIEU robot looking toward you"></canvas>
+<!-- Explicit image references let file-preview asset resolvers rewrite URLs. -->
+<div id="heroFrameSources" hidden aria-hidden="true">
+  <img id="hero-frame-1" src="assets/eye-sequence/0001.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-2" src="assets/eye-sequence/0002.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-3" src="assets/eye-sequence/0003.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-4" src="assets/eye-sequence/0004.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-5" src="assets/eye-sequence/0005.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-6" src="assets/eye-sequence/0006.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-7" src="assets/eye-sequence/0007.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-8" src="assets/eye-sequence/0008.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-9" src="assets/eye-sequence/0009.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-10" src="assets/eye-sequence/0010.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-11" src="assets/eye-sequence/0011.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-12" src="assets/eye-sequence/0012.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-13" src="assets/eye-sequence/0013.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-14" src="assets/eye-sequence/0014.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-15" src="assets/eye-sequence/0015.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-16" src="assets/eye-sequence/0016.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-17" src="assets/eye-sequence/0017.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-18" src="assets/eye-sequence/0018.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-19" src="assets/eye-sequence/0019.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-20" src="assets/eye-sequence/0020.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-21" src="assets/eye-sequence/0021.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-22" src="assets/eye-sequence/0022.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-23" src="assets/eye-sequence/0023.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-24" src="assets/eye-sequence/0024.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-25" src="assets/eye-sequence/0025.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-26" src="assets/eye-sequence/0026.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-27" src="assets/eye-sequence/0027.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-28" src="assets/eye-sequence/0028.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-29" src="assets/eye-sequence/0029.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-30" src="assets/eye-sequence/0030.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-31" src="assets/eye-sequence/0031.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-32" src="assets/eye-sequence/0032.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-33" src="assets/eye-sequence/0033.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-34" src="assets/eye-sequence/0034.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-35" src="assets/eye-sequence/0035.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-36" src="assets/eye-sequence/0036.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-37" src="assets/eye-sequence/0037.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-38" src="assets/eye-sequence/0038.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-39" src="assets/eye-sequence/0039.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-40" src="assets/eye-sequence/0040.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-41" src="assets/eye-sequence/0041.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-42" src="assets/eye-sequence/0042.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-43" src="assets/eye-sequence/0043.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-44" src="assets/eye-sequence/0044.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-45" src="assets/eye-sequence/0045.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-46" src="assets/eye-sequence/0046.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-47" src="assets/eye-sequence/0047.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-48" src="assets/eye-sequence/0048.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-49" src="assets/eye-sequence/0049.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-50" src="assets/eye-sequence/0050.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-51" src="assets/eye-sequence/0051.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-52" src="assets/eye-sequence/0052.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-53" src="assets/eye-sequence/0053.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-54" src="assets/eye-sequence/0054.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-55" src="assets/eye-sequence/0055.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-56" src="assets/eye-sequence/0056.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-57" src="assets/eye-sequence/0057.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-58" src="assets/eye-sequence/0058.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-59" src="assets/eye-sequence/0059.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-60" src="assets/eye-sequence/0060.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-61" src="assets/eye-sequence/0061.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-62" src="assets/eye-sequence/0062.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-63" src="assets/eye-sequence/0063.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-64" src="assets/eye-sequence/0064.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-65" src="assets/eye-sequence/0065.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-66" src="assets/eye-sequence/0066.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-67" src="assets/eye-sequence/0067.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-68" src="assets/eye-sequence/0068.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-69" src="assets/eye-sequence/0069.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-70" src="assets/eye-sequence/0070.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-71" src="assets/eye-sequence/0071.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-72" src="assets/eye-sequence/0072.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-73" src="assets/eye-sequence/0073.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-74" src="assets/eye-sequence/0074.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-75" src="assets/eye-sequence/0075.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-76" src="assets/eye-sequence/0076.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-77" src="assets/eye-sequence/0077.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-78" src="assets/eye-sequence/0078.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-79" src="assets/eye-sequence/0079.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-80" src="assets/eye-sequence/0080.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-81" src="assets/eye-sequence/0081.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-82" src="assets/eye-sequence/0082.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-83" src="assets/eye-sequence/0083.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-84" src="assets/eye-sequence/0084.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-85" src="assets/eye-sequence/0085.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-86" src="assets/eye-sequence/0086.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-87" src="assets/eye-sequence/0087.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-88" src="assets/eye-sequence/0088.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-89" src="assets/eye-sequence/0089.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-90" src="assets/eye-sequence/0090.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-91" src="assets/eye-sequence/0091.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-92" src="assets/eye-sequence/0092.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-93" src="assets/eye-sequence/0093.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-94" src="assets/eye-sequence/0094.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-95" src="assets/eye-sequence/0095.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-96" src="assets/eye-sequence/0096.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-97" src="assets/eye-sequence/0097.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-98" src="assets/eye-sequence/0098.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-99" src="assets/eye-sequence/0099.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-100" src="assets/eye-sequence/0100.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-101" src="assets/eye-sequence/0101.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-102" src="assets/eye-sequence/0102.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-103" src="assets/eye-sequence/0103.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-104" src="assets/eye-sequence/0104.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-105" src="assets/eye-sequence/0105.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-106" src="assets/eye-sequence/0106.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-107" src="assets/eye-sequence/0107.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-108" src="assets/eye-sequence/0108.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-109" src="assets/eye-sequence/0109.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-110" src="assets/eye-sequence/0110.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-111" src="assets/eye-sequence/0111.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-112" src="assets/eye-sequence/0112.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-113" src="assets/eye-sequence/0113.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-114" src="assets/eye-sequence/0114.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-115" src="assets/eye-sequence/0115.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-116" src="assets/eye-sequence/0116.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-117" src="assets/eye-sequence/0117.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-118" src="assets/eye-sequence/0118.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-119" src="assets/eye-sequence/0119.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-120" src="assets/eye-sequence/0120.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-121" src="assets/eye-sequence/0121.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-122" src="assets/eye-sequence/0122.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-123" src="assets/eye-sequence/0123.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-124" src="assets/eye-sequence/0124.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-125" src="assets/eye-sequence/0125.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-126" src="assets/eye-sequence/0126.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-127" src="assets/eye-sequence/0127.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-128" src="assets/eye-sequence/0128.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-129" src="assets/eye-sequence/0129.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-130" src="assets/eye-sequence/0130.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-131" src="assets/eye-sequence/0131.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-132" src="assets/eye-sequence/0132.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-133" src="assets/eye-sequence/0133.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-134" src="assets/eye-sequence/0134.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-135" src="assets/eye-sequence/0135.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-136" src="assets/eye-sequence/0136.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-137" src="assets/eye-sequence/0137.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-138" src="assets/eye-sequence/0138.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-139" src="assets/eye-sequence/0139.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-140" src="assets/eye-sequence/0140.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-141" src="assets/eye-sequence/0141.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-142" src="assets/eye-sequence/0142.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-143" src="assets/eye-sequence/0143.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-144" src="assets/eye-sequence/0144.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-145" src="assets/eye-sequence/0145.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-146" src="assets/eye-sequence/0146.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-147" src="assets/eye-sequence/0147.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-148" src="assets/eye-sequence/0148.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-149" src="assets/eye-sequence/0149.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-150" src="assets/eye-sequence/0150.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-151" src="assets/eye-sequence/0151.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-152" src="assets/eye-sequence/0152.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-153" src="assets/eye-sequence/0153.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-154" src="assets/eye-sequence/0154.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-155" src="assets/eye-sequence/0155.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-156" src="assets/eye-sequence/0156.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-157" src="assets/eye-sequence/0157.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-158" src="assets/eye-sequence/0158.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-159" src="assets/eye-sequence/0159.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-160" src="assets/eye-sequence/0160.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-161" src="assets/eye-sequence/0161.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-162" src="assets/eye-sequence/0162.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-163" src="assets/eye-sequence/0163.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-164" src="assets/eye-sequence/0164.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-165" src="assets/eye-sequence/0165.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-166" src="assets/eye-sequence/0166.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-167" src="assets/eye-sequence/0167.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-168" src="assets/eye-sequence/0168.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-169" src="assets/eye-sequence/0169.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-170" src="assets/eye-sequence/0170.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-171" src="assets/eye-sequence/0171.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-172" src="assets/eye-sequence/0172.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-173" src="assets/eye-sequence/0173.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-174" src="assets/eye-sequence/0174.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-175" src="assets/eye-sequence/0175.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-176" src="assets/eye-sequence/0176.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-177" src="assets/eye-sequence/0177.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-178" src="assets/eye-sequence/0178.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-179" src="assets/eye-sequence/0179.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-180" src="assets/eye-sequence/0180.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-181" src="assets/eye-sequence/0181.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-182" src="assets/eye-sequence/0182.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-183" src="assets/eye-sequence/0183.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-184" src="assets/eye-sequence/0184.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-185" src="assets/eye-sequence/0185.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-186" src="assets/eye-sequence/0186.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-187" src="assets/eye-sequence/0187.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-188" src="assets/eye-sequence/0188.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-189" src="assets/eye-sequence/0189.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-190" src="assets/eye-sequence/0190.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-191" src="assets/eye-sequence/0191.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-192" src="assets/eye-sequence/0192.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-193" src="assets/eye-sequence/0193.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-194" src="assets/eye-sequence/0194.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-195" src="assets/eye-sequence/0195.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-196" src="assets/eye-sequence/0196.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-197" src="assets/eye-sequence/0197.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-198" src="assets/eye-sequence/0198.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-199" src="assets/eye-sequence/0199.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-200" src="assets/eye-sequence/0200.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-201" src="assets/eye-sequence/0201.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-202" src="assets/eye-sequence/0202.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-203" src="assets/eye-sequence/0203.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-204" src="assets/eye-sequence/0204.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-205" src="assets/eye-sequence/0205.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-206" src="assets/eye-sequence/0206.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-207" src="assets/eye-sequence/0207.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-208" src="assets/eye-sequence/0208.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-209" src="assets/eye-sequence/0209.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-210" src="assets/eye-sequence/0210.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-211" src="assets/eye-sequence/0211.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-212" src="assets/eye-sequence/0212.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-213" src="assets/eye-sequence/0213.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-214" src="assets/eye-sequence/0214.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-215" src="assets/eye-sequence/0215.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-216" src="assets/eye-sequence/0216.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-217" src="assets/eye-sequence/0217.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-218" src="assets/eye-sequence/0218.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-219" src="assets/eye-sequence/0219.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-220" src="assets/eye-sequence/0220.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-221" src="assets/eye-sequence/0221.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-222" src="assets/eye-sequence/0222.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-223" src="assets/eye-sequence/0223.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-224" src="assets/eye-sequence/0224.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-225" src="assets/eye-sequence/0225.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-226" src="assets/eye-sequence/0226.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-227" src="assets/eye-sequence/0227.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-228" src="assets/eye-sequence/0228.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-229" src="assets/eye-sequence/0229.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-230" src="assets/eye-sequence/0230.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-231" src="assets/eye-sequence/0231.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-232" src="assets/eye-sequence/0232.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-233" src="assets/eye-sequence/0233.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-234" src="assets/eye-sequence/0234.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-235" src="assets/eye-sequence/0235.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-236" src="assets/eye-sequence/0236.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-237" src="assets/eye-sequence/0237.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-238" src="assets/eye-sequence/0238.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-239" src="assets/eye-sequence/0239.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-240" src="assets/eye-sequence/0240.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-241" src="assets/eye-sequence/0241.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-242" src="assets/eye-sequence/0242.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-243" src="assets/eye-sequence/0243.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-244" src="assets/eye-sequence/0244.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-245" src="assets/eye-sequence/0245.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-246" src="assets/eye-sequence/0246.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-247" src="assets/eye-sequence/0247.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-248" src="assets/eye-sequence/0248.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-249" src="assets/eye-sequence/0249.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-250" src="assets/eye-sequence/0250.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-251" src="assets/eye-sequence/0251.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-252" src="assets/eye-sequence/0252.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-253" src="assets/eye-sequence/0253.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-254" src="assets/eye-sequence/0254.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-255" src="assets/eye-sequence/0255.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-256" src="assets/eye-sequence/0256.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-257" src="assets/eye-sequence/0257.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-258" src="assets/eye-sequence/0258.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-259" src="assets/eye-sequence/0259.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-260" src="assets/eye-sequence/0260.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-261" src="assets/eye-sequence/0261.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-262" src="assets/eye-sequence/0262.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-263" src="assets/eye-sequence/0263.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-264" src="assets/eye-sequence/0264.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-265" src="assets/eye-sequence/0265.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-266" src="assets/eye-sequence/0266.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-267" src="assets/eye-sequence/0267.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-268" src="assets/eye-sequence/0268.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-269" src="assets/eye-sequence/0269.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-270" src="assets/eye-sequence/0270.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-271" src="assets/eye-sequence/0271.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-272" src="assets/eye-sequence/0272.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-273" src="assets/eye-sequence/0273.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-274" src="assets/eye-sequence/0274.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-275" src="assets/eye-sequence/0275.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-276" src="assets/eye-sequence/0276.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-277" src="assets/eye-sequence/0277.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-278" src="assets/eye-sequence/0278.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-279" src="assets/eye-sequence/0279.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-280" src="assets/eye-sequence/0280.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-281" src="assets/eye-sequence/0281.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-282" src="assets/eye-sequence/0282.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-283" src="assets/eye-sequence/0283.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-284" src="assets/eye-sequence/0284.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-285" src="assets/eye-sequence/0285.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-286" src="assets/eye-sequence/0286.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-287" src="assets/eye-sequence/0287.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-288" src="assets/eye-sequence/0288.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-289" src="assets/eye-sequence/0289.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-290" src="assets/eye-sequence/0290.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-291" src="assets/eye-sequence/0291.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-292" src="assets/eye-sequence/0292.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-293" src="assets/eye-sequence/0293.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-294" src="assets/eye-sequence/0294.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-295" src="assets/eye-sequence/0295.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-296" src="assets/eye-sequence/0296.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-297" src="assets/eye-sequence/0297.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-298" src="assets/eye-sequence/0298.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-299" src="assets/eye-sequence/0299.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-300" src="assets/eye-sequence/0300.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-301" src="assets/eye-sequence/0301.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-302" src="assets/eye-sequence/0302.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-303" src="assets/eye-sequence/0303.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-304" src="assets/eye-sequence/0304.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-305" src="assets/eye-sequence/0305.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-306" src="assets/eye-sequence/0306.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-307" src="assets/eye-sequence/0307.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-308" src="assets/eye-sequence/0308.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-309" src="assets/eye-sequence/0309.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-310" src="assets/eye-sequence/0310.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-311" src="assets/eye-sequence/0311.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-312" src="assets/eye-sequence/0312.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-313" src="assets/eye-sequence/0313.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-314" src="assets/eye-sequence/0314.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-315" src="assets/eye-sequence/0315.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-316" src="assets/eye-sequence/0316.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-317" src="assets/eye-sequence/0317.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-318" src="assets/eye-sequence/0318.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-319" src="assets/eye-sequence/0319.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-320" src="assets/eye-sequence/0320.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-321" src="assets/eye-sequence/0321.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-322" src="assets/eye-sequence/0322.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-323" src="assets/eye-sequence/0323.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-324" src="assets/eye-sequence/0324.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-325" src="assets/eye-sequence/0325.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-326" src="assets/eye-sequence/0326.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-327" src="assets/eye-sequence/0327.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-328" src="assets/eye-sequence/0328.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-329" src="assets/eye-sequence/0329.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-330" src="assets/eye-sequence/0330.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-331" src="assets/eye-sequence/0331.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-332" src="assets/eye-sequence/0332.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-333" src="assets/eye-sequence/0333.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-334" src="assets/eye-sequence/0334.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-335" src="assets/eye-sequence/0335.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-336" src="assets/eye-sequence/0336.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-337" src="assets/eye-sequence/0337.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-338" src="assets/eye-sequence/0338.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-339" src="assets/eye-sequence/0339.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-340" src="assets/eye-sequence/0340.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-341" src="assets/eye-sequence/0341.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-342" src="assets/eye-sequence/0342.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-343" src="assets/eye-sequence/0343.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-344" src="assets/eye-sequence/0344.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-345" src="assets/eye-sequence/0345.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-346" src="assets/eye-sequence/0346.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-347" src="assets/eye-sequence/0347.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-348" src="assets/eye-sequence/0348.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-349" src="assets/eye-sequence/0349.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-350" src="assets/eye-sequence/0350.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-351" src="assets/eye-sequence/0351.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-352" src="assets/eye-sequence/0352.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-353" src="assets/eye-sequence/0353.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-354" src="assets/eye-sequence/0354.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-355" src="assets/eye-sequence/0355.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-356" src="assets/eye-sequence/0356.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-357" src="assets/eye-sequence/0357.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-358" src="assets/eye-sequence/0358.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-359" src="assets/eye-sequence/0359.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-360" src="assets/eye-sequence/0360.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-361" src="assets/eye-sequence/0361.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-362" src="assets/eye-sequence/0362.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-363" src="assets/eye-sequence/0363.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-364" src="assets/eye-sequence/0364.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-365" src="assets/eye-sequence/0365.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-366" src="assets/eye-sequence/0366.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-367" src="assets/eye-sequence/0367.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-368" src="assets/eye-sequence/0368.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-369" src="assets/eye-sequence/0369.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-370" src="assets/eye-sequence/0370.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-371" src="assets/eye-sequence/0371.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-372" src="assets/eye-sequence/0372.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-373" src="assets/eye-sequence/0373.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-374" src="assets/eye-sequence/0374.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-375" src="assets/eye-sequence/0375.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-376" src="assets/eye-sequence/0376.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-377" src="assets/eye-sequence/0377.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-378" src="assets/eye-sequence/0378.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-379" src="assets/eye-sequence/0379.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-380" src="assets/eye-sequence/0380.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-381" src="assets/eye-sequence/0381.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-382" src="assets/eye-sequence/0382.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-383" src="assets/eye-sequence/0383.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-384" src="assets/eye-sequence/0384.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-385" src="assets/eye-sequence/0385.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-386" src="assets/eye-sequence/0386.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-387" src="assets/eye-sequence/0387.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-388" src="assets/eye-sequence/0388.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-389" src="assets/eye-sequence/0389.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-390" src="assets/eye-sequence/0390.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-391" src="assets/eye-sequence/0391.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-392" src="assets/eye-sequence/0392.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-393" src="assets/eye-sequence/0393.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-394" src="assets/eye-sequence/0394.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-395" src="assets/eye-sequence/0395.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-396" src="assets/eye-sequence/0396.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-397" src="assets/eye-sequence/0397.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-398" src="assets/eye-sequence/0398.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-399" src="assets/eye-sequence/0399.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-400" src="assets/eye-sequence/0400.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-401" src="assets/eye-sequence/0401.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-402" src="assets/eye-sequence/0402.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-403" src="assets/eye-sequence/0403.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-404" src="assets/eye-sequence/0404.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-405" src="assets/eye-sequence/0405.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-406" src="assets/eye-sequence/0406.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-407" src="assets/eye-sequence/0407.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-408" src="assets/eye-sequence/0408.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-409" src="assets/eye-sequence/0409.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-410" src="assets/eye-sequence/0410.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-411" src="assets/eye-sequence/0411.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-412" src="assets/eye-sequence/0412.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-413" src="assets/eye-sequence/0413.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-414" src="assets/eye-sequence/0414.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-415" src="assets/eye-sequence/0415.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-416" src="assets/eye-sequence/0416.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-417" src="assets/eye-sequence/0417.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-418" src="assets/eye-sequence/0418.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-419" src="assets/eye-sequence/0419.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-420" src="assets/eye-sequence/0420.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-421" src="assets/eye-sequence/0421.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-422" src="assets/eye-sequence/0422.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-423" src="assets/eye-sequence/0423.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-424" src="assets/eye-sequence/0424.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-425" src="assets/eye-sequence/0425.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-426" src="assets/eye-sequence/0426.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-427" src="assets/eye-sequence/0427.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-428" src="assets/eye-sequence/0428.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-429" src="assets/eye-sequence/0429.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-430" src="assets/eye-sequence/0430.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-431" src="assets/eye-sequence/0431.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-432" src="assets/eye-sequence/0432.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-433" src="assets/eye-sequence/0433.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-434" src="assets/eye-sequence/0434.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-435" src="assets/eye-sequence/0435.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-436" src="assets/eye-sequence/0436.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-437" src="assets/eye-sequence/0437.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-438" src="assets/eye-sequence/0438.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-439" src="assets/eye-sequence/0439.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-440" src="assets/eye-sequence/0440.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-441" src="assets/eye-sequence/0441.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-442" src="assets/eye-sequence/0442.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-443" src="assets/eye-sequence/0443.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-444" src="assets/eye-sequence/0444.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-445" src="assets/eye-sequence/0445.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-446" src="assets/eye-sequence/0446.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-447" src="assets/eye-sequence/0447.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-448" src="assets/eye-sequence/0448.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-449" src="assets/eye-sequence/0449.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-450" src="assets/eye-sequence/0450.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-451" src="assets/eye-sequence/0451.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-452" src="assets/eye-sequence/0452.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-453" src="assets/eye-sequence/0453.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-454" src="assets/eye-sequence/0454.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-455" src="assets/eye-sequence/0455.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-456" src="assets/eye-sequence/0456.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-457" src="assets/eye-sequence/0457.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-458" src="assets/eye-sequence/0458.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-459" src="assets/eye-sequence/0459.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-460" src="assets/eye-sequence/0460.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-461" src="assets/eye-sequence/0461.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-462" src="assets/eye-sequence/0462.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-463" src="assets/eye-sequence/0463.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-464" src="assets/eye-sequence/0464.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-465" src="assets/eye-sequence/0465.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-466" src="assets/eye-sequence/0466.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-467" src="assets/eye-sequence/0467.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-468" src="assets/eye-sequence/0468.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-469" src="assets/eye-sequence/0469.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-470" src="assets/eye-sequence/0470.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-471" src="assets/eye-sequence/0471.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-472" src="assets/eye-sequence/0472.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-473" src="assets/eye-sequence/0473.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-474" src="assets/eye-sequence/0474.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-475" src="assets/eye-sequence/0475.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-476" src="assets/eye-sequence/0476.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-477" src="assets/eye-sequence/0477.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-478" src="assets/eye-sequence/0478.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-479" src="assets/eye-sequence/0479.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-480" src="assets/eye-sequence/0480.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-481" src="assets/eye-sequence/0481.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-482" src="assets/eye-sequence/0482.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-483" src="assets/eye-sequence/0483.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-484" src="assets/eye-sequence/0484.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-485" src="assets/eye-sequence/0485.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-486" src="assets/eye-sequence/0486.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-487" src="assets/eye-sequence/0487.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-488" src="assets/eye-sequence/0488.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-489" src="assets/eye-sequence/0489.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-490" src="assets/eye-sequence/0490.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-491" src="assets/eye-sequence/0491.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-492" src="assets/eye-sequence/0492.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-493" src="assets/eye-sequence/0493.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-494" src="assets/eye-sequence/0494.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-495" src="assets/eye-sequence/0495.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-496" src="assets/eye-sequence/0496.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-497" src="assets/eye-sequence/0497.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-498" src="assets/eye-sequence/0498.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-499" src="assets/eye-sequence/0499.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-500" src="assets/eye-sequence/0500.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-501" src="assets/eye-sequence/0501.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-502" src="assets/eye-sequence/0502.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-503" src="assets/eye-sequence/0503.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-504" src="assets/eye-sequence/0504.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-505" src="assets/eye-sequence/0505.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-506" src="assets/eye-sequence/0506.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-507" src="assets/eye-sequence/0507.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-508" src="assets/eye-sequence/0508.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-509" src="assets/eye-sequence/0509.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-510" src="assets/eye-sequence/0510.webp" loading="lazy" width="1" height="1" alt="">
+  <img id="hero-frame-511" src="assets/eye-sequence/0511.webp" loading="lazy" width="1" height="1" alt="">
+</div>
 <div id="topShade" aria-hidden="true"></div>
 <canvas id="carCv" aria-hidden="true"></canvas>
 <div id="anatBg" aria-hidden="true"><div class="an-gr"></div></div>
@@ -181,6 +698,7 @@
 
 
 
+<script src="assets/hero-eyes.js?v=14"></script>
 <script src="assets/grid.js?v=1792760836"></script>
 <script src="assets/ripplegrid.js?v=1792761110"></script>
 <script src="assets/lieu-morph.js?v=1792900001"></script>
@@ -444,17 +962,18 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { he
   // 각 구간의 시작과 눌렀을 때 도착할 자리 (화면 높이 배수). 뒤의 장면은 해당 장면의 코드에서 위치를 받아 온다
   const target = {
     story: () => 11.75,                                                                     // 다크 스토리 : Here's how I came to be.
-    scenario: () => 29.5,                                                                   // 휴먼 터치 : A warm welcome. A quick heads-up. A gentle reminder.
     design: () => { const h = window.HumanTouch; return (h && h.T ? h.T.end[0] : 39.8) + 3.1; },   // 끝 장면 : So, I was made to move. (제목, 문단, 영상 자리가 모두 자리 잡은 때)
     mechanism: () => { const a = an(); return a ? a.AN + a.TL.parts + 1.2 : 66; }          // 부품 소개 : Motor 부터
   };
-  const starts = () => { const a = an(); return [['story', 11.0], ['scenario', 21.9], ['design', 39.7], ['mechanism', a ? a.AN + .45 : 57.5]]; };
+  // Human Touch belongs to Story. Scenario has no scene or scroll target yet.
+  const starts = () => { const a = an(); return [['story', 11.0], ['design', 39.7], ['mechanism', a ? a.AN + .45 : 57.5]]; };
   const links = [...nav.querySelectorAll('a')];
   let anim = 0, doneAt = -1e9;
   window.__navBusy = () => !!anim || performance.now() - doneAt < 400;   // 스냅이 이 값을 보고 기다린다
   const stop = () => { if (anim) { cancelAnimationFrame(anim); anim = 0; doneAt = performance.now(); } };
   ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(ev => addEventListener(ev, e => { if (anim && !(e.target.closest && e.target.closest('#gnav'))) stop(); }, { passive: true }));
   const goTo = k => {
+    if (!target[k]) return;
     stop();
     dispatchEvent(new WheelEvent('wheel'));   // 스페이스바 자동 스크롤이 켜져 있으면 먼저 끈다 (둘이 부딪히지 않도록)
     const y0 = scrollY, y1 = Math.min(target[k]() * vhs(), document.documentElement.scrollHeight - vhs()), d = Math.abs(y1 - y0); if (d < 4) return;
@@ -1283,13 +1802,9 @@ function frame(now) {
   // 로고(SVG/Thermal)는 잠시 숨김 → 제품 이미지 히어로
   if (!window.__thermalOn) glcv.style.display = 'none';
   const ht = window.__heroStart ? (performance.now() - window.__heroStart) / 1000 : -1;     // 오프닝이 열린 뒤부터
-  const rvl = Ease.inOutSine(prog(ht, 0, 2.8)), band = 70, edge = rvl * (100 + band);          // 아래에서부터 투명도가 차오르는 마스크
-  const hmask = `linear-gradient(to top, #000 ${(edge - band).toFixed(1)}%, rgba(0,0,0,0) ${edge.toFixed(1)}%)`;
-  if (hmask !== window.__hmask) { window.__hmask = hmask; heroEl.style.webkitMaskImage = hmask; heroEl.style.maskImage = hmask; }
-  heroEl.style.opacity = (rvl > 0 ? 1 : 0) * clamp(1 - scrollY / (innerHeight * .9));
+  if (window.LieuHero) window.LieuHero.update(performance.now(), ht);
   if (topShade) { topShade.style.opacity = ht > 0 ? clamp(1 - scrollY / (innerHeight * .9)) : 0; if (ht > 2.4 && topShade.style.transition !== 'none') topShade.style.transition = 'none'; }   // 사진과 함께 사라진다
   if (bgWord) bgWord.style.opacity = (Ease.inOutSine(prog(ht, .5, 2.8)) * clamp(1 - scrollY / (innerHeight * .8))).toFixed(3);   // 사진과 함께 서서히 나타나고, 스크롤하면 같이 사라진다
-  heroEl.style.transform = 'translate(-50%, 0)';          // 이미지는 고정 (페이드 인만)
   if (SHOW_SCENE) drawScene(dt);
   drawHey();
   ctx.globalAlpha = 1;
@@ -1546,11 +2061,12 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
   })();
 })();
 </script>
-<script src="assets/human-touch.js?v=82"></script>
+<script src="assets/human-touch.js?v=84"></script>
 <script src="assets/luminous.js?v=1"></script>
 <script src="assets/color-panel.js?v=2"></script>
 <script type="module" src="assets/car-scene.js?v=64"></script>
-<script type="module" src="assets/anatomy-scene.js?v=69"></script>
-<script type="module" src="assets/bento.js?v=31"></script>
+<script type="module" src="assets/cabin-scene.js?v=8"></script>
+<script type="module" src="assets/anatomy-scene.js?v=76"></script>
+<script type="module" src="assets/bento.js?v=52"></script>
 </body>
 </html>

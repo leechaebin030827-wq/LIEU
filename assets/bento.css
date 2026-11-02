@@ -1,0 +1,10 @@
+/* Reuse the existing Story / Human Touch typography and monochrome palette. */
+#bento .bn-cell{container-type:size}
+/* Blend only the rail layer, leaving the render and text colors intact. */
+#bento .bn-svg{mix-blend-mode:difference;pointer-events:none;z-index:2}
+#bento .bn-composition{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:var(--margin);color:#171A18;text-align:center}
+#bento .bn-dark .bn-composition{color:#F2F2F6}
+#bento .bn-quote-text{margin:0;font-family:var(--font-ui);font-size:min(var(--type-title-size),5.5cqw);font-weight:var(--type-title-w);line-height:var(--type-title-lh);letter-spacing:var(--type-title-track)}
+#bento .bn-quote-text span{display:block;white-space:nowrap}
+#bento .bn-identity{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff}
+#bento .bn-symbol-mark{display:block;width:min(46cqw,40cqh);height:min(38cqw,33cqh);overflow:visible}

@@ -30,6 +30,25 @@ root.innerHTML = '<div class="ht-probe" style="position:absolute;visibility:hidd
 document.body.appendChild(root);
 const bg = root.querySelector('.ht-bg'), rail = root.querySelector('.ht-rail'), cellsEl = root.querySelector('.ht-cells'), lt = root.querySelector('.ht-lt'), endEl = root.querySelector('.ht-end'), ehEl = endEl.children[0], epA = endEl.children[1], epB = endEl.children[2], vidEl = endEl.children[3]; let endKey = '', ehL = [], aL = [], bL = [], et = 0, endIn = 0;   // et : 끝 장면의 시간 (초). 스크롤은 방아쇠일 뿐, 모션은 시간으로 흐른다 (obys 처럼 stagger + power3.out)
 const promo = document.createElement('div'); promo.className = 'ht-promo'; cellsEl.after(promo);   // 16:9 프로모션 영상 자리 (검정)
+const promoVideo = document.createElement('video');
+promoVideo.src = 'assets/video/lieu-promotion-1102.mp4';
+promoVideo.poster = 'assets/video/lieu-promotion-1102.jpg';
+promoVideo.controls = true; promoVideo.muted = true; promoVideo.defaultMuted = true;
+promoVideo.playsInline = true; promoVideo.preload = 'none';
+promoVideo.setAttribute('aria-label', 'LIEU promotion film');
+promo.appendChild(promoVideo);
+let promoActive = false;
+const updatePromoPlayback = visible => {
+  const active = visible && !document.hidden;
+  if (active === promoActive) return;
+  promoActive = active;
+  if (active && !reduce) promoVideo.play().catch(() => {});
+  else promoVideo.pause();
+};
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) updatePromoPlayback(false);
+});
+
 const mk = (p, n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
 
 /* 허브 + 레일 */
@@ -162,13 +181,14 @@ function tick(now) {
   if (document.documentElement.lang !== LHlang) { LHlang = document.documentElement.lang; LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lh-head')) || 1.15; blocks.forEach(b => { b.fs = 0; }); }   // 언어가 바뀌면 행간 토큰(한글 130%)을 다시 읽는다
   if (vw !== innerWidth || vh !== innerHeight) metrics();   // 창 크기가 바뀌었는데 resize 이벤트가 오지 않는 경우도 따라간다
   const y = scrollY / (vh || 1);
-  if (y < T.show) { if (root.style.visibility !== 'hidden') root.style.visibility = 'hidden'; init = false; return; }
+  if (y < T.show) { updatePromoPlayback(false); if (root.style.visibility !== 'hidden') root.style.visibility = 'hidden'; init = false; return; }
   root.style.visibility = 'visible';
   bg.style.opacity = eio(seg(y, T.bg[0], T.bg[1])).toFixed(3);
   {   // 프로모션 영상 자리 : 16:9, 화면 높이의 74% 안에 들어오는 크기, 가운데 정렬
     const pw = Math.min(vw - 2 * mg, 1400, vh * .74 * 16 / 9), ph = pw * 9 / 16, yc = (vh - ph) / 2, ein = eio(seg(y, PRO.in[0], PRO.in[1])), eout = eio(seg(y, PRO.out[0], PRO.out[1]));
     const py = eout > 0 ? lerp(yc, -ph - 24, eout) : lerp(vh + 24, yc, ein), on = y > PRO.in[0] - .25 && y < PRO.out[1] + .25;
     promo.style.visibility = on ? 'visible' : 'hidden';
+    updatePromoPlayback(on && py < vh && py + ph > 0);
     if (on) { promo.style.width = pw.toFixed(1) + 'px'; promo.style.height = ph.toFixed(1) + 'px'; promo.style.transform = `translate3d(${((vw - pw) / 2).toFixed(1)}px,${py.toFixed(1)}px,0)`; }
   }
   rail.style.setProperty('--gl', bg.style.opacity); gridLines.forEach(l => { l.style.opacity = bg.style.opacity; });
@@ -296,5 +316,5 @@ function tick(now) {
 }
 requestAnimationFrame(tick);
 
-window.HumanTouch = { setText, T };
+window.HumanTouch = { setText, T, vidEl };
 })();

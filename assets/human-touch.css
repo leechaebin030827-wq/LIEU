@@ -49,3 +49,7 @@
 #ht .ht-eh .ch.sp{width:.26em}
 #ht .ht-ep .tx>span{white-space:nowrap}
 #ht .ht-vid{position:absolute;left:0;top:0;background:#E4E5E8;border-radius:6px;opacity:0}
+
+/* Original promotion film inside the existing 16:9 frame. */
+#ht .ht-promo{overflow:hidden;pointer-events:auto}
+#ht .ht-promo video{display:block;width:100%;height:100%;object-fit:contain;background:#000;pointer-events:auto}
