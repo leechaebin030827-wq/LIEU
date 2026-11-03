@@ -1,0 +1,11 @@
+/* Reuse the existing end-scene typography, spacing and cabin presentation. */
+#scenario{position:fixed;inset:0;z-index:12;visibility:hidden;overflow:hidden;pointer-events:none;background:#fff;color:var(--ink);font-family:var(--font-ui);will-change:transform}
+#scenario .scenario-title{position:absolute;left:var(--margin);right:var(--margin);top:14%;font-weight:var(--w-regular);font-size:clamp(24px,2.5vw,40px);line-height:var(--lh-head);letter-spacing:var(--track-head);margin:0;word-break:keep-all}
+#scenario .scenario-label{position:absolute;left:var(--margin);top:9%;font:var(--w-regular) 11px/var(--lh-label) var(--font-ui);letter-spacing:var(--track-label);color:rgba(23,26,24,.55)}
+#scenario .scenario-cabin{position:absolute;overflow:hidden;background:#E4E5E8;border-radius:6px;opacity:1}
+/* Existing label/body scale and difference treatment, over the original scene. */
+#scenario .scenario-caption{position:absolute;left:var(--margin);bottom:calc(var(--margin) + 56px);max-width:390px;color:#fff;mix-blend-mode:difference;pointer-events:none;opacity:0}
+#scenario .scenario-number{font:var(--w-regular) 11px/var(--lh-label) var(--font-ui);letter-spacing:var(--track-label);margin-bottom:var(--s-3,16px);opacity:.6}
+#scenario .scenario-heading{font-weight:var(--w-regular);font-size:clamp(24px,2.5vw,40px);line-height:var(--lh-head);letter-spacing:var(--track-head)}
+#scenario .scenario-description{margin-top:var(--s-3,16px);font-size:clamp(13px,.95vw,15px);line-height:1.5;letter-spacing:var(--track-body);opacity:.7;max-width:26em}
+@media(max-width:640px){#scenario .scenario-caption{bottom:100px;max-width:75%}.scenario-description{max-width:22em}}

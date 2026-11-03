@@ -179,10 +179,10 @@ if (root) {
       video.style.objectPosition = clip.position || 'center center';
       Object.assign(video.style, { left: '0px', top: '0px', width: '100%', height: '100%' });
       // Environmental shots include floor shadows; don't turn those shadows
-      // into a dark letterbox. Blend only the empty outer floor into white.
+      // into a dark letterbox. Keep product bottoms opaque: the projector can reach the frame edge.
       video.style.maskImage = /environment/.test(clip.src)
         ? 'none'
-        : /projector|pillar/.test(clip.src) ? 'linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 95%, transparent 100%)' : 'none';
+        : /projector|pillar/.test(clip.src) ? 'linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%)' : 'none';
       video.style.maskComposite = 'intersect';
       if (!calm) video.src = clip.src;
     };

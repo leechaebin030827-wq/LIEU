@@ -1,0 +1,5 @@
+{
+  "remy.glb": {"source": "User supplied Remy.fbx", "rig": "Mixamo", "animation": "Basic pose only; seated pose and gestures authored in scenario-actors.js"},
+  "ch22.glb": {"source": "User supplied Ch22_nonPBR.fbx", "rig": "Mixamo", "animation": "Basic pose only; seated pose and gestures authored in scenario-actors.js"},
+  "conversion": "Blender FBX import and GLB export; original skinning retained, textures removed for existing black silhouette treatment"
+}

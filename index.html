@@ -138,6 +138,8 @@
   #gnb,.gnav,.langpop{transition:opacity .9s ease .5s}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<link rel="stylesheet" href="assets/scenario.css?v=3">
+<link rel="stylesheet" href="assets/footer.css?v=3">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -154,7 +156,7 @@
     <a href="#story" data-go="story" data-sw><span class="gl">Story</span></a>
     <a href="#design" data-go="design" data-sw><span class="gl">Design</span></a>
     <a href="#mechanism" data-go="mechanism" data-sw><span class="gl">Mechanism</span></a>
-    <a data-go="scenario" data-sw role="link" aria-disabled="true" tabindex="-1"><span class="gl">Scenario</span></a>
+    <a data-go="scenario" data-sw href="#scenario"><span class="gl">Scenario</span></a>
   </nav>
 <div class="langpop" id="langPop">
 <ul id="langMenu" role="menu" aria-label="Language">
@@ -963,10 +965,11 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { he
   const target = {
     story: () => 11.75,                                                                     // 다크 스토리 : Here's how I came to be.
     design: () => { const h = window.HumanTouch; return (h && h.T ? h.T.end[0] : 39.8) + 3.1; },   // 끝 장면 : So, I was made to move. (제목, 문단, 영상 자리가 모두 자리 잡은 때)
+    scenario: () => window.Scenario ? window.Scenario.start + 1.6 : 88,
     mechanism: () => { const a = an(); return a ? a.AN + a.TL.parts + 1.2 : 66; }          // 부품 소개 : Motor 부터
   };
-  // Human Touch belongs to Story. Scenario has no scene or scroll target yet.
-  const starts = () => { const a = an(); return [['story', 11.0], ['design', 39.7], ['mechanism', a ? a.AN + .45 : 57.5]]; };
+  // Human Touch remains Story; interaction scenarios follow Mechanism.
+  const starts = () => { const a = an(); return [['story', 11.0], ['design', 39.7], ['mechanism', a ? a.AN + .45 : 57.5], ['scenario', window.Scenario ? window.Scenario.start : 87]]; };
   const links = [...nav.querySelectorAll('a')];
   let anim = 0, doneAt = -1e9;
   window.__navBusy = () => !!anim || performance.now() - doneAt < 400;   // 스냅이 이 값을 보고 기다린다
@@ -2065,8 +2068,9 @@ window.__lieu = { AUR: AUR_PROPS, aur, select, freeze(v, i) { if (i != null) sta
 <script src="assets/luminous.js?v=1"></script>
 <script src="assets/color-panel.js?v=2"></script>
 <script type="module" src="assets/car-scene.js?v=64"></script>
-<script type="module" src="assets/cabin-scene.js?v=8"></script>
-<script type="module" src="assets/anatomy-scene.js?v=76"></script>
-<script type="module" src="assets/bento.js?v=52"></script>
+<script type="module" src="assets/cabin-scene.js?v=18"></script>
+<script type="module" src="assets/anatomy-scene.js?v=79"></script>
+<script type="module" src="assets/bento.js?v=53"></script>
+<script type="module" src="assets/scenario.js?v=16"></script>
 </body>
 </html>

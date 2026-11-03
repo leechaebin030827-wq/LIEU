@@ -5,10 +5,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { addScenarioActors } from './scenario-actors.js?v=8';
+import { loadSourceRobot } from './scenario-robot.js?v=4';
 import { createGrainient } from './grainient.js?v=1';
 
-const slot = window.HumanTouch && window.HumanTouch.vidEl;
-if (slot) {
+export function createCabinScene(slot, { editable = true, interaction = false, progress = () => 0, director = null } = {}) {
+if (!slot) return;
   slot.style.background = '#161616'; slot.style.overflow = 'hidden';
   const gr = document.createElement('div'); gr.style.cssText = 'position:absolute;inset:0'; slot.appendChild(gr);
   const grain = createGrainient(gr, { colors: ['#161616', '#444444', '#8a8a8a', '#d6d6d6'], angle: 55, flow: .6, silk: .3, grainAmount: .012, grainSize: 1, speed: 1, contrast: 1.05, interactive: true, stir: 1, clickSwirl: true, intro: false });
@@ -20,11 +22,20 @@ if (slot) {
   const key = new THREE.DirectionalLight(0xffffff, .8); key.position.set(-.6, 1, .8); scene.add(key);
   const sil = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, toneMapped: false });   // 완전한 검정 실루엣 (조명 없음)
   const draco = new DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
-  let ready = false;
+  let ready = false, actors = null, robot = null, signals = null, cabinCenter = new THREE.Vector3();
   new GLTFLoader().setDRACOLoader(draco).load('assets/cabin.glb?v=4', g => {
     g.scene.traverse(o => { if (o.isMesh) o.material = sil; });
     const box = new THREE.Box3().setFromObject(g.scene), c = box.getCenter(new THREE.Vector3());
-    g.scene.position.sub(c); pivot.add(g.scene); ready = true;
+    g.scene.position.sub(c); pivot.add(g.scene); cabinCenter.copy(c);
+    if (interaction) {
+      const dev = g.scene.getObjectByName('dev');
+      if(dev) dev.removeFromParent();
+      loadSourceRobot(pivot,c,sil).then(value=>{robot=value;}).catch(error=>console.error('LIEU source model',error));
+      const people = new THREE.Group(); people.position.copy(g.scene.position);pivot.add(people);
+      actors = addScenarioActors(people, sil);
+      if(director) signals=director.createSignals(pivot,c);
+    }
+    ready = true;
   });
   /* ── 구도 : V 키로 편집 모드. 드래그 = 회전, Shift + 드래그 = 이동, 휠 또는 + - = 확대, Enter = 저장, R = 처음으로, Esc = 취소.
         저장한 구도는 이 브라우저에 남고, 그 구도 둘레에서 아주 천천히 숨 쉬듯 움직인다 ── */
@@ -37,6 +48,7 @@ if (slot) {
   window.__cabinCam = () => JSON.stringify(cam);
   addEventListener('keydown', e => {
     if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+    if (!editable) return;
     if (!edit) { if (e.key === 'v' || e.key === 'V') setEdit(true); return; }
     if (e.key === 'Enter') { try { localStorage.setItem(LS, JSON.stringify(cam)); } catch (x) { /* 저장 못 해도 계속 */ } console.log('cabin cam', JSON.stringify(cam)); setEdit(false); }
     else if (e.key === 'Escape') { cam = backup; setEdit(false); }
@@ -67,7 +79,17 @@ if (slot) {
     const az = pose.az + Math.sin(t * .31) * .035 * k, el = pose.el + Math.sin(t * .23 + 1.3) * .012 * k, d = pose.d * (1 + Math.sin(t * .17 + .6) * .01 * k);   // 아주 느리고 작게 : 숨 쉬듯
     camera.position.set(Math.sin(az) * Math.cos(el) * d, Math.sin(el) * d, Math.cos(az) * Math.cos(el) * d); camera.lookAt(0, -.02, 0);
     camera.translateX(pose.px); camera.translateY(pose.py);   // 이동 : 보는 방향은 그대로 두고 화면 안에서 밀기
+    if(actors){
+      if(director){
+        const state=director.scenarioState(progress());actors.update(progress(),state);
+        if(robot) robot.update(state,director.sample);
+        if(signals)signals.update(state);
+        director.directCamera(camera,cabinCenter,state,(progress()-1.6)/1.4);
+      }else{actors.update(progress());}
+    }
     renderer.render(scene, camera);
   };
   requestAnimationFrame(tick);
 }
+
+createCabinScene(window.HumanTouch && window.HumanTouch.vidEl);

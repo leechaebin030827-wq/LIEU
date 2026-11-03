@@ -87,7 +87,7 @@ if (cv && ui) {
   const SCAN_GLOW = false;   // true : 스캔선에 파란 원판 · 테두리 · 둘레 빛을 보인다 (지금은 끔)
   const uScan = { value: 1 };                                      // 스캔선의 월드 높이(m). 아래 solid · 위 엑스레이
   const scanPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1);   // y < 스캔선 만 남긴다
-  const CONTEXT_INK = new THREE.Color('#737d88');
+  const CONTEXT_INK = new THREE.Color('#888888');
   const SLATE = new THREE.Color('#888888'), INK = new THREE.Color('#191919'), ACCENT = new THREE.Color('#262626'), BAND = new THREE.Color('#606060');
   const vert = `varying vec3 vN; varying vec3 vV; varying float vWy;
     void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; vWy = (modelMatrix * vec4(position, 1.0)).y; gl_Position = projectionMatrix * mv; }`;
@@ -283,7 +283,7 @@ if (cv && ui) {
     if (ev) AN = (bn ? bn.SCROLL0 : 43.9) + (ev.y + ev.h + innerHeight * .1) / innerHeight + (bn ? bn.HOLD : 10) + .6;
     const y = scrollY / (innerHeight || 1), t = typeof window.__anatTS === 'number' ? window.__anatTS : y - AN;   // __anatTS : 디버그용으로 장면 진행값을 고정한다
     if ((y > AN - 8 || typeof window.__anatTS === 'number') && !loading) load();
-    const on = t > -4.6 && ready;   // 끝 장면의 영상 자리가 올라가기 시작할 때부터 렌더 이미지 틀이 아래에서 올라온다
+    const on = t > -4.6 && ready && (!window.Scenario || y < window.Scenario.start + 1.3);   // 끝 장면의 영상 자리가 올라가기 시작할 때부터 렌더 이미지 틀이 아래에서 올라온다
     if (on !== activeNow) { activeNow = on; cv.style.visibility = ui.style.visibility = on ? 'visible' : 'hidden'; if (!on && bgEl) { bgEl.style.visibility = 'hidden'; if (grain) grain.setVisible(false); } }
     if (!on) return;
     tS = tS < -8 ? t : tS + (t - tS) * (1 - Math.exp(-dt * 9));   // 스크롤이 급해도 한 박자 부드럽게 따라간다
